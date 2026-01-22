@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
+import random
 from dataclasses import dataclass
 from types import MappingProxyType
 
@@ -35,6 +36,7 @@ class Agent:
         self._n_proximal_calls = 0
         cost.function = self._call_counting_function  # type: ignore[method-assign]
         cost.gradient = self._call_counting_gradient  # type: ignore[method-assign]
+        cost.stochastic_gradient = self._call_counting_stochastic_gradient  # type: ignore[method-assign]
         cost.hessian = self._call_counting_hessian  # type: ignore[method-assign]
         cost.proximal = self._call_counting_proximal  # type: ignore[method-assign]
 
@@ -123,6 +125,16 @@ class Agent:
     def _call_counting_gradient(self, x: Array) -> Array:
         self._n_gradient_calls += 1
         return self._cost.__class__.gradient(self.cost, x)
+
+    def _call_counting_stochastic_gradient(
+        self,
+        x: Array,
+        batch_indices: Sequence[int] | Array | None = None,
+        batch_size: int | None = None,
+        rng: random.Random | None = None,
+    ) -> Array:
+        self._n_gradient_calls += 1
+        return self._cost.__class__.stochastic_gradient(self.cost, x, batch_indices, batch_size, rng)
 
     def _call_counting_hessian(self, x: Array) -> Array:
         self._n_hessian_calls += 1

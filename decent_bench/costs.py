@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
+import random
 from functools import cached_property
 
 import numpy as np
@@ -13,6 +15,27 @@ import decent_bench.centralized_algorithms as ca
 import decent_bench.utils.interoperability as iop
 from decent_bench.utils.array import Array
 from decent_bench.utils.types import SupportedDevices, SupportedFrameworks
+
+
+def _resolve_batch_indices(
+    n_samples: int,
+    batch_indices: Sequence[int] | Array | None,
+    batch_size: int | None,
+    rng: random.Random | None,
+) -> NDArray[float64] | None:
+    if batch_indices is not None and batch_size is not None:
+        raise ValueError("Provide either batch_indices or batch_size, not both")
+    if batch_indices is not None:
+        idx = np.asarray(batch_indices, dtype=int).ravel()
+        if idx.size == 0:
+            raise ValueError("batch_indices must be non-empty")
+        return idx
+    if batch_size is None:
+        return None
+    if batch_size <= 0:
+        raise ValueError("batch_size must be positive")
+    rng = rng or random.Random()
+    return np.asarray([rng.randrange(n_samples) for _ in range(batch_size)], dtype=int)
 
 
 class Cost(ABC):
@@ -106,6 +129,30 @@ class Cost(ABC):
     @abstractmethod
     def gradient(self, x: Array) -> Array:
         """Gradient at x."""
+
+    @abstractmethod
+    def stochastic_gradient(
+        self,
+        x: Array,
+        batch_indices: Sequence[int] | Array | None = None,
+        batch_size: int | None = None,
+        rng: random.Random | None = None,
+    ) -> Array:
+        """
+        Stochastic gradient at x over a minibatch.
+
+        Args:
+            x: point at which to evaluate the gradient
+            batch_indices: indices of samples in the minibatch
+            batch_size: minibatch size, ignored if ``batch_indices`` is provided
+            rng: random number generator used to sample minibatches
+
+        Note:
+            Implementations should return the average gradient over the minibatch so that the update step is
+            consistent across batch sizes. If both ``batch_indices`` and ``batch_size`` are ``None``, the full
+            dataset should be used.
+
+        """
 
     @abstractmethod
     def hessian(self, x: Array) -> Array:
@@ -231,6 +278,17 @@ class QuadraticCost(Cost):
 
         .. math:: \frac{1}{2} (\mathbf{A}+\mathbf{A}^T)\mathbf{x} + \mathbf{b}
         """
+        return self.A_sym @ x + self.b
+
+    @iop.autodecorate_cost_method(Cost.stochastic_gradient)
+    def stochastic_gradient(
+        self,
+        x: NDArray[float64],
+        batch_indices: Sequence[int] | Array | None = None,
+        batch_size: int | None = None,
+        rng: random.Random | None = None,
+    ) -> NDArray[float64]:  # noqa: ARG002
+        """Stochastic gradient (same as full gradient for quadratic costs)."""
         return self.A_sym @ x + self.b
 
     @iop.autodecorate_cost_method(Cost.hessian)
@@ -369,6 +427,28 @@ class LinearRegressionCost(Cost):
         """
         return self.inner.gradient(x)
 
+    @iop.autodecorate_cost_method(Cost.stochastic_gradient)
+    def stochastic_gradient(
+        self,
+        x: NDArray[float64],
+        batch_indices: Sequence[int] | Array | None = None,
+        batch_size: int | None = None,
+        rng: random.Random | None = None,
+    ) -> NDArray[float64]:
+        """
+        Stochastic gradient at x using a minibatch.
+
+        Returns the average gradient over the minibatch. If batch_indices is None, uses the full dataset.
+        """
+        A = iop.to_numpy(self.A)
+        b = iop.to_numpy(self.b)
+        idx = _resolve_batch_indices(A.shape[0], batch_indices, batch_size, rng)
+        if idx is None:
+            return (A.T @ (A @ x - b)) / A.shape[0]
+        A_b = A[idx]
+        b_b = b[idx]
+        return (A_b.T @ (A_b @ x - b_b)) / idx.size
+
     def hessian(self, x: Array) -> Array:
         r"""
         Hessian at x.
@@ -484,6 +564,28 @@ class LogisticRegressionCost(Cost):
         res: NDArray[float64] = self.A.T.dot(sig - self.b)
         return res
 
+    @iop.autodecorate_cost_method(Cost.stochastic_gradient)
+    def stochastic_gradient(
+        self,
+        x: NDArray[float64],
+        batch_indices: Sequence[int] | Array | None = None,
+        batch_size: int | None = None,
+        rng: random.Random | None = None,
+    ) -> NDArray[float64]:
+        """
+        Stochastic gradient at x using a minibatch.
+
+        Returns the average gradient over the minibatch. If batch_indices is None, uses the full dataset.
+        """
+        idx = _resolve_batch_indices(self.A.shape[0], batch_indices, batch_size, rng)
+        if idx is None:
+            sig = special.expit(self.A.dot(x))
+            return self.A.T.dot(sig - self.b) / self.A.shape[0]
+        A_b = self.A[idx]
+        b_b = self.b[idx]
+        sig = special.expit(A_b.dot(x))
+        return A_b.T.dot(sig - b_b) / idx.size
+
     @iop.autodecorate_cost_method(Cost.hessian)
     def hessian(self, x: NDArray[float64]) -> NDArray[float64]:
         r"""
@@ -595,6 +697,19 @@ class SumCost(Cost):
     def gradient(self, x: Array) -> Array:
         """Sum the :meth:`gradient` of each cost function."""
         return iop.sum(iop.stack([cf.gradient(x) for cf in self.costs]), dim=0)
+
+    def stochastic_gradient(
+        self,
+        x: Array,
+        batch_indices: Sequence[int] | Array | None = None,
+        batch_size: int | None = None,
+        rng: random.Random | None = None,
+    ) -> Array:
+        """Sum the :meth:`stochastic_gradient` of each cost function."""
+        return iop.sum(
+            iop.stack([cf.stochastic_gradient(x, batch_indices, batch_size, rng) for cf in self.costs]),
+            dim=0,
+        )
 
     def hessian(self, x: Array) -> Array:
         """Sum the :meth:`hessian` of each cost function."""

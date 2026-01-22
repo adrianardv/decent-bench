@@ -1,9 +1,9 @@
 import decent_bench.utils.interoperability as iop
-from decent_bench.networks import P2PNetwork
+from decent_bench.networks import Network
 from decent_bench.utils.array import Array
 
 
-def zero_initialization(x0: Array | None, network: P2PNetwork, stacked_copies: int | None = None) -> Array:
+def zero_initialization(x0: Array | None, network: Network, stacked_copies: int | None = None) -> Array:
     """
     Initialize the variable to zero if x0 is None.
 
@@ -11,7 +11,7 @@ def zero_initialization(x0: Array | None, network: P2PNetwork, stacked_copies: i
 
     Args:
         x0 (Array | None): optional initial variable
-        network (P2PNetwork): peer-to-peer network
+        network (Network): network providing agent context
         stacked_copies (int | None): how many times to stack the variable
 
     Returns:
@@ -36,7 +36,7 @@ def zero_initialization(x0: Array | None, network: P2PNetwork, stacked_copies: i
 
 def randn_initialization(
     x0: Array | None,
-    network: P2PNetwork,
+    network: Network,
     stacked_copies: int | None = None,
     mean: float = 0.0,
     std: float = 1.0,
@@ -48,7 +48,7 @@ def randn_initialization(
 
     Args:
         x0 (Array | None): optional initial variable
-        network (P2PNetwork): peer-to-peer network
+        network (Network): network providing agent context
         stacked_copies (int | None): how many times to stack the variable
         mean (float): mean for random values
         std (float): standard deviation for random values
