@@ -1,11 +1,11 @@
 import random
-from abc import ABC, abstractmethod
-from collections.abc import Callable, Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, final
+from typing import TYPE_CHECKING
 
 import decent_bench.utils.algorithm_helpers as alg_helpers
 import decent_bench.utils.interoperability as iop
+from decent_bench.algorithms.decentralized.base_decentralized_algorithm import DecAlgorithm
 from decent_bench.networks import FedNetwork
 from decent_bench.schemes import ClientSelectionScheme, UniformClientSelection
 
@@ -14,81 +14,11 @@ if TYPE_CHECKING:
     from decent_bench.utils.array import Array
 
 
-class Algorithm(ABC):
+class FedAlgorithm(DecAlgorithm[FedNetwork]):
     """Federated algorithm - clients collaborate via a central server."""
 
-    @property
-    @abstractmethod
-    def iterations(self) -> int:
-        """Number of rounds to run the algorithm for."""
-
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """Name of the algorithm."""
-
-    @abstractmethod
-    def initialize(self, network: FedNetwork) -> None:
-        """
-        Initialize the algorithm.
-
-        Args:
-            network: provides clients and server
-
-        """
-
-    @abstractmethod
-    def step(self, network: FedNetwork, iteration: int) -> None:
-        """
-        Perform one round of the algorithm.
-
-        Args:
-            network: provides clients and server
-            iteration: current round number
-
-        """
-
-    def finalize(self, network: FedNetwork) -> None:
-        """
-        Finalize the algorithm.
-
-        Note:
-            Override method as needed.
-            Does not need to be implemented if no finalization is required.
-            By default it is used to clean up auxiliary variables to free memory.
-
-        Args:
-            network: provides clients and server
-
-        """
-        for agent in [network.server, *network.clients]:
-            if agent.aux_vars is not None:
-                agent.aux_vars.clear()
-
-    @final
-    def run(self, network: FedNetwork, progress_callback: Callable[[int], None] | None = None) -> None:
-        """
-        Run the algorithm.
-
-        Note:
-            This method first calls :meth:`initialize`, then :meth:`step` for the specified number of iterations
-            and finally :meth:`finalize`.
-
-        Warning:
-            Do not override this method. Instead, override :meth:`initialize`, :meth:`step` and :meth:`finalize`
-            as needed.
-
-        Args:
-            network: provides clients and server
-            progress_callback: optional callback to report progress after each round.
-
-        """
-        self.initialize(network)
-        for k in range(self.iterations):
-            self.step(network, k)
-            if progress_callback is not None:
-                progress_callback(k)
-        self.finalize(network)
+    def _finalize_agents(self, network: FedNetwork) -> Iterable["Agent"]:
+        return [network.server, *network.clients]
 
     @staticmethod
     def _select_clients(
@@ -151,7 +81,7 @@ class Algorithm(ABC):
 
 
 @dataclass(eq=False)
-class FedAvg(Algorithm):
+class FedAvg(FedAlgorithm):
     r"""
     Federated Averaging (FedAvg) with local SGD epochs.
 

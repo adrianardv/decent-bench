@@ -11,7 +11,7 @@ from numpy import float64
 from numpy.typing import NDArray
 from scipy import special
 
-import decent_bench.centralized_algorithms as ca
+import decent_bench.algorithms.centralized.centralized_algorithms as ca
 import decent_bench.utils.interoperability as iop
 from decent_bench.utils.array import Array
 from decent_bench.utils.types import SupportedDevices, SupportedFrameworks
@@ -168,7 +168,7 @@ class Cost(ABC):
         .. include:: snippets/proximal_operator.rst
 
         If the cost function's proximal does not have a closed form solution, it can be solved iteratively using
-        :meth:`~decent_bench.centralized_algorithms.proximal_solver`.
+        :meth:`~decent_bench.algorithms.centralized.centralized_algorithms.proximal_solver`.
         """
 
     @abstractmethod

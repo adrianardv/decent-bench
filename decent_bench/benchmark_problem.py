@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 import networkx as nx
 
-import decent_bench.centralized_algorithms as ca
+import decent_bench.algorithms.centralized.centralized_algorithms as ca
 from decent_bench.costs import Cost, LinearRegressionCost, LogisticRegressionCost
 from decent_bench.datasets import SyntheticClassificationData
 from decent_bench.schemes import (

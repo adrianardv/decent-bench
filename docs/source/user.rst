@@ -20,7 +20,7 @@ Benchmark algorithms on a regression problem without any communication constrain
 
     from decent_bench import benchmark, benchmark_problem
     from decent_bench.costs import LinearRegressionCost
-    from decent_bench.distributed_algorithms import ADMM, DGD
+    from decent_bench.algorithms.decentralized.p2p.p2p_algorithms import ADMM, DGD
 
     if __name__ == "__main__":
         benchmark.benchmark(
@@ -54,7 +54,7 @@ Configure settings for metrics, trials, statistical confidence level, logging, a
 
     from decent_bench import benchmark, benchmark_problem
     from decent_bench.costs import LinearRegressionCost
-    from decent_bench.distributed_algorithms import ADMM, DGD
+    from decent_bench.algorithms.decentralized.p2p.p2p_algorithms import ADMM, DGD
     from decent_bench.metrics.plot_metrics import RegretPerIteration
     from decent_bench.metrics.table_metrics import GradientCalls
 
@@ -89,7 +89,7 @@ Configure communication constraints and other settings for out-of-the-box regres
 
     from decent_bench import benchmark, benchmark_problem
     from decent_bench.costs import LinearRegressionCost
-    from decent_bench.distributed_algorithms import ADMM, DGD, ED
+    from decent_bench.algorithms.decentralized.p2p.p2p_algorithms import ADMM, DGD, ED
 
     problem = benchmark_problem.create_regression_problem(
         LinearRegressionCost,
@@ -123,7 +123,7 @@ Change the settings of an already created benchmark problem, for example, the ne
 
     from decent_bench import benchmark, benchmark_problem
     from decent_bench.costs import LinearRegressionCost
-    from decent_bench.distributed_algorithms import ADMM, DGD, ED
+    from decent_bench.algorithms.decentralized.p2p.p2p_algorithms import ADMM, DGD, ED
 
     n_agents = 100
     n_neighbors_per_agent = 3
@@ -160,11 +160,11 @@ Create a custom benchmark problem using existing resources.
     import networkx as nx
 
     from decent_bench import benchmark
-    from decent_bench import centralized_algorithms as ca
+    from decent_bench.algorithms.centralized import centralized_algorithms as ca
     from decent_bench.benchmark_problem import BenchmarkProblem
     from decent_bench.costs import LogisticRegressionCost
     from decent_bench.datasets import SyntheticClassificationData
-    from decent_bench.distributed_algorithms import ADMM, DGD, ED
+    from decent_bench.algorithms.decentralized.p2p.p2p_algorithms import ADMM, DGD, ED
     from decent_bench.schemes import GaussianNoise, Quantization, UniformActivationRate, UniformDropRate
     from decent_bench.utils.types import SupportedFrameworks
     from decent_bench.utils.types import SupportedFrameworks
@@ -217,11 +217,11 @@ corresponding abstracts.
     import networkx as nx
 
     from decent_bench import benchmark
-    from decent_bench import centralized_algorithms as ca
+    from decent_bench.algorithms.centralized import centralized_algorithms as ca
     from decent_bench.benchmark_problem import BenchmarkProblem
     from decent_bench.costs import Cost
     from decent_bench.datasets import Dataset
-    from decent_bench.distributed_algorithms import DGD, SimpleGT
+    from decent_bench.algorithms.decentralized.p2p.p2p_algorithms import DGD, SimpleGT
     from decent_bench.schemes import AgentActivationScheme, CompressionScheme, DropScheme, NoiseScheme
 
     class MyDataset(Dataset): ...
@@ -293,7 +293,7 @@ algorithms framework-agnostic, always use the interoperability layer :class:`~de
 
 - Use :class:`decent_bench.utils.interoperability.zeros` instead of framework-specific constructors (e.g., `np.zeros`, `torch.zeros`). 
     Other examples are :meth:`~decent_bench.utils.interoperability.ones_like`, :meth:`~decent_bench.utils.interoperability.rand_like`, :meth:`~decent_bench.utils.interoperability.randn_like`, etc.
-    See :mod:`~decent_bench.utils.interoperability` for a full list of available methods and :mod:`~decent_bench.distributed_algorithms` for examples of usage.
+    See :mod:`~decent_bench.utils.interoperability` for a full list of available methods and :mod:`~decent_bench.algorithms.decentralized.p2p.p2p_algorithms` for examples of usage.
 - Avoid calling any framework-specific functions directly within your algorithm. 
     Let the :class:`~decent_bench.costs.Cost` implementations handle framework-specific details for 
     :func:`~decent_bench.costs.Cost.function`, :func:`~decent_bench.costs.Cost.gradient`, :func:`~decent_bench.costs.Cost.hessian`, and :func:`~decent_bench.costs.Cost.proximal`.
@@ -305,7 +305,7 @@ Algorithms
 ----------
 Create a new algorithm to benchmark against existing ones.
 
-When implementing a custom algorithm by subclassing :class:`~decent_bench.distributed_algorithms.Algorithm`, you need to understand the following methods:
+When implementing a custom algorithm by subclassing :class:`~decent_bench.algorithms.decentralized.p2p.p2p_algorithms.P2PAlgorithm`, you need to understand the following methods:
 
 - **initialize(network)**: Called once before the algorithm starts. Use this to set up initial values for agents' primal variables (:attr:`Agent.x <decent_bench.agents.Agent.x>`), auxiliary variables (:attr:`Agent.aux_vars <decent_bench.agents.Agent.aux_vars>`), and received messages (:attr:`Agent.messages <decent_bench.agents.Agent.messages>`). **Implementation required.**
     If you want the agents' primal variable to be a customizable parameter to the algorithm, consider using a field like ``x0: Array | None = None`` in your algorithm class.
@@ -317,7 +317,7 @@ When implementing a custom algorithm by subclassing :class:`~decent_bench.distri
 
 - **finalize(network)**: Called once after all iterations complete. Use this for cleanup operations like clearing auxiliary variables to free memory. **Implementation optional** - the default implementation clears all auxiliary variables.
 
-- **run(network)**: Orchestrates the full algorithm execution by calling :meth:`initialize <decent_bench.distributed_algorithms.Algorithm.initialize>`, then :meth:`step <decent_bench.distributed_algorithms.Algorithm.step>` for each iteration, and finally :meth:`finalize <decent_bench.distributed_algorithms.Algorithm.finalize>`. **You should NOT implement this** - it is already provided by the base :class:`~decent_bench.distributed_algorithms.Algorithm` class.
+- **run(network)**: Orchestrates the full algorithm execution by calling :meth:`initialize <decent_bench.algorithms.decentralized.p2p.p2p_algorithms.P2PAlgorithm.initialize>`, then :meth:`step <decent_bench.algorithms.decentralized.p2p.p2p_algorithms.P2PAlgorithm.step>` for each iteration, and finally :meth:`finalize <decent_bench.algorithms.decentralized.p2p.p2p_algorithms.P2PAlgorithm.finalize>`. **You should NOT implement this** - it is already provided by the base :class:`~decent_bench.algorithms.decentralized.p2p.p2p_algorithms.P2PAlgorithm` class.
 
 **Note**: In order for metrics to work, use :attr:`Agent.x <decent_bench.agents.Agent.x>` to update the local primal
 variable **once** every iteration. If you need to perform multiple updates within an iteration, consider accumulating them and applying a single update at the end of the iteration. 
@@ -333,7 +333,7 @@ In :class:`~decent_bench.networks.FedNetwork`, :meth:`~decent_bench.networks.Net
     import decent_bench.utils.interoperability as iop
     from decent_bench import benchmark, benchmark_problem
     from decent_bench.costs import LinearRegressionCost
-    from decent_bench.distributed_algorithms import ADMM, DGD, Algorithm
+    from decent_bench.algorithms.decentralized.p2p.p2p_algorithms import ADMM, DGD, P2PAlgorithm
     from decent_bench.networks import P2PNetwork
     from decent_bench.utils.array import Array
 
@@ -401,7 +401,7 @@ Create your own metrics to tabulate and/or plot.
     from decent_bench.agents import AgentMetricsView
     from decent_bench.benchmark_problem import BenchmarkProblem
     from decent_bench.costs import LinearRegressionCost
-    from decent_bench.distributed_algorithms import ADMM, DGD
+    from decent_bench.algorithms.decentralized.p2p.p2p_algorithms import ADMM, DGD
     from decent_bench.metrics.plot_metrics import DEFAULT_PLOT_METRICS, PlotMetric, X, Y
     from decent_bench.metrics.table_metrics import DEFAULT_TABLE_METRICS, TableMetric
 
@@ -514,3 +514,5 @@ compatibility with the selected framework and device of your custom cost.
                 raise ValueError(f"Mismatching domain shapes: {self.shape} vs {other.shape}")
 
             return SumCost([self, other])
+
+
