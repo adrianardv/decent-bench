@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import random
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-import random
 from functools import cached_property
 
 import numpy as np
@@ -287,8 +287,9 @@ class QuadraticCost(Cost):
         batch_indices: Sequence[int] | Array | None = None,
         batch_size: int | None = None,
         rng: random.Random | None = None,
-    ) -> NDArray[float64]:  # noqa: ARG002
+    ) -> NDArray[float64]:
         """Stochastic gradient (same as full gradient for quadratic costs)."""
+        _ = (batch_indices, batch_size, rng)
         return self.A_sym @ x + self.b
 
     @iop.autodecorate_cost_method(Cost.hessian)
@@ -440,14 +441,17 @@ class LinearRegressionCost(Cost):
 
         Returns the average gradient over the minibatch. If batch_indices is None, uses the full dataset.
         """
-        A = iop.to_numpy(self.A)
+        a = iop.to_numpy(self.A)
         b = iop.to_numpy(self.b)
-        idx = _resolve_batch_indices(A.shape[0], batch_indices, batch_size, rng)
+        idx = _resolve_batch_indices(a.shape[0], batch_indices, batch_size, rng)
+        res: NDArray[float64]
         if idx is None:
-            return (A.T @ (A @ x - b)) / A.shape[0]
-        A_b = A[idx]
+            res = (a.T @ (a @ x - b)) / a.shape[0]
+            return res
+        a_b = a[idx]
         b_b = b[idx]
-        return (A_b.T @ (A_b @ x - b_b)) / idx.size
+        res = (a_b.T @ (a_b @ x - b_b)) / idx.size
+        return res
 
     def hessian(self, x: Array) -> Array:
         r"""
@@ -578,13 +582,16 @@ class LogisticRegressionCost(Cost):
         Returns the average gradient over the minibatch. If batch_indices is None, uses the full dataset.
         """
         idx = _resolve_batch_indices(self.A.shape[0], batch_indices, batch_size, rng)
+        res: NDArray[float64]
         if idx is None:
             sig = special.expit(self.A.dot(x))
-            return self.A.T.dot(sig - self.b) / self.A.shape[0]
-        A_b = self.A[idx]
+            res = self.A.T.dot(sig - self.b) / self.A.shape[0]
+            return res
+        a_b = self.A[idx]
         b_b = self.b[idx]
-        sig = special.expit(A_b.dot(x))
-        return A_b.T.dot(sig - b_b) / idx.size
+        sig = special.expit(a_b.dot(x))
+        res = a_b.T.dot(sig - b_b) / idx.size
+        return res
 
     @iop.autodecorate_cost_method(Cost.hessian)
     def hessian(self, x: NDArray[float64]) -> NDArray[float64]:

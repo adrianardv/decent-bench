@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
 import random
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, final
@@ -105,20 +105,25 @@ class Algorithm(ABC):
         cost = client.cost
         if hasattr(cost, "A"):
             try:
-                return float(iop.shape(cost.A)[0])
-            except Exception:  # noqa: BLE001
-                pass
+                size = iop.shape(cost.A)[0]
+            except Exception:
+                size = None
+            if size is not None:
+                return float(size)
         if hasattr(cost, "b"):
             try:
-                return float(iop.shape(cost.b)[0])
-            except Exception:  # noqa: BLE001
-                pass
+                size = iop.shape(cost.b)[0]
+            except Exception:
+                size = None
+            if size is not None:
+                return float(size)
         if hasattr(cost, "n_samples"):
-            n_samples = getattr(cost, "n_samples")
+            n_samples = cost.n_samples
             if n_samples is not None:
                 return float(n_samples)
         raise ValueError(
-            "Cannot infer client data size. Provide client_weights to the algorithm or add a size attribute to the cost."
+            "Cannot infer client data size. Provide client_weights to the algorithm or add a size "
+            "attribute to the cost."
         )
 
     @classmethod
@@ -163,7 +168,9 @@ class FedAvg(Algorithm):
     full-batch gradients.
 
     """
-    # C=0.1; batch size= inf/10/50 (but their dataset sizes are bigger; but it is normally 1/10 of the total dataset). E= 5/20 (nº local epochs))
+
+    # C=0.1; batch size= inf/10/50 (dataset sizes are bigger; normally 1/10 of the total dataset).
+    # E= 5/20 (num local epochs).
     step_size: float
     local_epochs: int = 1
     batch_size: int | None = 1
@@ -209,7 +216,7 @@ class FedAvg(Algorithm):
             if self.batch_size is None:
                 for _ in range(self.local_epochs):
                     grad = client.cost.stochastic_gradient(local_x, batch_size=None, rng=self._get_sgd_rng())
-                    local_x = local_x - self.step_size * grad
+                    local_x -= self.step_size * grad
             else:
                 n_samples = int(self._infer_client_weight(client))
                 if n_samples <= 0:
@@ -219,9 +226,9 @@ class FedAvg(Algorithm):
                     indices = list(range(n_samples))
                     rng.shuffle(indices)
                     for start in range(0, n_samples, self.batch_size):
-                        batch_indices = indices[start:start + self.batch_size]
+                        batch_indices = indices[start : start + self.batch_size]
                         grad = client.cost.stochastic_gradient(local_x, batch_indices=batch_indices)
-                        local_x = local_x - self.step_size * grad
+                        local_x -= self.step_size * grad
             client.x = local_x
             network.send(sender=client, receiver=server, msg=client.x)
 
@@ -231,5 +238,5 @@ class FedAvg(Algorithm):
         total_weight = sum(weights)
         if total_weight <= 0:
             raise ValueError("Sum of client weights must be positive")
-        weighted_updates = [update * weight for update, weight in zip(updates, weights)]
+        weighted_updates = [update * weight for update, weight in zip(updates, weights, strict=True)]
         server.x = iop.sum(iop.stack(weighted_updates, dim=0), dim=0) / total_weight
