@@ -5,7 +5,7 @@ This folder contains the thesis-specific FEMNIST setup and inspection utilities.
 ## Folder Structure
 
 - `inspect_femnist.py`: command-line inspection script.
-- `smoke_run.py`: plain small-GPU smoke run for Experiment 0.
+- `smoke_run.py`: plain small smoke run for Experiment 0.
 - `src/inspection_helpers.py`: inspection/statistics helpers.
 - `src/femnist_handler.py`: `FEMNISTDatasetHandler`, used to create decent-bench train/test datasets.
 - `src/model.py`: FEMNIST CNN used by the experiment scripts.
@@ -110,17 +110,42 @@ FEMNISTDatasetHandler(
 
 Use the same `selected_clients_path` for both train and test handlers.
 
-## First Experiment 0 Run
+## Fixed FEMNIST Benchmark Setup
 
-Use `smoke_run.py` for the first FEMNIST Experiment 0 check. It is a plain script with the selected local-GPU values
+All FEMNIST experiments should use the same selected writer set. The selected set is defined by:
+
+- `n_clients = 200`
+- `seed = 20260524`
+- `train_fraction = 0.8`
+- `min_train_samples = 100`
+- `min_test_samples = 20`
+
+These settings deterministically select the 200 writers that will be used throughout the FEMNIST benchmark experiments.
+Do not change the seed or selection thresholds between experiments, otherwise the runs will no longer be directly
+comparable.
+
+The CNN model selected for all FEMNIST experiments is:
+
+```text
+Input: 1 x 28 x 28
+Conv2d: 1 -> 32, kernel 5x5, padding 2, ReLU
+MaxPool2d: 2x2
+Conv2d: 32 -> 64, kernel 5x5, padding 2, ReLU
+MaxPool2d: 2x2
+Flatten: 64 * 7 * 7
+Dense: 256, ReLU
+Output Dense: 62 logits
+Loss: torch.nn.CrossEntropyLoss
+```
+
+The model outputs logits, not softmax probabilities. `torch.nn.CrossEntropyLoss` applies the softmax/log-softmax
+operation internally.
+
+## First Smoke Test Run
+
+Use `smoke_run.py` for the first FEMNIST check. It is a plain script with the selected values
 written near the top of the file. It keeps the baseline network fixed: full participation, AlwaysActive clients, no
 drops, no noise, and no compression.
-
-Run it with the GPU environment:
-
-```powershell
-.\.venv-gpu\Scripts\python.exe experiments\femnist\smoke_run.py
-```
 
 The current script uses 200 clients, minimum 100 train and 20 test samples per selected writer, 5 trials, 500
 iterations, state snapshots every 50 iterations, checkpoint step 100, batch size 32, seed `20260524`, and the LEAF-lite
