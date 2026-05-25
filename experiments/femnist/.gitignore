@@ -1,0 +1,10 @@
+data/
+results/
+checkpoints/
+experiment_memory.md
+__pycache__/
+*.pyc
+*.pkl
+*.zst
+*.pt
+*.pth
