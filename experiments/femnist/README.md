@@ -7,6 +7,7 @@ This folder contains the thesis-specific FEMNIST setup and inspection utilities.
 - `inspect_femnist.py`: command-line inspection script.
 - `smoke_test.py`: small Lambda/remote-GPU smoke test.
 - `smoke_run.py`: plain small smoke run for Experiment 0.
+- `experiment0.py`: sequential hyperparameter tuning script.
 - `src/inspection_helpers.py`: inspection/statistics helpers.
 - `src/femnist_handler.py`: `FEMNISTDatasetHandler`, used to create decent-bench train/test datasets.
 - `src/model.py`: FEMNIST CNN used by the experiment scripts.
@@ -159,8 +160,8 @@ Use `smoke_run.py` for the first FEMNIST check. It is a plain script with the se
 written near the top of the file. It keeps the baseline network fixed: full participation, AlwaysActive clients, no
 drops, no noise, and no compression.
 
-The current script uses 200 clients, minimum 100 train and 20 test samples per selected writer, 2 trials, 400
-iterations, state snapshots every 40 iterations, checkpoint step 200, batch size 32, seed `20260524`, and the LEAF-lite
+The current script uses 200 clients, minimum 100 train and 20 test samples per selected writer, 1 trial, 400
+iterations, final-state snapshots only, no intermediate checkpoints, batch size 32, seed `20260524`, and the LEAF-lite
 CNN with `32 -> 64` convolution channels and a dense layer of size 256. It sets `local_files_only = False`, so a fresh
 Lambda instance can download/cache FEMNIST if needed. It runs one reasonable configuration for each algorithm, not a
 hyperparameter tuning grid.
@@ -172,6 +173,38 @@ The clean-network choices are explicit in the script:
 - `NoDrops()`, `NoNoise()`, and `NoCompression()` in the `FedNetwork`.
 
 Metric computation and plot display are enabled so the run can be inspected before starting hyperparameter tuning.
+
+## Experiment 0: Hyperparameter Tuning
+
+Use `experiment0.py` to tune hyperparameters before the main comparison experiments. It runs candidates sequentially:
+one algorithm/configuration finishes before the next one starts.
+
+The script uses the same selected FEMNIST writers, but splits the training portion again for tuning:
+
+```text
+64% tuning train
+16% validation
+20% final test, not used in Experiment 0
+```
+
+During Experiment 0, the validation split is passed to decent-bench as `BenchmarkProblem(test_data=...)` because that is
+the framework's evaluation-data argument. Final comparison experiments should switch back to the held-out FEMNIST test
+split.
+
+The output is written under:
+
+```text
+experiments/femnist/checkpoints/experiment0/run_<timestamp>/
+```
+
+The main files are:
+
+- `exp0_candidate_results.csv`: one row per tested candidate, including metrics and hyperparameters.
+- `exp0_best_hyperparameters.json`: best configuration per algorithm group.
+- `exp0_dataset_metadata.json`: selected writers and split sizes.
+
+The current script uses sparse snapshots and `checkpoint_step = None` to limit memory usage. Candidate checkpoint folders
+are still created so completed trial results and metric computations can be inspected if needed.
 
 ## References
 

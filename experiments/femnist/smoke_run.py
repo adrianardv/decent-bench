@@ -31,18 +31,18 @@ from decent_bench.utils.types import SupportedDevices
 from experiments.femnist.src import FEMNISTCNN, FEMNISTDatasetHandler
 
 
-checkpoint_path = Path("experiments/femnist/checkpoints/smoke") / f"run_{datetime.now():%Y%m%d_%H%M%S}"
+checkpoint_path = Path("experiments/femnist/checkpoints/lambda_smoke_run") / f"run_{datetime.now():%Y%m%d_%H%M%S}"
 
 seed = 20260524
-n_clients = 200
+n_clients = 100
 min_train_samples = 100
 min_test_samples = 20
 train_fraction = 0.8
-n_trials = 2
+n_trials = 1
 iterations = 400
-state_snapshot_period = iterations // 10
-progress_step = state_snapshot_period
-checkpoint_step = 200
+state_snapshot_period = iterations
+progress_step = iterations // 10
+checkpoint_step = None
 batch_size = 32
 device = SupportedDevices.GPU
 local_files_only = False
