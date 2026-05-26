@@ -5,6 +5,7 @@ This folder contains the thesis-specific FEMNIST setup and inspection utilities.
 ## Folder Structure
 
 - `inspect_femnist.py`: command-line inspection script.
+- `smoke_test.py`: small Lambda/remote-GPU smoke test.
 - `smoke_run.py`: plain small smoke run for Experiment 0.
 - `src/inspection_helpers.py`: inspection/statistics helpers.
 - `src/femnist_handler.py`: `FEMNISTDatasetHandler`, used to create decent-bench train/test datasets.
@@ -143,14 +144,26 @@ operation internally.
 
 ## First Smoke Test Run
 
+Use `smoke_test.py` as the first Lambda/remote-GPU check after cloning the repository. It runs only FedAvg with 20
+clients, 1 trial, and 10 iterations. It sets `local_files_only = False`, so a fresh Lambda instance can download/cache
+FEMNIST from Hugging Face on the first run.
+
+```bash
+python experiments/femnist/smoke_test.py
+```
+
+If this completes, the remote machine can load FEMNIST, use CUDA through PyTorch, run decent-bench, compute metrics, and
+write checkpoints/results.
+
 Use `smoke_run.py` for the first FEMNIST check. It is a plain script with the selected values
 written near the top of the file. It keeps the baseline network fixed: full participation, AlwaysActive clients, no
 drops, no noise, and no compression.
 
-The current script uses 200 clients, minimum 100 train and 20 test samples per selected writer, 5 trials, 500
-iterations, state snapshots every 50 iterations, checkpoint step 100, batch size 32, seed `20260524`, and the LEAF-lite
-CNN with `32 -> 64` convolution channels and a dense layer of size 256. It runs one reasonable configuration for each
-algorithm, not a hyperparameter tuning grid.
+The current script uses 200 clients, minimum 100 train and 20 test samples per selected writer, 2 trials, 400
+iterations, state snapshots every 40 iterations, checkpoint step 200, batch size 32, seed `20260524`, and the LEAF-lite
+CNN with `32 -> 64` convolution channels and a dense layer of size 256. It sets `local_files_only = False`, so a fresh
+Lambda instance can download/cache FEMNIST if needed. It runs one reasonable configuration for each algorithm, not a
+hyperparameter tuning grid.
 
 The clean-network choices are explicit in the script:
 
