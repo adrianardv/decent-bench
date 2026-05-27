@@ -48,6 +48,25 @@ Rationale:
 Increasing the number of clients on a remote GPU may be possible, but it should only be done as an optional robustness
 check after the required thesis benchmark is complete.
 
+### Selected-Client Class Distribution
+
+The plot `experiments/femnist/results/inspection/selected_client_class_distributions.png` shows the class histogram
+for the fixed 100 selected writers. It should be interpreted as evidence of natural FEMNIST heterogeneity.
+
+The selected clients are sorted by `writer_id` in `selected_clients_stats.csv`. In that order, the top half of the plot
+contains writers with substantially more samples and a more balanced digit/uppercase/lowercase distribution. The bottom
+half contains fewer samples and is much more digit-heavy.
+
+Quantitatively, for the selected 100 clients:
+
+| Plot group | Mean samples/client | Mean classes/client | Digit samples | Uppercase samples | Lowercase samples |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Top 50 writers in `writer_id` order | `325.5` | `56.5` | `32.8%` | `36.1%` | `31.2%` |
+| Bottom 50 writers in `writer_id` order | `163.3` | `53.8` | `71.7%` | `14.4%` | `14.0%` |
+
+This means the fixed FEMNIST subset has both quantity skew and label-distribution skew while still covering all 62
+classes.
+
 ## Model
 
 - Model: LEAF-lite CNN with convolution channels `32 -> 64`, `5x5` kernels, and dense layer size `256`.

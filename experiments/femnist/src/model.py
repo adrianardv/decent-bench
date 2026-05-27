@@ -4,6 +4,8 @@ import torch
 
 
 class FEMNISTCNN(torch.nn.Module):
+    """Convolutional classifier used by the thesis FEMNIST experiments."""
+
     def __init__(self) -> None:
         super().__init__()
         self.features = torch.nn.Sequential(
@@ -22,4 +24,5 @@ class FEMNISTCNN(torch.nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Return logits for FEMNIST class labels."""
         return self.classifier(self.features(x))

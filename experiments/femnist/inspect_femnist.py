@@ -77,7 +77,7 @@ def main() -> None:
     )
 
     if not args.no_plots:
-        write_plots(args.output_dir, stats, counts, selected)
+        write_plots(args.output_dir, stats, counts, selected, seed=args.seed)
 
     print(f"Wrote FEMNIST inspection outputs to {args.output_dir}")
     print(f"Rows: {len(df)}")

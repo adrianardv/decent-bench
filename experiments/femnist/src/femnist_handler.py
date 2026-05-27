@@ -3,36 +3,54 @@ from __future__ import annotations
 from collections.abc import Sequence
 from functools import cached_property
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Literal, Protocol, cast
 
 import numpy as np
 import pandas as pd
 
 from decent_bench.datasets import DatasetHandler
-from decent_bench.utils.types import Dataset
+from decent_bench.utils.types import Datapoint, Dataset
 
 from .inspection_helpers import (
     add_seeded_per_writer_train_test_split,
-    client_stats,
     choose_candidate_clients,
+    client_stats,
     huggingface_offline_mode,
     load_huggingface_metadata,
 )
 
+if TYPE_CHECKING:
+    import torch
+
 SplitName = Literal["train", "test"]
 ImageLayout = Literal["cnn", "flat"]
+
+
+class _HuggingFaceDataset(Protocol):
+    """Subset of the Hugging Face dataset API used by this handler."""
+
+    def __getitem__(self, index: int) -> dict[str, object]: ...
+
+
+class _ConvertibleImage(Protocol):
+    """Image-like object with PIL's ``convert`` method."""
+
+    def convert(self, mode: str) -> object: ...
 
 
 class FEMNISTDatasetHandler(DatasetHandler):
     """
     FEMNIST dataset handler using natural writer/client partitions.
 
-    FEMNIST was introduced through LEAF. This experiment handler currently reads the Flower Labs Hugging Face copy
-    and keeps LEAF's natural writer-based client structure. See ``experiments/femnist/references.bib`` for citations.
+    FEMNIST was introduced through LEAF. This experiment handler currently reads
+    the Flower Labs Hugging Face copy and keeps LEAF's natural writer-based
+    client structure. See ``experiments/femnist/references.bib`` for citations.
 
-    The handler follows the same usage pattern as the MNIST example: create one handler for the train split and one for
-    the test split. Calling ``get_partitions`` on the train handler returns one local dataset per selected writer. Calling
-    ``get_datapoints`` on the test handler returns the pooled evaluation set over the same selected writers.
+    The handler follows the same usage pattern as the MNIST example: create one
+    handler for the train split and one for the test split. Calling
+    ``get_partitions`` on the train handler returns one local dataset per
+    selected writer. Calling ``get_datapoints`` on the test handler returns the
+    pooled evaluation set over the same selected writers.
     """
 
     def __init__(
@@ -70,22 +88,27 @@ class FEMNISTDatasetHandler(DatasetHandler):
 
     @property
     def n_samples(self) -> int:
+        """Return the number of datapoints in the selected split."""
         return sum(len(partition) for partition in self.get_partitions())
 
     @property
     def n_partitions(self) -> int:
+        """Return the number of selected FEMNIST writers."""
         return len(self.selected_writer_ids)
 
     @property
     def n_features(self) -> int:
+        """Return the flattened image feature count."""
         return 28 * 28
 
     @property
     def n_targets(self) -> int:
+        """Return the number of FEMNIST classes."""
         return 62
 
     @cached_property
     def selected_writer_ids(self) -> list[str]:
+        """Return the deterministic selected writer IDs."""
         return _load_or_select_writer_ids(
             metadata=self.metadata,
             selected_clients_path=self.selected_clients_path,
@@ -97,6 +120,7 @@ class FEMNISTDatasetHandler(DatasetHandler):
 
     @cached_property
     def metadata(self) -> pd.DataFrame:
+        """Return FEMNIST metadata with deterministic train/test labels."""
         metadata = load_huggingface_metadata(self.cache_dir, local_files_only=self.local_files_only)
         return add_seeded_per_writer_train_test_split(
             metadata,
@@ -105,27 +129,36 @@ class FEMNISTDatasetHandler(DatasetHandler):
         )
 
     @cached_property
-    def hf_dataset(self) -> Any:
+    def hf_dataset(self) -> _HuggingFaceDataset:
+        """Return the underlying Hugging Face dataset."""
         with huggingface_offline_mode(self.local_files_only):
             try:
-                from datasets import DownloadConfig, load_dataset
+                from datasets import (  # type: ignore[import-untyped]  # noqa: PLC0415
+                    DownloadConfig,
+                    load_dataset,
+                )
             except ImportError as exc:
                 raise RuntimeError(
                     "FEMNISTDatasetHandler requires the optional 'datasets' package. "
                     "Install it with: .venv\\Scripts\\python.exe -m pip install datasets"
                 ) from exc
 
-            return load_dataset(
-                self.dataset_name,
-                split="train",
-                cache_dir=str(self.cache_dir) if self.cache_dir is not None else None,
-                download_config=DownloadConfig(local_files_only=self.local_files_only),
+            return cast(
+                "_HuggingFaceDataset",
+                load_dataset(
+                    self.dataset_name,
+                    split="train",
+                    cache_dir=str(self.cache_dir) if self.cache_dir is not None else None,
+                    download_config=DownloadConfig(local_files_only=self.local_files_only),
+                ),
             )
 
     def get_datapoints(self) -> Dataset:
+        """Return the selected split as one pooled dataset."""
         return [datapoint for partition in self.get_partitions() for datapoint in partition]
 
     def get_partitions(self) -> Sequence[Dataset]:
+        """Return one selected FEMNIST writer dataset per partition."""
         if self._partitions is None:
             self._partitions = [self._build_writer_partition(writer_id) for writer_id in self.selected_writer_ids]
         return self._partitions
@@ -144,12 +177,13 @@ class FEMNISTDatasetHandler(DatasetHandler):
 
         return writer_rows
 
-    def _row_to_datapoint(self, row_index: int) -> tuple[Any, Any]:
-        import torch
+    def _row_to_datapoint(self, row_index: int) -> Datapoint:
+        import torch  # noqa: PLC0415
 
         row = self.hf_dataset[row_index]
         image = _image_to_tensor(row["image"], layout=self.image_layout)
-        label = torch.tensor(int(row["character"]), dtype=torch.long)
+        character = cast("int | str", row["character"])
+        label = torch.tensor(int(character), dtype=torch.long)
         return image, label
 
 
@@ -200,12 +234,12 @@ def _load_or_select_writer_ids(
     return selected["writer_id"].astype(str).tolist()
 
 
-def _image_to_tensor(image: Any, *, layout: ImageLayout) -> Any:
-    import torch
+def _image_to_tensor(image: object, *, layout: ImageLayout) -> torch.Tensor:
+    import torch  # noqa: PLC0415
 
     if hasattr(image, "convert"):
-        image = image.convert("L")
-        array = np.asarray(image, dtype=np.float32)
+        converted_image = cast("_ConvertibleImage", image).convert("L")
+        array = np.asarray(converted_image, dtype=np.float32)
     else:
         array = np.asarray(image, dtype=np.float32)
 

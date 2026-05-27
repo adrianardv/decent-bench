@@ -2,22 +2,73 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from collections.abc import Iterator
-from typing import Any
+from typing import Protocol, cast
 
-import decent_bench.utils.interoperability as iop
 import numpy as np
 import pandas as pd
+
+import decent_bench.utils.interoperability as iop
 from decent_bench.utils.types import SupportedFrameworks
 
-FEMNIST_CLASS_NAMES = [*map(str, range(10)), *[chr(code) for code in range(65, 91)], *[chr(code) for code in range(97, 123)]]
+FEMNIST_CLASS_NAMES = [
+    *map(str, range(10)),
+    *[chr(code) for code in range(65, 91)],
+    *[chr(code) for code in range(97, 123)],
+]
+
+
+class _Figure(Protocol):
+    """Subset of Matplotlib's figure API used by the plots."""
+
+    def tight_layout(self) -> None: ...
+
+    def savefig(self, fname: Path, *, dpi: int) -> None: ...
+
+    def colorbar(self, mappable: object, *, ax: _Axes, label: str) -> object: ...
+
+
+class _Axes(Protocol):
+    """Subset of Matplotlib's axes API used by the plots."""
+
+    def hist(self, x: object, *, bins: int, color: str) -> object: ...
+
+    def bar(self, x: object, height: object, *, color: str) -> object: ...
+
+    def imshow(self, x: object, *, aspect: str, cmap: str) -> object: ...
+
+    def set_title(self, label: str) -> object: ...
+
+    def set_xlabel(self, xlabel: str) -> object: ...
+
+    def set_ylabel(self, ylabel: str) -> object: ...
+
+    def tick_params(self, *, axis: str, labelrotation: int) -> object: ...
+
+    def set_xticks(self, ticks: object) -> object: ...
+
+    def set_xticklabels(self, labels: object, rotation: int) -> object: ...
+
+    def set_yticks(self, ticks: object) -> object: ...
+
+    def set_yticklabels(self, labels: object) -> object: ...
+
+
+class _PyplotModule(Protocol):
+    """Subset of Matplotlib's pyplot API used by the plots."""
+
+    def subplots(self, *, figsize: tuple[int, int]) -> tuple[_Figure, _Axes]: ...
+
+    def close(self, fig: _Figure) -> None: ...
 
 
 @dataclass(frozen=True)
 class InspectionConfig:
+    """Configuration used to generate FEMNIST inspection outputs."""
+
     source: str
     seed: int
     train_fraction: float
@@ -27,9 +78,14 @@ class InspectionConfig:
 
 
 def load_huggingface_metadata(cache_dir: Path | None, *, local_files_only: bool = False) -> pd.DataFrame:
+    """Load lightweight metadata from the Hugging Face FEMNIST dataset."""
     with huggingface_offline_mode(local_files_only):
         try:
-            from datasets import DownloadConfig, Image, load_dataset
+            from datasets import (  # type: ignore[import-untyped]  # noqa: PLC0415
+                DownloadConfig,
+                Image,
+                load_dataset,
+            )
         except ImportError as exc:
             raise RuntimeError(
                 "The Hugging Face FEMNIST source requires the optional 'datasets' package. "
@@ -49,7 +105,7 @@ def load_huggingface_metadata(cache_dir: Path | None, *, local_files_only: bool 
     if not {"writer_id", "character"}.issubset(metadata_columns):
         raise ValueError(f"Unexpected Hugging Face FEMNIST columns: {dataset.column_names}")
 
-    df = dataset.select_columns(metadata_columns).to_pandas()
+    df = cast("pd.DataFrame", dataset.select_columns(metadata_columns).to_pandas())
     df.insert(0, "row_index", np.arange(len(df), dtype=np.int64))
     df["writer_id"] = df["writer_id"].astype(str)
     df["label"] = df["character"].astype(int)
@@ -57,7 +113,8 @@ def load_huggingface_metadata(cache_dir: Path | None, *, local_files_only: bool 
 
 
 def load_leaf_json_metadata(train_dir: Path, test_dir: Path) -> pd.DataFrame:
-    rows: list[dict[str, Any]] = []
+    """Load writer, label, and split metadata from LEAF JSON files."""
+    rows: list[dict[str, object]] = []
     for split, directory in (("train", train_dir), ("test", test_dir)):
         if not directory.exists():
             raise FileNotFoundError(f"LEAF {split} directory does not exist: {directory}")
@@ -84,20 +141,19 @@ def load_leaf_json_metadata(train_dir: Path, test_dir: Path) -> pd.DataFrame:
 
 
 def add_seeded_per_writer_train_test_split(df: pd.DataFrame, train_fraction: float, seed: int) -> pd.DataFrame:
-    # Hugging face FEMNIST does not come with a predefined train/test split, but we need one for inspection and candidate client selection.
-    # Shuffle the samples of each writer independently using a seeded RNG and then split according to the specified fraction.
+    """Add deterministic per-writer train/test labels."""
     if not 0 < train_fraction < 1:
         raise ValueError(f"train_fraction must be in (0, 1), got {train_fraction}")
 
     split_df = df.copy()
     rng = _seeded_numpy_rng(seed)
-    split_values = np.empty(len(split_df), dtype=object)
+    split_values: np.ndarray = np.empty(len(split_df), dtype=object)
 
     for _, group in split_df.groupby("writer_id", sort=True):
         positions = group.index.to_numpy()
         shuffled = positions.copy()
         rng.shuffle(shuffled)
-        n_train = int(round(len(shuffled) * train_fraction))
+        n_train = round(len(shuffled) * train_fraction)
         if len(shuffled) > 1:
             n_train = min(max(n_train, 1), len(shuffled) - 1)
         split_values[shuffled[:n_train]] = "train"
@@ -108,18 +164,16 @@ def add_seeded_per_writer_train_test_split(df: pd.DataFrame, train_fraction: flo
 
 
 def client_stats(df: pd.DataFrame) -> pd.DataFrame:
+    """Return per-client sample counts, split counts, and label histograms."""
     grouped = df.groupby("writer_id", sort=True)
     stats = grouped.agg(
         total_samples=("label", "size"),
         n_classes=("label", "nunique"),
     )
 
-    split_counts = (
-        df.groupby(["writer_id", "split"], sort=True)
-        .size()
-        .unstack(fill_value=0)
-        .rename(columns={"train": "train_samples", "test": "test_samples"})
-    )
+    split_counts = df.pivot_table(
+        index="writer_id", columns="split", values="label", aggfunc="size", fill_value=0
+    ).rename(columns={"train": "train_samples", "test": "test_samples"})
     for column in ("train_samples", "test_samples"):
         if column not in split_counts:
             split_counts[column] = 0
@@ -133,11 +187,9 @@ def client_stats(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def class_counts(df: pd.DataFrame) -> pd.DataFrame:
-    counts = (
-        df.groupby(["label", "split"], sort=True)
-        .size()
-        .unstack(fill_value=0)
-        .rename(columns={"train": "train_samples", "test": "test_samples"})
+    """Return sample counts per FEMNIST class."""
+    counts = df.pivot_table(index="label", columns="split", values="writer_id", aggfunc="size", fill_value=0).rename(
+        columns={"train": "train_samples", "test": "test_samples"}
     )
     for column in ("train_samples", "test_samples"):
         if column not in counts:
@@ -156,10 +208,8 @@ def choose_candidate_clients(
     min_test_samples: int,
     seed: int,
 ) -> pd.DataFrame:
-    eligible = stats[
-        (stats["train_samples"] >= min_train_samples)
-        & (stats["test_samples"] >= min_test_samples)
-    ].copy()
+    """Select eligible clients deterministically from per-client statistics."""
+    eligible = stats[(stats["train_samples"] >= min_train_samples) & (stats["test_samples"] >= min_test_samples)].copy()
 
     if len(eligible) < candidate_clients:
         raise ValueError(
@@ -169,17 +219,18 @@ def choose_candidate_clients(
 
     rng = _seeded_numpy_rng(seed)
     selected_indices = rng.choice(eligible.index.to_numpy(), size=candidate_clients, replace=False)
-    selected = eligible.loc[selected_indices].sort_values("writer_id").reset_index(drop=True)
+    selected = cast("pd.DataFrame", eligible.loc[selected_indices].sort_values("writer_id").reset_index(drop=True))
     selected.insert(0, "client_index", np.arange(len(selected), dtype=np.int64))
     return selected
 
 
 def _seeded_numpy_rng(seed: int) -> np.random.Generator:
     iop.set_seed(seed, frameworks=[SupportedFrameworks.NUMPY])
-    return iop.rng_numpy()
+    return cast("np.random.Generator", iop.rng_numpy())
 
 
 def threshold_report(stats: pd.DataFrame) -> pd.DataFrame:
+    """Return client eligibility counts for useful train/test thresholds."""
     thresholds = [10, 25, 50, 100, 200, 300, 500]
     rows = []
     for threshold in thresholds:
@@ -188,7 +239,7 @@ def threshold_report(stats: pd.DataFrame) -> pd.DataFrame:
             {
                 "min_train_samples": threshold,
                 "min_test_samples": max(1, threshold // 5),
-                "eligible_clients": int(len(eligible)),
+                "eligible_clients": len(eligible),
             }
         )
     return pd.DataFrame(rows)
@@ -202,18 +253,17 @@ def write_summary(
     stats: pd.DataFrame,
     selected: pd.DataFrame,
 ) -> None:
+    """Write a JSON summary of the selected FEMNIST inspection configuration."""
     sample_quantiles = stats["total_samples"].quantile([0, 0.25, 0.5, 0.75, 0.9, 0.95, 1.0]).to_dict()
     selected_label_totals = _selected_label_totals(selected)
     selected_missing_labels = [
-        int(label)
-        for label, total_samples in selected_label_totals.items()
-        if total_samples == 0
+        int(label) for label, total_samples in selected_label_totals.items() if total_samples == 0
     ]
     summary = {
         "source": config.source,
         "seed": config.seed,
         "train_fraction": config.train_fraction,
-        "n_rows": int(len(df)),
+        "n_rows": len(df),
         "n_clients": int(stats["writer_id"].nunique()),
         "n_classes": int(df["label"].nunique()),
         "train_samples": int((df["split"] == "train").sum()),
@@ -236,31 +286,46 @@ def write_summary(
 
 
 def _selected_label_totals(selected: pd.DataFrame) -> dict[int, int]:
-    totals = {label: 0 for label in range(len(FEMNIST_CLASS_NAMES))}
+    totals = dict.fromkeys(range(len(FEMNIST_CLASS_NAMES)), 0)
     for histogram in selected["label_histogram"]:
-        parsed = json.loads(histogram)
+        parsed = cast("dict[str, int]", json.loads(histogram))
         for label, count in parsed.items():
             totals[int(label)] += int(count)
     return totals
 
 
-def write_plots(output_dir: Path, stats: pd.DataFrame, counts: pd.DataFrame, selected: pd.DataFrame) -> None:
-    import matplotlib
+def write_plots(output_dir: Path, stats: pd.DataFrame, counts: pd.DataFrame, selected: pd.DataFrame, seed: int) -> None:
+    """Write inspection plots to disk."""
+    import matplotlib  # noqa: PLC0415
 
     matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt  # noqa: PLC0415
 
-    _plot_samples_per_writer(output_dir, stats, plt)
-    _plot_samples_per_class(output_dir, counts, plt)
-    _plot_selected_client_class_distributions(output_dir, selected, plt)
+    pyplot = cast("_PyplotModule", plt)
+    _plot_samples_per_writer(output_dir, stats, pyplot)
+    _plot_samples_per_class(output_dir, counts, pyplot)
+    _plot_selected_client_class_distributions(
+        output_dir,
+        selected,
+        pyplot,
+        title="Class distribution for selected writers, ordered by writer ID",
+        filename="selected_client_class_distributions.png",
+    )
+    _plot_selected_client_class_distributions(
+        output_dir,
+        selected.sample(frac=1.0, random_state=seed).reset_index(drop=True),
+        pyplot,
+        title=f"Class distribution for selected writers, shuffled with seed {seed}",
+        filename="selected_client_class_distributions_shuffled.png",
+    )
 
 
 def _label_counts(labels: pd.Series) -> dict[str, int]:
     counts = labels.value_counts().sort_index()
-    return {str(int(label)): int(count) for label, count in counts.items()}
+    return {str(label): int(count) for label, count in counts.items()}
 
 
-def _plot_samples_per_writer(output_dir: Path, stats: pd.DataFrame, plt: Any) -> None:
+def _plot_samples_per_writer(output_dir: Path, stats: pd.DataFrame, plt: _PyplotModule) -> None:
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.hist(stats["total_samples"], bins=50, color="#4C78A8")
     ax.set_title("Samples per writer")
@@ -271,7 +336,7 @@ def _plot_samples_per_writer(output_dir: Path, stats: pd.DataFrame, plt: Any) ->
     plt.close(fig)
 
 
-def _plot_samples_per_class(output_dir: Path, counts: pd.DataFrame, plt: Any) -> None:
+def _plot_samples_per_class(output_dir: Path, counts: pd.DataFrame, plt: _PyplotModule) -> None:
     fig, ax = plt.subplots(figsize=(18, 6))
     ax.bar(counts["class_name"], counts["total_samples"], color="#F58518")
     ax.set_title("Samples per class")
@@ -283,18 +348,26 @@ def _plot_samples_per_class(output_dir: Path, counts: pd.DataFrame, plt: Any) ->
     plt.close(fig)
 
 
-def _plot_selected_client_class_distributions(output_dir: Path, selected: pd.DataFrame, plt: Any) -> None:
-    plotted_clients = selected.head(12).copy()
-    label_counts = np.zeros((len(plotted_clients), len(FEMNIST_CLASS_NAMES)), dtype=np.int64)
+def _plot_selected_client_class_distributions(
+    output_dir: Path,
+    selected: pd.DataFrame,
+    plt: _PyplotModule,
+    *,
+    title: str,
+    filename: str,
+) -> None:
+    plotted_clients = selected.copy()
+    label_counts: np.ndarray = np.zeros((len(plotted_clients), len(FEMNIST_CLASS_NAMES)), dtype=np.int64)
 
     for row_index, histogram in enumerate(plotted_clients["label_histogram"]):
-        parsed = json.loads(histogram)
+        parsed = cast("dict[str, int]", json.loads(histogram))
         for label, count in parsed.items():
             label_counts[row_index, int(label)] = int(count)
 
-    fig, ax = plt.subplots(figsize=(18, 6))
+    figure_height = max(8, min(28, 2 + len(plotted_clients) // 4))
+    fig, ax = plt.subplots(figsize=(18, figure_height))
     image = ax.imshow(label_counts, aspect="auto", cmap="Blues")
-    ax.set_title("Class distribution for selected writers")
+    ax.set_title(title)
     ax.set_xlabel("Class")
     ax.set_ylabel("Writer ID")
     ax.set_xticks(np.arange(len(FEMNIST_CLASS_NAMES)))
@@ -303,12 +376,13 @@ def _plot_selected_client_class_distributions(output_dir: Path, selected: pd.Dat
     ax.set_yticklabels(plotted_clients["writer_id"].astype(str))
     fig.colorbar(image, ax=ax, label="Samples")
     fig.tight_layout()
-    fig.savefig(output_dir / "selected_client_class_distributions.png", dpi=150)
+    fig.savefig(output_dir / filename, dpi=150)
     plt.close(fig)
 
 
 @contextmanager
 def huggingface_offline_mode(enabled: bool) -> Iterator[None]:
+    """Temporarily enable Hugging Face offline mode."""
     previous_value = os.environ.get("HF_HUB_OFFLINE")
     if enabled:
         os.environ["HF_HUB_OFFLINE"] = "1"
