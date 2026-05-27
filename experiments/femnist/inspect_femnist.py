@@ -25,7 +25,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--leaf-train-dir", type=Path)
     parser.add_argument("--leaf-test-dir", type=Path)
     parser.add_argument("--train-fraction", type=float, default=0.8)
-    parser.add_argument("--candidate-clients", type=int, default=200)
+    parser.add_argument("--candidate-clients", type=int, default=100)
     parser.add_argument("--min-train-samples", type=int, default=100)
     parser.add_argument("--min-test-samples", type=int, default=20)
     parser.add_argument("--seed", type=int, default=20260524)

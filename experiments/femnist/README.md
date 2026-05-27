@@ -6,8 +6,7 @@ This folder contains the thesis-specific FEMNIST setup and inspection utilities.
 
 - `inspect_femnist.py`: command-line inspection script.
 - `smoke_test.py`: small Lambda/remote-GPU smoke test.
-- `smoke_run.py`: plain small smoke run for Experiment 0.
-- `experiment0.py`: sequential hyperparameter tuning script.
+- `smoke_run.py`: plain small smoke run.
 - `src/inspection_helpers.py`: inspection/statistics helpers.
 - `src/femnist_handler.py`: `FEMNISTDatasetHandler`, used to create decent-bench train/test datasets.
 - `src/model.py`: FEMNIST CNN used by the experiment scripts.
@@ -45,7 +44,7 @@ Then run:
 ```powershell
 .venv\Scripts\python.exe experiments\femnist\inspect_femnist.py `
   --source huggingface `
-  --candidate-clients 200 `
+  --candidate-clients 100 `
   --seed 20260524
 ```
 
@@ -61,7 +60,7 @@ If LEAF JSON files have already been generated, use:
   --source leaf-json `
   --leaf-train-dir path\to\leaf\data\femnist\data\train `
   --leaf-test-dir path\to\leaf\data\femnist\data\test `
-  --candidate-clients 200 `
+  --candidate-clients 100 `
   --seed 20260524
 ```
 
@@ -97,7 +96,7 @@ If two runs use the same FEMNIST handler settings, they select the same clients:
 - `seed`
 - `train_fraction`
 
-The default values select the same 200 writers every time.
+The default values select the same 100 writers every time.
 Dataset splitting and client selection use the decent-bench interoperability RNG layer.
 
 For extra safety, or when the selected clients should be fixed explicitly from a saved file, pass the selected-client
@@ -112,17 +111,23 @@ FEMNISTDatasetHandler(
 
 Use the same `selected_clients_path` for both train and test handlers.
 
-## Fixed FEMNIST Benchmark Setup
+## FEMNIST Benchmark Setup
 
 All FEMNIST experiments should use the same selected writer set. The selected set is defined by:
 
-- `n_clients = 200`
+- `n_clients = 100`
 - `seed = 20260524`
 - `train_fraction = 0.8`
 - `min_train_samples = 100`
 - `min_test_samples = 20`
+- `clients_per_round = 20` / `selection_fraction = 0.2`
+- `n_trials = 3`
+- `iterations = 1000`
+- `state_snapshot_period = 100` by default, or `50` for selected plotting runs
+- `checkpoint_step = None`
+- `batch_size = 32`
 
-These settings deterministically select the 200 writers that will be used throughout the FEMNIST benchmark experiments.
+These settings deterministically select the 100 writers that will be used throughout the FEMNIST benchmark experiments.
 Do not change the seed or selection thresholds between experiments, otherwise the runs will no longer be directly
 comparable.
 
@@ -143,41 +148,18 @@ Loss: torch.nn.CrossEntropyLoss
 The model outputs logits, not softmax probabilities. `torch.nn.CrossEntropyLoss` applies the softmax/log-softmax
 operation internally.
 
-## First Smoke Test Run
-
-Use `smoke_test.py` as the first Lambda/remote-GPU check after cloning the repository. It runs only FedAvg with 20
-clients, 1 trial, and 10 iterations. It sets `local_files_only = False`, so a fresh Lambda instance can download/cache
-FEMNIST from Hugging Face on the first run.
-
-```bash
-python experiments/femnist/smoke_test.py
+The model choice is inspired by the LEAF CNN model used for FEMNIST experiments:
+```text
+- Two 5x5 convolution layers
+- 32 then 64 channels
+- max pooling after each convolution
+- one fully connected layer with 2048 units
+- final softmax over labels 0-61
 ```
-
-If this completes, the remote machine can load FEMNIST, use CUDA through PyTorch, run decent-bench, compute metrics, and
-write checkpoints/results.
-
-Use `smoke_run.py` for the first FEMNIST check. It is a plain script with the selected values
-written near the top of the file. It keeps the baseline network fixed: full participation, AlwaysActive clients, no
-drops, no noise, and no compression.
-
-The current script uses 200 clients, minimum 100 train and 20 test samples per selected writer, 1 trial, 400
-iterations, final-state snapshots only, no intermediate checkpoints, batch size 32, seed `20260524`, and the LEAF-lite
-CNN with `32 -> 64` convolution channels and a dense layer of size 256. It sets `local_files_only = False`, so a fresh
-Lambda instance can download/cache FEMNIST if needed. It runs one reasonable configuration for each algorithm, not a
-hyperparameter tuning grid.
-
-The clean-network choices are explicit in the script:
-
-- `selection_scheme=None`, so each federated algorithm selects all active clients.
-- `AlwaysActive()` for every client.
-- `NoDrops()`, `NoNoise()`, and `NoCompression()` in the `FedNetwork`.
-
-Metric computation and plot display are enabled so the run can be inspected before starting hyperparameter tuning.
 
 ## Experiment 0: Hyperparameter Tuning
 
-Use `experiment0.py` to tune hyperparameters before the main comparison experiments. It runs candidates sequentially:
-one algorithm/configuration finishes before the next one starts.
+Use `experiment0.py` to tune hyperparameters before the main comparison experiments.
 
 The script uses the same selected FEMNIST writers, but splits the training portion again for tuning:
 
@@ -190,21 +172,6 @@ The script uses the same selected FEMNIST writers, but splits the training porti
 During Experiment 0, the validation split is passed to decent-bench as `BenchmarkProblem(test_data=...)` because that is
 the framework's evaluation-data argument. Final comparison experiments should switch back to the held-out FEMNIST test
 split.
-
-The output is written under:
-
-```text
-experiments/femnist/checkpoints/experiment0/run_<timestamp>/
-```
-
-The main files are:
-
-- `exp0_candidate_results.csv`: one row per tested candidate, including metrics and hyperparameters.
-- `exp0_best_hyperparameters.json`: best configuration per algorithm group.
-- `exp0_dataset_metadata.json`: selected writers and split sizes.
-
-The current script uses sparse snapshots and `checkpoint_step = None` to limit memory usage. Candidate checkpoint folders
-are still created so completed trial results and metric computations can be inspected if needed.
 
 ## References
 

@@ -42,7 +42,7 @@ class FEMNISTDatasetHandler(DatasetHandler):
         dataset_name: str = "flwrlabs/femnist",
         cache_dir: Path | str | None = Path("experiments/femnist/data/cache"),
         selected_clients_path: Path | str | None = None,
-        n_clients: int = 200,
+        n_clients: int = 100,
         train_fraction: float = 0.8,
         seed: int = 20260524,
         min_train_samples: int = 100,

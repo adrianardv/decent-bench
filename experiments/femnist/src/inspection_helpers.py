@@ -203,6 +203,12 @@ def write_summary(
     selected: pd.DataFrame,
 ) -> None:
     sample_quantiles = stats["total_samples"].quantile([0, 0.25, 0.5, 0.75, 0.9, 0.95, 1.0]).to_dict()
+    selected_label_totals = _selected_label_totals(selected)
+    selected_missing_labels = [
+        int(label)
+        for label, total_samples in selected_label_totals.items()
+        if total_samples == 0
+    ]
     summary = {
         "source": config.source,
         "seed": config.seed,
@@ -217,6 +223,8 @@ def write_summary(
         "selected_min_test_samples": int(config.min_test_samples),
         "selected_total_train_samples": int(selected["train_samples"].sum()),
         "selected_total_test_samples": int(selected["test_samples"].sum()),
+        "selected_classes_covered": int(len(FEMNIST_CLASS_NAMES) - len(selected_missing_labels)),
+        "selected_missing_classes": selected_missing_labels,
         "samples_per_client_quantiles": {str(key): float(value) for key, value in sample_quantiles.items()},
         "citations": [
             "Caldas et al. (2018), LEAF: A Benchmark for Federated Settings.",
@@ -225,6 +233,15 @@ def write_summary(
     }
     with (output_dir / "inspection_summary.json").open("w", encoding="utf-8") as file:
         json.dump(summary, file, indent=2, sort_keys=True)
+
+
+def _selected_label_totals(selected: pd.DataFrame) -> dict[int, int]:
+    totals = {label: 0 for label in range(len(FEMNIST_CLASS_NAMES))}
+    for histogram in selected["label_histogram"]:
+        parsed = json.loads(histogram)
+        for label, count in parsed.items():
+            totals[int(label)] += int(count)
+    return totals
 
 
 def write_plots(output_dir: Path, stats: pd.DataFrame, counts: pd.DataFrame, selected: pd.DataFrame) -> None:
