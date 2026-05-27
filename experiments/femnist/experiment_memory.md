@@ -115,7 +115,8 @@ https://leaf.cmu.edu/build/html/tutorials/femnist-md.html
 
 ## Pilot Runs
 
-The local CPU is not practical for final-style FEMNIST pilots. A 200-client, 500-iteration FedAvg pilot reached
+On local CPU smoke test - 2 clients, 1 iteration, FedAvg, completed successfully.
+The local CPU is not practical for final-style FEMNIST pilots. A 20-client, 500-iteration FedAvg pilot reached
 iteration `249` before timing out and produced a very large partial checkpoint. CPU should be reserved for smoke tests
 and small debugging runs.
 
@@ -148,7 +149,7 @@ Failed or memory-limited pilot runs:
 | Lambda A10 24 GB | 200 | All 10 algorithms | Full | 2 | 400 | `40` | `200` | CUDA out of memory after FedAvg completed both trials in about `23-24` minutes; the process was using almost the full A10 memory during deep-copy/state retention. |
 | Lambda A10 24 GB | 100 | All 10 algorithms | Full | 1 | 400 | `400` | `None` | Completed successfully; FedAvg and FedProx each finished in under `6` minutes. This motivated moving the locked subset from 200 to 100 clients. |
 
-These failures were mostly memory/state-retention issues rather than FEMNIST loading issues. The expensive part is the
+These failures were mostly memory/state-retention issues. The expensive part is the
 combination of clients, algorithms, trials, stored snapshots, PyTorch model state, and decent-bench deep copies used to
 preserve comparable benchmark states for metrics.
 
