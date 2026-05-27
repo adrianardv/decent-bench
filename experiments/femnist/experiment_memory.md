@@ -120,8 +120,18 @@ GPU smoke test:
 The pilots plateaued early. For these FedAvg candidates, simply increasing to `1000` iterations is unlikely to fix the
 low accuracy. The next useful step is hyperparameter tuning, especially local learning rate and number of local epochs.
 
-The laptop GPU is not suitable for the larger all-algorithm smoke run. A 200-client run with the full algorithm
-list ran out of CUDA memory while decent-bench was deep-copying the benchmark network between trial.
+Failed or memory-limited pilot runs:
+
+| Hardware | Clients | Algorithms | Participation | Trials | Iterations | Snapshot period | Checkpoint step | Outcome |
+| --- | ---: | --- | --- | ---: | ---: | ---: | --- | --- |
+| Local CPU, Intel i7-13620H | 200 | FedAvg | Full | 1 | 500 | not recorded | enabled | Reached iteration `249` before timing out; produced a large partial checkpoint. |
+| Local GPU, RTX 2050 4 GB | 200 | All 10 algorithms | Full | 2 | 400 | `40` | `None` | CUDA out of memory after FedAvg reached `50%` overall progress / trial `1/2`; failed while deep-copying the network for the next trial/algorithm. |
+| Lambda A10 24 GB | 200 | All 10 algorithms | Full | 2 | 400 | `40` | `200` | CUDA out of memory after FedAvg completed both trials in about `23-24` minutes; the process was using almost the full A10 memory during deep-copy/state retention. |
+| Lambda A10 24 GB | 100 | All 10 algorithms | Full | 1 | 400 | `400` | `None` | Completed successfully; FedAvg and FedProx each finished in under `6` minutes. This motivated moving the locked subset from 200 to 100 clients. |
+
+These failures were mostly memory/state-retention issues rather than FEMNIST loading issues. The expensive part is the
+combination of clients, algorithms, trials, stored snapshots, PyTorch model state, and decent-bench deep copies used to
+preserve comparable benchmark states for metrics.
 
 
 ## Experiment 0 Design
