@@ -146,6 +146,7 @@ Failed or memory-limited pilot runs:
 | --- | ---: | --- | --- | ---: | ---: | ---: | --- | --- |
 | Local CPU, Intel i7-13620H | 200 | FedAvg | Full | 1 | 500 | not recorded | enabled | Reached iteration `249` before timing out; produced a large partial checkpoint. |
 | Local GPU, RTX 2050 4 GB | 200 | All 10 algorithms | Full | 2 | 400 | `40` | `None` | CUDA out of memory after FedAvg reached `50%` overall progress / trial `1/2`; failed while deep-copying the network for the next trial/algorithm. |
+| Local GPU, RTX 2050 4 GB | 20 | All 10 algorithms via `smoke_run.py` | Full | 1 | 1000 | `50` | `None` | CUDA out of memory when FedAdagrad started. FedAvg, FedProx, SCAFFOLD, FedNova, FedAdam, and FedYogi completed first. After FedAvg, about `2 / 4` GB of dedicated GPU memory was already used; after FedProx, about `3.9 / 4` GB was used. FedAvg and FedProx took about `20` minutes each. SCAFFOLD took about `1h45m` and left dedicated GPU memory at `4 / 4` GB. |
 | NVIDIA A10 24 GB (Lambda)| 200 | All 10 algorithms | Full | 2 | 400 | `40` | `200` | CUDA out of memory after FedAvg completed both trials in about `23-24` minutes; the process was using almost the full A10 memory during deep-copy/state retention. |
 | NVIDIA A10 24 GB (Lambda)| 100 | All 10 algorithms | Full | 1 | 400 | `400` | `None` | Completed successfully; FedAvg and FedProx each finished in under `6` minutes. This motivated moving the locked subset from 200 to 100 clients. |
 
@@ -164,3 +165,33 @@ Experiment 0 uses a validation split carved from the existing FEMNIST training s
 - validation: `20%` of the handler's train split,
 
 Final comparison experiments should train on the full handler train split and evaluate on the handler test split.
+
+Experiment 0 script tunes one algorithm family per run, for example:
+
+```powershell
+python experiments\femnist\experiment0.py --algorithm fedavg
+python experiments\femnist\experiment0.py --algorithm fedprox
+python experiments\femnist\experiment0.py --algorithm fedlt
+```
+
+Current tuning protocol:
+
+- run one algorithm family per process/Lambda job;
+- use `n_trials = 1` for tuning to reduce runtime and memory;
+- use `UniformSelection(fraction_selected_clients=0.2)` for all algorithms except `FedPD`;
+- tune `FedPD` with full participation because it does not support partial participation;
+- use `checkpoint_step = None`;
+- do not use a checkpoint manager for candidate runs, so candidate tuning saves only CSV/JSON results;
+- use `state_snapshot_period = iterations` for candidate runs because the candidates are not plotted;
+- run a random/coarse search first;
+- run a focused grid search around the best random/coarse candidate;
+- for `FedOpt`, run a focused grid separately around the best random/coarse candidate for each FedOpt variant
+  (`FedAdam`, `FedYogi`, and `FedAdagrad`), then select the best-performing variant;
+- cap the focused grid to a deterministic subset when the local grid is too large, to keep the run feasible;
+- for `FedLT`, first tune `step_size`, `num_local_epochs`, and `rho` with `local_solver="gd"`, then compare `gd`,
+  `adam`, and `nesterov` using the tuned base hyperparameters and default solver-specific parameters;
+- optionally run the final best candidate for `2000` iterations with `state_snapshot_period = final_iterations / 10`
+  to inspect whether performance plateaus before the end.
+
+The final best-candidate curve is meant to help decide whether the later FEMNIST benchmark experiments should use
+`1000` or `2000` iterations.
