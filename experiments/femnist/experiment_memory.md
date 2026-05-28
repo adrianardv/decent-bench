@@ -195,7 +195,7 @@ Current tuning protocol:
 - for `FedNova`, compare the plain variant, each optional mechanism alone, both momentum mechanisms together, and all
   three optional mechanisms together (`use_momentum`, `use_prox`, and `use_server_momentum`); for the proximal term,
   restrict `mu` to the values used in the FedNova paper: `{0.0005, 0.001, 0.005, 0.01}`;
-- for `FedPD`, use a reduced candidate budget (`--n-random-candidates 4 --max-grid-candidates 6`) because it is tuned
+- for `FedPD`, use a reduced candidate budget (`--n-random-candidates 6 --max-grid-candidates 9`) because it is tuned
   with full participation and each candidate is substantially slower than the partial-participation algorithms;
 - cap the focused grid to a deterministic subset when the local grid is too large, to keep the run feasible;
 - for `FedLT`, first tune `step_size`, `num_local_epochs`, and `rho` with `local_solver="gd"`, then compare `gd`,
