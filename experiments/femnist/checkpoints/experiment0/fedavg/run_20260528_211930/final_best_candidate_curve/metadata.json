@@ -1,0 +1,14 @@
+{
+  "final_iterations": 2000,
+  "state_snapshot_period": 200,
+  "n_trials": 1,
+  "best_candidate": {
+    "algorithm_name": "FedAvg",
+    "variant": "grid_lr_0p1_e4",
+    "search_stage": "grid",
+    "hyperparameters": {
+      "step_size": 0.1,
+      "num_local_epochs": 4
+    }
+  }
+}
