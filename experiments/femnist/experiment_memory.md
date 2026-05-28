@@ -195,6 +195,8 @@ Current tuning protocol:
 - for `FedNova`, compare the plain variant, each optional mechanism alone, both momentum mechanisms together, and all
   three optional mechanisms together (`use_momentum`, `use_prox`, and `use_server_momentum`); for the proximal term,
   restrict `mu` to the values used in the FedNova paper: `{0.0005, 0.001, 0.005, 0.01}`;
+- for `FedPD`, use a reduced candidate budget (`--n-random-candidates 4 --max-grid-candidates 6`) because it is tuned
+  with full participation and each candidate is substantially slower than the partial-participation algorithms;
 - cap the focused grid to a deterministic subset when the local grid is too large, to keep the run feasible;
 - for `FedLT`, first tune `step_size`, `num_local_epochs`, and `rho` with `local_solver="gd"`, then compare `gd`,
   `adam`, and `nesterov` using the tuned base hyperparameters and default solver-specific parameters;
@@ -224,3 +226,26 @@ experiments/femnist/checkpoints/experiment0/combined_curves/run_<timestamp>/
 ```
 
 This gives an all-algorithm comparison plot without running all algorithms inside one memory-heavy `benchmark()` call.
+
+### FedNova Variant Choice
+
+The FedNova tuning compares several internal FedNova variants instead of treating FedNova as only one fixed algorithm.
+This is motivated by the FedNova paper/code, where different optional mechanisms are evaluated separately:
+
+| Variant in this benchmark | Local momentum / `beta` | Proximal term / `mu` | Server momentum / `gamma` | Motivation |
+| --- | --- | --- | --- | --- |
+| `plain` | off | off | off | Vanilla FedNova baseline. |
+| `momentum` | on | off | off | Local momentum FedNova variant. |
+| `prox` | off | on | off | FedNova-Prox/proximal variant. |
+| `server_momentum` | off | off | on | Server-momentum FedNova variant. |
+| `both_momentums` | on | off | on | Hybrid local + server momentum variant. |
+| `all_three` | on | on | on | Extra variant added here to test all three optional mechanisms together. |
+
+For the proximal FedNova variants, `mu` is restricted to the paper/code values:
+
+```text
+{0.0005, 0.001, 0.005, 0.01}
+```
+
+I found evidence for the first five variants in the paper/code. I added `all_three` as an extra benchmark variant because
+it is a natural combination to test once the framework already supports the three mechanisms.
