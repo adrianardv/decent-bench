@@ -69,6 +69,7 @@ step_size_bounds_by_algorithm = {
     "fedavg": (1e-3, 1e-1),
     "fedprox": (1e-3, 1e-1),
 }
+fednova_mu_choices = [0.0005, 0.001, 0.005, 0.01]
 
 algorithm_choices = [
     "fedavg",
@@ -296,7 +297,17 @@ def random_scaffold_candidate(rng: np.random.Generator, index: int) -> Candidate
 
 
 def random_fednova_candidate(rng: np.random.Generator, index: int) -> Candidate:
-    variant = random_choice(rng, ["plain", "momentum", "prox", "server_momentum"])
+    variant = random_choice(
+        rng,
+        [
+            "plain",
+            "momentum",
+            "prox",
+            "server_momentum",
+            "both_momentums",
+            "all_three",
+        ],
+    )
     params: dict[str, Any] = {
         "step_size": log_uniform(rng, 1e-3, 5e-2),
         "num_local_epochs": random_choice(rng, local_epoch_choices),
@@ -304,9 +315,29 @@ def random_fednova_candidate(rng: np.random.Generator, index: int) -> Candidate:
     if variant == "momentum":
         params.update({"use_momentum": True, "beta": random_choice(rng, [0.5, 0.9])})
     elif variant == "prox":
-        params.update({"use_prox": True, "mu": log_uniform(rng, 1e-4, 1e-1)})
+        params.update({"use_prox": True, "mu": random_choice(rng, fednova_mu_choices)})
     elif variant == "server_momentum":
         params.update({"use_server_momentum": True, "gamma": random_choice(rng, [0.5, 0.9])})
+    elif variant == "both_momentums":
+        params.update(
+            {
+                "use_momentum": True,
+                "beta": random_choice(rng, [0.5, 0.9]),
+                "use_server_momentum": True,
+                "gamma": random_choice(rng, [0.5, 0.9]),
+            }
+        )
+    elif variant == "all_three":
+        params.update(
+            {
+                "use_momentum": True,
+                "beta": random_choice(rng, [0.5, 0.9]),
+                "use_prox": True,
+                "mu": random_choice(rng, fednova_mu_choices),
+                "use_server_momentum": True,
+                "gamma": random_choice(rng, [0.5, 0.9]),
+            }
+        )
     return candidate("fednova", "FedNova", "FedNova", f"{variant}_random_{index:02d}", "random", params)
 
 
@@ -427,15 +458,21 @@ def grid_fednova_candidates(best: Candidate, common_grid: list[tuple[float, int]
         for key, value in best.hyperparameters.items()
         if key not in {"step_size", "num_local_epochs", "beta", "mu", "gamma"}
     }
-    extra_grids: list[dict[str, Any]] = [{}]
+    extra_values: list[tuple[str, list[Any]]] = []
     if best.hyperparameters.get("use_momentum"):
-        extra_grids = [{"beta": value} for value in nearby_linear_values(float(best.hyperparameters["beta"]), 0.5, 0.9)]
-    elif best.hyperparameters.get("use_prox"):
-        extra_grids = [{"mu": value} for value in nearby_log_values(float(best.hyperparameters["mu"]), 1e-4, 1e-1)]
-    elif best.hyperparameters.get("use_server_momentum"):
+        extra_values.append(("beta", nearby_linear_values(float(best.hyperparameters["beta"]), 0.5, 0.9)))
+    if best.hyperparameters.get("use_prox"):
+        extra_values.append(("mu", nearby_discrete_values(float(best.hyperparameters["mu"]), fednova_mu_choices)))
+    if best.hyperparameters.get("use_server_momentum"):
+        extra_values.append(("gamma", nearby_linear_values(float(best.hyperparameters["gamma"]), 0.5, 0.9)))
+
+    if extra_values:
         extra_grids = [
-            {"gamma": value} for value in nearby_linear_values(float(best.hyperparameters["gamma"]), 0.5, 0.9)
+            dict(zip((key for key, _ in extra_values), values, strict=True))
+            for values in product(*(values for _, values in extra_values))
         ]
+    else:
+        extra_grids = [{}]
 
     return [
         candidate(
@@ -593,6 +630,15 @@ def nearby_linear_values(value: float, lower: float, upper: float) -> list[float
 
 def nearby_epoch_values(value: int) -> list[int]:
     return sorted({candidate_value for candidate_value in (value - 1, value, value + 1) if 1 <= candidate_value <= 10})
+
+
+def nearby_discrete_values(value: float, choices: Sequence[float]) -> list[float]:
+    sorted_choices = sorted(float(choice) for choice in choices)
+    if value in sorted_choices:
+        value_index = sorted_choices.index(value)
+    else:
+        value_index = min(range(len(sorted_choices)), key=lambda index: abs(sorted_choices[index] - value))
+    return sorted_choices[max(0, value_index - 1) : min(len(sorted_choices), value_index + 2)]
 
 
 def clip_float(value: float, lower: float, upper: float) -> float:

@@ -192,6 +192,9 @@ Current tuning protocol:
 - run a focused grid search around the best random/coarse candidate;
 - for `FedOpt`, run a focused grid separately around the best random/coarse candidate for each FedOpt variant
   (`FedAdam`, `FedYogi`, and `FedAdagrad`), then select the best-performing variant;
+- for `FedNova`, compare the plain variant, each optional mechanism alone, both momentum mechanisms together, and all
+  three optional mechanisms together (`use_momentum`, `use_prox`, and `use_server_momentum`); for the proximal term,
+  restrict `mu` to the values used in the FedNova paper: `{0.0005, 0.001, 0.005, 0.01}`;
 - cap the focused grid to a deterministic subset when the local grid is too large, to keep the run feasible;
 - for `FedLT`, first tune `step_size`, `num_local_epochs`, and `rho` with `local_solver="gd"`, then compare `gd`,
   `adam`, and `nesterov` using the tuned base hyperparameters and default solver-specific parameters;
