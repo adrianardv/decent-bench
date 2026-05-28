@@ -166,6 +166,9 @@ Experiment 0 uses a validation split carved from the existing FEMNIST training s
 - tuning train: `80%` of the handler's train split,
 - validation: `20%` of the handler's train split,
 
+This is a fixed hold-out validation setup, not cross-validation. Cross-validation was not selected because it would
+multiply the cost of every federated hyperparameter candidate.
+
 Final comparison experiments should train on the full handler train split and evaluate on the handler test split.
 
 Experiment 0 script tunes one algorithm family per run, for example:

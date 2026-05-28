@@ -64,6 +64,11 @@ selection_metric = "server accuracy"
 tie_break_metric = "loss"
 local_epoch_choices = [1, 2, 3, 5, 8, 10]
 metric_result_filename = "metric_computation.pkl.zst"
+default_step_size_bounds = (1e-3, 5e-2)
+step_size_bounds_by_algorithm = {
+    "fedavg": (1e-3, 1e-1),
+    "fedprox": (1e-3, 1e-1),
+}
 
 algorithm_choices = [
     "fedavg",
@@ -350,9 +355,10 @@ def random_fedpd_candidate(rng: np.random.Generator, index: int) -> Candidate:
 
 def grid_candidates_from(best: Candidate) -> list[Candidate]:
     params = best.hyperparameters
+    step_lower, step_upper = step_size_bounds_for(best.algorithm_key)
     common_grid = list(
         product(
-            nearby_log_values(float(params["step_size"]), lower=1e-4, upper=2e-1),
+            nearby_log_values(float(params["step_size"]), lower=step_lower, upper=step_upper),
             nearby_epoch_values(int(params["num_local_epochs"])),
         )
     )
@@ -384,7 +390,7 @@ def grid_fedavg_candidates(best: Candidate, common_grid: list[tuple[float, int]]
 
 
 def grid_fedprox_candidates(best: Candidate, common_grid: list[tuple[float, int]]) -> list[Candidate]:
-    mu_values = nearby_log_values(float(best.hyperparameters["mu"]), lower=1e-5, upper=1e1)
+    mu_values = nearby_log_values(float(best.hyperparameters["mu"]), lower=1e-4, upper=1e0)
     return [
         candidate(
             "fedprox",
@@ -400,7 +406,7 @@ def grid_fedprox_candidates(best: Candidate, common_grid: list[tuple[float, int]
 
 
 def grid_scaffold_candidates(best: Candidate, common_grid: list[tuple[float, int]]) -> list[Candidate]:
-    server_values = nearby_linear_values(float(best.hyperparameters["server_step_size"]), lower=0.05, upper=1.5)
+    server_values = nearby_linear_values(float(best.hyperparameters["server_step_size"]), lower=0.1, upper=1.0)
     return [
         candidate(
             "scaffold",
@@ -423,12 +429,12 @@ def grid_fednova_candidates(best: Candidate, common_grid: list[tuple[float, int]
     }
     extra_grids: list[dict[str, Any]] = [{}]
     if best.hyperparameters.get("use_momentum"):
-        extra_grids = [{"beta": value} for value in nearby_linear_values(float(best.hyperparameters["beta"]), 0.0, 0.99)]
+        extra_grids = [{"beta": value} for value in nearby_linear_values(float(best.hyperparameters["beta"]), 0.5, 0.9)]
     elif best.hyperparameters.get("use_prox"):
-        extra_grids = [{"mu": value} for value in nearby_log_values(float(best.hyperparameters["mu"]), 1e-5, 1e0)]
+        extra_grids = [{"mu": value} for value in nearby_log_values(float(best.hyperparameters["mu"]), 1e-4, 1e-1)]
     elif best.hyperparameters.get("use_server_momentum"):
         extra_grids = [
-            {"gamma": value} for value in nearby_linear_values(float(best.hyperparameters["gamma"]), 0.0, 0.99)
+            {"gamma": value} for value in nearby_linear_values(float(best.hyperparameters["gamma"]), 0.5, 0.9)
         ]
 
     return [
@@ -446,7 +452,7 @@ def grid_fednova_candidates(best: Candidate, common_grid: list[tuple[float, int]
 
 
 def grid_fedopt_candidates(best: Candidate, common_grid: list[tuple[float, int]]) -> list[Candidate]:
-    server_values = nearby_log_values(float(best.hyperparameters["server_step_size"]), lower=1e-5, upper=1e0)
+    server_values = nearby_log_values(float(best.hyperparameters["server_step_size"]), lower=1e-4, upper=1e-1)
     candidates: list[Candidate] = []
     for step, epochs in common_grid:
         for server_step in server_values:
@@ -473,7 +479,7 @@ def grid_fedopt_candidates(best: Candidate, common_grid: list[tuple[float, int]]
 
 
 def grid_fedlt_candidates(best: Candidate, common_grid: list[tuple[float, int]]) -> list[Candidate]:
-    rho_values = nearby_log_values(float(best.hyperparameters["rho"]), lower=1e-3, upper=1e2)
+    rho_values = nearby_log_values(float(best.hyperparameters["rho"]), lower=1e-2, upper=1e1)
     return [
         candidate(
             "fedlt",
@@ -489,7 +495,7 @@ def grid_fedlt_candidates(best: Candidate, common_grid: list[tuple[float, int]])
 
 
 def grid_feddyn_candidates(best: Candidate, common_grid: list[tuple[float, int]]) -> list[Candidate]:
-    alpha_values = nearby_log_values(float(best.hyperparameters["alpha"]), lower=1e-5, upper=1e1)
+    alpha_values = nearby_log_values(float(best.hyperparameters["alpha"]), lower=1e-4, upper=1e0)
     return [
         candidate(
             "feddyn",
@@ -505,7 +511,7 @@ def grid_feddyn_candidates(best: Candidate, common_grid: list[tuple[float, int]]
 
 
 def grid_fedpd_candidates(best: Candidate, common_grid: list[tuple[float, int]]) -> list[Candidate]:
-    eta_values = nearby_log_values(float(best.hyperparameters["eta"]), lower=1e-3, upper=1e2)
+    eta_values = nearby_log_values(float(best.hyperparameters["eta"]), lower=1e-2, upper=1e1)
     skip_values = sorted({0.0, 0.1, float(best.hyperparameters["skip_probability"])})
     return [
         candidate(
@@ -570,6 +576,10 @@ def log_uniform(rng: np.random.Generator, low: float, high: float) -> float:
 
 def random_choice[T](rng: np.random.Generator, values: Sequence[T]) -> T:
     return values[int(rng.integers(0, len(values)))]
+
+
+def step_size_bounds_for(algorithm_key: str) -> tuple[float, float]:
+    return step_size_bounds_by_algorithm.get(algorithm_key, default_step_size_bounds)
 
 
 def nearby_log_values(value: float, *, lower: float, upper: float) -> list[float]:
