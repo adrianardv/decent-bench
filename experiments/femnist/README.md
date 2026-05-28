@@ -173,6 +173,15 @@ During Experiment 0, the validation split is passed to decent-bench as `Benchmar
 the framework's evaluation-data argument. Final comparison experiments should switch back to the held-out FEMNIST test
 split.
 
+After tuning algorithms separately, combined final-curve plots can be generated from the saved metric results:
+
+```powershell
+python experiments\femnist\experiment0.py --combined_curves
+```
+
+This reads the latest `final_best_candidate_curve/metric_computation.pkl.zst` for each available algorithm and writes
+combined curve data and plots to `experiments/femnist/checkpoints/experiment0/combined_curves/`.
+
 ## References
 
 The BibTeX entries used for this dataset setup are stored in `references.bib`.

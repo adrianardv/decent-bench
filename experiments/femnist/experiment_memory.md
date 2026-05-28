@@ -150,6 +150,7 @@ Failed or memory-limited pilot runs:
 | NVIDIA A10 24 GB (Lambda)| 200 | All 10 algorithms | Full | 2 | 400 | `40` | `200` | CUDA out of memory after FedAvg completed both trials in about `23-24` minutes; the process was using almost the full A10 memory during deep-copy/state retention. |
 | NVIDIA A10 24 GB (Lambda)| 100 | All 10 algorithms | Full | 1 | 400 | `400` | `None` | Completed successfully; FedAvg and FedProx each finished in under `6` minutes. This motivated moving the locked subset from 200 to 100 clients. |
 | NVIDIA A100 SXM4 40 GB (Lambda) | 100 | All 10 algorithms via `smoke_run.py` | Full | 1 | 800 | `100` | `None` | CUDA out of memory in the last algorithm, `FedPD`. This run used the selected 100-client FEMNIST setup, the LEAF-lite CNN, batch size `32`, and the same fixed shared smoke hyperparameters. It shows that even with fewer iterations and fewer snapshots, the full 10-algorithm benchmark in one `benchmark()` call is too memory-heavy for an A100 40 GB. |
+| NVIDIA H100 80 GB HBM3 (Lambda) | 100 | 4 algorithms via `smoke_feasibility.py`: SCAFFOLD, FedNova, FedLT, FedDyn | Full | 3 | 1000 | `100` | `None` | Benchmark execution completed for all 4 algorithms. Each algorithm took about `30` minutes to complete 3 trials. GPU memory usage was about `60 / 80` GB after all 4 algorithms finished. This suggests the selected 100-client, 1000-iteration, 3-trial setting is feasible on H100 for a 4-algorithm benchmark, but with limited memory margin. |
 
 These failures were mostly memory/state-retention issues. The expensive part is the
 combination of clients, algorithms, trials, stored snapshots, PyTorch model state, and decent-bench deep copies used to
@@ -196,3 +197,24 @@ Current tuning protocol:
 
 The final best-candidate curve is meant to help decide whether the later FEMNIST benchmark experiments should use
 `1000` or `2000` iterations.
+
+The final best-candidate run also saves a compressed decent-bench `MetricResult` object at:
+
+```text
+experiments/femnist/checkpoints/experiment0/<algorithm>/run_<timestamp>/final_best_candidate_curve/metric_computation.pkl.zst
+```
+
+After several algorithms have been tuned separately, use:
+
+```powershell
+python experiments\femnist\experiment0.py --combined_curves
+```
+
+This loads the latest saved final-curve metric result for each available algorithm and produces combined accuracy/loss
+plots under:
+
+```text
+experiments/femnist/checkpoints/experiment0/combined_curves/run_<timestamp>/
+```
+
+This gives an all-algorithm comparison plot without running all algorithms inside one memory-heavy `benchmark()` call.

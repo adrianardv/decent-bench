@@ -5,6 +5,7 @@ import csv
 import gc
 import json
 import logging
+import pickle
 import time
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
@@ -14,8 +15,11 @@ from pathlib import Path
 from typing import Any
 
 import decent_bench.utils.interoperability as iop
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import torch
+import zstandard as zstd
 from decent_bench import benchmark
 from decent_bench.agents import Agent
 from decent_bench.algorithms.federated import (
@@ -59,6 +63,7 @@ selection_fraction = 0.2
 selection_metric = "server accuracy"
 tie_break_metric = "loss"
 local_epoch_choices = [1, 2, 3, 5, 8, 10]
+metric_result_filename = "metric_computation.pkl.zst"
 
 algorithm_choices = [
     "fedavg",
@@ -115,13 +120,14 @@ candidate_result_fields = [
 
 @dataclass(frozen=True)
 class RuntimeConfig:
-    algorithm: str
+    algorithm: str | None
     iterations: int
     final_iterations: int
     n_trials: int
     n_random_candidates: int
     max_grid_candidates: int
     run_final: bool
+    combined_curves: bool
     run_path: Path
 
 
@@ -147,7 +153,13 @@ class Candidate:
 
 def parse_args() -> RuntimeConfig:
     parser = argparse.ArgumentParser(description="Tune FEMNIST hyperparameters for one federated algorithm.")
-    parser.add_argument("--algorithm", choices=algorithm_choices, required=True)
+    parser.add_argument("--algorithm", choices=algorithm_choices)
+    parser.add_argument(
+        "--combined_curves",
+        "--combined-curves",
+        action="store_true",
+        help="Combine saved final-curve metric results from previous Experiment 0 algorithm runs.",
+    )
     parser.add_argument("--iterations", type=int, default=1000)
     parser.add_argument("--final-iterations", type=int, default=2000)
     parser.add_argument("--n-trials", type=int, default=1)
@@ -157,8 +169,14 @@ def parse_args() -> RuntimeConfig:
     parser.add_argument("--run-name", type=str)
     args = parser.parse_args()
 
+    if not args.combined_curves and args.algorithm is None:
+        parser.error("--algorithm is required unless --combined_curves is used.")
+
     run_name = args.run_name or f"run_{datetime.now():%Y%m%d_%H%M%S}"
-    run_path = Path("experiments/femnist/checkpoints/experiment0") / args.algorithm / run_name
+    if args.combined_curves:
+        run_path = Path("experiments/femnist/checkpoints/experiment0/combined_curves") / run_name
+    else:
+        run_path = Path("experiments/femnist/checkpoints/experiment0") / args.algorithm / run_name
     return RuntimeConfig(
         algorithm=args.algorithm,
         iterations=args.iterations,
@@ -167,6 +185,7 @@ def parse_args() -> RuntimeConfig:
         n_random_candidates=args.n_random_candidates,
         max_grid_candidates=args.max_grid_candidates,
         run_final=not args.skip_final_run,
+        combined_curves=args.combined_curves,
         run_path=run_path,
     )
 
@@ -778,6 +797,12 @@ def run_final_curve(
         show_plots=False,
         log_level=logging.INFO,
     )
+    metric_result.agent_metrics = None
+    save_pickle_zst(metric_result, final_path / metric_result_filename)
+    (final_path / "metric_computation_complete.json").write_text(
+        json.dumps({"metric_computation_complete": True}, indent=2),
+        encoding="utf-8",
+    )
     metadata = {
         "final_iterations": config.final_iterations,
         "state_snapshot_period": state_snapshot_period,
@@ -916,6 +941,101 @@ def cleanup_cuda() -> None:
 
 
 # -----------------------------------------------------------------------------
+# Combined final-curve plots
+# -----------------------------------------------------------------------------
+
+def save_pickle_zst(data: object, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    compressor = zstd.ZstdCompressor(level=1)
+    with path.open("wb") as file_obj, compressor.stream_writer(file_obj) as compressed_writer:
+        pickle.dump(data, compressed_writer, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def load_pickle_zst(path: Path) -> object:
+    with path.open("rb") as file_obj:
+        decompressor = zstd.ZstdDecompressor()
+        with decompressor.stream_reader(file_obj) as decompressed_reader:
+            return pickle.load(decompressed_reader)  # noqa: S301
+
+
+def latest_final_curve_metric_path(algorithm_key: str) -> Path | None:
+    algorithm_root = Path("experiments/femnist/checkpoints/experiment0") / algorithm_key
+    metric_paths = sorted(
+        algorithm_root.glob(f"run_*/final_best_candidate_curve/{metric_result_filename}"),
+        key=lambda path: path.stat().st_mtime,
+    )
+    return metric_paths[-1] if metric_paths else None
+
+
+def run_combined_curves(config: RuntimeConfig) -> None:
+    config.run_path.mkdir(parents=True, exist_ok=True)
+    plot_frames: list[pd.DataFrame] = []
+    source_paths: dict[str, str] = {}
+
+    for algorithm_key in algorithm_choices:
+        metric_path = latest_final_curve_metric_path(algorithm_key)
+        if metric_path is None:
+            print(f"Skipping {algorithm_key}: no saved final-curve metric result found.")
+            continue
+        metric_result = load_pickle_zst(metric_path)
+        _, plot_frame = metric_result.to_dataframe()
+        if plot_frame is None or plot_frame.empty:
+            print(f"Skipping {algorithm_key}: saved metric result has no plot data.")
+            continue
+        plot_frames.append(plot_frame)
+        source_paths[algorithm_key] = str(metric_path)
+
+    if not plot_frames:
+        raise RuntimeError("No final-curve metric results were found to combine.")
+
+    combined_frame = pd.concat(plot_frames, ignore_index=True)
+    combined_frame.to_csv(config.run_path / "exp0_combined_curve_data.csv", index=False)
+    (config.run_path / "metadata.json").write_text(
+        json.dumps(
+            {
+                "experiment": "experiment0",
+                "mode": "combined_curves",
+                "source_metric_results": source_paths,
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    for metric_name in ("server accuracy", "loss"):
+        if metric_name in set(combined_frame["metric"]):
+            plot_combined_metric(combined_frame, metric_name, config.run_path)
+
+    print(f"Combined curve data saved to: {config.run_path / 'exp0_combined_curve_data.csv'}")
+    print(f"Combined plots saved to: {config.run_path}")
+
+
+def plot_combined_metric(combined_frame: pd.DataFrame, metric_name: str, output_path: Path) -> None:
+    metric_frame = combined_frame[combined_frame["metric"] == metric_name]
+    fig, ax = plt.subplots(figsize=(10, 6))
+    for algorithm_name in sorted(metric_frame["algorithm"].unique()):
+        algorithm_frame = metric_frame[metric_frame["algorithm"] == algorithm_name].sort_values("x")
+        ax.plot(algorithm_frame["x"], algorithm_frame["y_mean"], label=algorithm_name)
+        ax.fill_between(
+            algorithm_frame["x"],
+            algorithm_frame["y_min"],
+            algorithm_frame["y_max"],
+            alpha=0.12,
+        )
+
+    ax.set_xlabel("Iteration")
+    ax.set_ylabel(metric_name)
+    ax.set_title(f"Experiment 0 final best-candidate {metric_name}")
+    ax.grid(visible=True, alpha=0.25)
+    ax.legend()
+    fig.tight_layout()
+
+    filename = f"exp0_combined_{metric_name.replace(' ', '_')}.png"
+    fig.savefig(output_path / filename, dpi=200)
+    plt.close(fig)
+
+
+# -----------------------------------------------------------------------------
 # Main tuning workflow
 # -----------------------------------------------------------------------------
 
@@ -989,6 +1109,12 @@ def row_to_candidate(row: dict[str, Any], candidates: Sequence[Candidate]) -> Ca
 
 def main() -> None:
     config = parse_args()
+    if config.combined_curves:
+        run_combined_curves(config)
+        return
+    if config.algorithm is None:
+        raise RuntimeError("An algorithm must be provided unless combined-curves mode is enabled.")
+
     config.run_path.mkdir(parents=True, exist_ok=True)
     candidate_results_path = config.run_path / "exp0_candidate_results.csv"
     best_path = config.run_path / "exp0_best_hyperparameters.json"
