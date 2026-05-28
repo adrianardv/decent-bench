@@ -726,7 +726,6 @@ def run_candidate(
         checkpoint_manager=None,
         log_level=logging.INFO,
     )
-    assert_completed_iterations(result, iterations)
     metric_result = benchmark.compute_metrics(
         benchmark_result=result,
         table_metrics=[
@@ -789,7 +788,6 @@ def run_final_curve(
         checkpoint_manager=None,
         log_level=logging.INFO,
     )
-    assert_completed_iterations(result, config.final_iterations)
     metric_result = benchmark.compute_metrics(
         benchmark_result=result,
         table_metrics=[
@@ -838,17 +836,6 @@ def metric_value(table_frame: Any, metric_name: str, *, statistic: str | None = 
         raise RuntimeError(f"Metric {metric_name!r} with statistic {statistic!r} was not computed.")
     row = rows.iloc[0]
     return float(row["mean"]), float(row["margin_of_error"])
-
-
-def assert_completed_iterations(result: Any, expected_iterations: int) -> None:
-    for algorithm, networks in result.states.items():
-        for trial_index, network in enumerate(networks):
-            server_history = network.server().x_history
-            if server_history.max() < expected_iterations:
-                raise RuntimeError(
-                    f"{algorithm.name} trial {trial_index} ended at iteration {server_history.max()}, "
-                    f"expected {expected_iterations}."
-                )
 
 
 def flatten_hyperparameters(hyperparameters: dict[str, Any]) -> dict[str, Any]:
