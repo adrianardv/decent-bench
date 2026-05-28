@@ -10,7 +10,7 @@ This folder contains the thesis-specific FEMNIST setup and inspection utilities.
 - `src/inspection_helpers.py`: inspection/statistics helpers.
 - `src/femnist_handler.py`: `FEMNISTDatasetHandler`, used to create decent-bench train/test datasets.
 - `src/model.py`: FEMNIST CNN used by the experiment scripts.
-- `experiment_memory.md`: local ignored notes and decisions for the thesis chapter.
+- `experiment_memory.md`: notes and decisions for the thesis chapter.
 - `data/`: local dataset cache, ignored by git.
 - `results/`: generated summaries, plots, and future experiment outputs, ignored by git.
 - `checkpoints/`: benchmark checkpoints and saved metric outputs, ignored by git.
@@ -122,8 +122,8 @@ All FEMNIST experiments should use the same selected writer set. The selected se
 - `min_test_samples = 20`
 - `clients_per_round = 20` / `selection_fraction = 0.2`
 - `n_trials = 3`
-- `iterations = 1000`
-- `state_snapshot_period = 100` by default, or `50` for selected plotting runs
+- `iterations = 1000?`
+- `state_snapshot_period = 100?`
 - `checkpoint_step = None`
 - `batch_size = 32`
 
@@ -147,40 +147,6 @@ Loss: torch.nn.CrossEntropyLoss
 
 The model outputs logits, not softmax probabilities. `torch.nn.CrossEntropyLoss` applies the softmax/log-softmax
 operation internally.
-
-The model choice is inspired by the LEAF CNN model used for FEMNIST experiments:
-```text
-- Two 5x5 convolution layers
-- 32 then 64 channels
-- max pooling after each convolution
-- one fully connected layer with 2048 units
-- final softmax over labels 0-61
-```
-
-## Experiment 0: Hyperparameter Tuning
-
-Use `experiment0.py` to tune hyperparameters before the main comparison experiments.
-
-The script uses the same selected FEMNIST writers, but splits the training portion again for tuning:
-
-```text
-64% tuning train
-16% validation
-20% final test, not used in Experiment 0
-```
-
-During Experiment 0, the validation split is passed to decent-bench as `BenchmarkProblem(test_data=...)` because that is
-the framework's evaluation-data argument. Final comparison experiments should switch back to the held-out FEMNIST test
-split.
-
-After tuning algorithms separately, combined final-curve plots can be generated from the saved metric results:
-
-```powershell
-python experiments\femnist\experiment0.py --combined_curves
-```
-
-This reads the latest `final_best_candidate_curve/metric_computation.pkl.zst` for each available algorithm and writes
-combined curve data and plots to `experiments/femnist/checkpoints/experiment0/combined_curves/`.
 
 ## References
 
