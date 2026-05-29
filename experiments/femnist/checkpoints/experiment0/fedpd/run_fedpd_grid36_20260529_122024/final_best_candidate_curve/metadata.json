@@ -1,0 +1,16 @@
+{
+  "final_iterations": 2000,
+  "state_snapshot_period": 200,
+  "n_trials": 1,
+  "best_candidate": {
+    "algorithm_name": "FedPD",
+    "variant": "grid_lr_0p03_e5_eta_0p3_skip_0p2",
+    "search_stage": "grid",
+    "hyperparameters": {
+      "step_size": 0.03,
+      "num_local_epochs": 5,
+      "eta": 0.3,
+      "skip_probability": 0.2
+    }
+  }
+}
