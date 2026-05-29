@@ -1,0 +1,15 @@
+{
+  "final_iterations": 2000,
+  "state_snapshot_period": 200,
+  "n_trials": 1,
+  "best_candidate": {
+    "algorithm_name": "FedProx",
+    "variant": "grid_lr_0p1_e4_mu_0p0259",
+    "search_stage": "grid",
+    "hyperparameters": {
+      "step_size": 0.1,
+      "num_local_epochs": 4,
+      "mu": 0.025887619090591573
+    }
+  }
+}
