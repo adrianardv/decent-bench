@@ -10,7 +10,7 @@ This folder contains the thesis-specific FEMNIST setup and inspection utilities.
 - `src/inspection_helpers.py`: inspection/statistics helpers.
 - `src/femnist_handler.py`: `FEMNISTDatasetHandler`, used to create decent-bench train/test datasets.
 - `src/model.py`: FEMNIST CNN used by the experiment scripts.
-- `experiment_memory.md`: notes and decisions for the thesis chapter.
+- `experiment_log.md`: notes and decisions for the thesis chapter.
 - `data/`: local dataset cache, ignored by git.
 - `results/`: generated summaries, plots, and future experiment outputs, ignored by git.
 - `checkpoints/`: benchmark checkpoints and saved metric outputs, ignored by git.
