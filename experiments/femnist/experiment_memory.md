@@ -215,6 +215,7 @@ current candidates to carry forward into the main FEMNIST experiments.
 | --- | --- | --- | --- | --- |
 | FedAvg | FedAvg | `step_size = 0.1`, `num_local_epochs = 4` | none | Stable final curve; about `83%` server accuracy. |
 | FedProx | FedProx | `step_size = 0.1`, `num_local_epochs = 4` | `mu = 0.025887619090591573` | Stable final curve; about `83%` server accuracy. |
+| SCAFFOLD | SCAFFOLD | `step_size = 0.02441691061516309`, `num_local_epochs = 8` | `server_step_size = 1.0` | Stable final curve after focused rerun; about `82%` server accuracy. |
 | FedNova | local + server momentum, no prox | `step_size = 0.015780201353739066`, `num_local_epochs = 3` | `use_momentum = True`, `use_server_momentum = True`, `use_prox = False`, `beta = 0.5`, `gamma = 0.9` | Stable final curve; about `84%` server accuracy. |
 | FedOpt family | FedAdam | `step_size = 0.016454811464286817`, `num_local_epochs = 7` | `server_step_size = 0.005781649782731609`, `beta_1 = 0.9`, `beta_2 = 0.9`, `tau = 0.001` | FedAdam selected over FedYogi and FedAdagrad; about `83%` server accuracy. |
 | FedDyn | FedDyn | `step_size = 0.02760842017693185`, `num_local_epochs = 2` | `alpha = 1.0` | Stable final curve; about `83%` server accuracy. |
