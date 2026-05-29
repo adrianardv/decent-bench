@@ -1,0 +1,63 @@
+{
+  "best_overall": {
+    "algorithm_name": "FedLT",
+    "variant": "adam_lr_0.005_e8_rho_1_b1_0.5_b2_0.999_eps_1e-08",
+    "search_stage": "grid",
+    "hyperparameters": {
+      "step_size": 0.005,
+      "num_local_epochs": 8,
+      "rho": 1.0,
+      "local_solver": "adam",
+      "solver_args": {
+        "beta1": 0.5,
+        "beta2": 0.999,
+        "epsilon": 1e-08
+      }
+    },
+    "server_accuracy_mean": 0.7939672801635992,
+    "server_accuracy_margin_of_error": 0.0,
+    "validation_loss_mean": 0.3972438665200025,
+    "validation_loss_margin_of_error": 0.0,
+    "selected_solver": "adam"
+  },
+  "best_adam": {
+    "algorithm_name": "FedLT",
+    "variant": "adam_lr_0.005_e8_rho_1_b1_0.5_b2_0.999_eps_1e-08",
+    "search_stage": "grid",
+    "hyperparameters": {
+      "step_size": 0.005,
+      "num_local_epochs": 8,
+      "rho": 1.0,
+      "local_solver": "adam",
+      "solver_args": {
+        "beta1": 0.5,
+        "beta2": 0.999,
+        "epsilon": 1e-08
+      }
+    },
+    "server_accuracy_mean": 0.7939672801635992,
+    "server_accuracy_margin_of_error": 0.0,
+    "validation_loss_mean": 0.3972438665200025,
+    "validation_loss_margin_of_error": 0.0,
+    "selected_solver": "adam"
+  },
+  "best_nesterov": {
+    "algorithm_name": "FedLT",
+    "variant": "nesterov_lr_0.01_e5_rho_0.1_m_0.7",
+    "search_stage": "grid",
+    "hyperparameters": {
+      "step_size": 0.01,
+      "num_local_epochs": 5,
+      "rho": 0.1,
+      "local_solver": "nesterov",
+      "solver_args": {
+        "momentum": 0.7
+      }
+    },
+    "server_accuracy_mean": 0.3333333333333333,
+    "server_accuracy_margin_of_error": 0.0,
+    "validation_loss_mean": 2.8668141746520996,
+    "validation_loss_margin_of_error": 0.0,
+    "selected_solver": "nesterov"
+  }
+}

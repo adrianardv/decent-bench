@@ -1,0 +1,37 @@
+{
+  "final_iterations": 2000,
+  "state_snapshot_period": 200,
+  "n_trials": 1,
+  "best_adam_candidate": {
+    "algorithm_name": "FedLT",
+    "variant": "adam_lr_0.005_e8_rho_1_b1_0.5_b2_0.999_eps_1e-08",
+    "search_stage": "grid",
+    "hyperparameters": {
+      "step_size": 0.005,
+      "num_local_epochs": 8,
+      "rho": 1.0,
+      "local_solver": "adam",
+      "solver_args": {
+        "beta1": 0.5,
+        "beta2": 0.999,
+        "epsilon": 1e-08
+      }
+    },
+    "selected_solver": "adam"
+  },
+  "best_nesterov_candidate": {
+    "algorithm_name": "FedLT",
+    "variant": "nesterov_lr_0.01_e5_rho_0.1_m_0.7",
+    "search_stage": "grid",
+    "hyperparameters": {
+      "step_size": 0.01,
+      "num_local_epochs": 5,
+      "rho": 0.1,
+      "local_solver": "nesterov",
+      "solver_args": {
+        "momentum": 0.7
+      }
+    },
+    "selected_solver": "nesterov"
+  }
+}
