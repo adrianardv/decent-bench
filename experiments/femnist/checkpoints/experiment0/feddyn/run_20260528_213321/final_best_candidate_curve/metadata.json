@@ -1,0 +1,15 @@
+{
+  "final_iterations": 2000,
+  "state_snapshot_period": 200,
+  "n_trials": 1,
+  "best_candidate": {
+    "algorithm_name": "FedDyn",
+    "variant": "grid_lr_0p0276_e2_alpha_1",
+    "search_stage": "grid",
+    "hyperparameters": {
+      "step_size": 0.02760842017693185,
+      "num_local_epochs": 2,
+      "alpha": 1.0
+    }
+  }
+}
