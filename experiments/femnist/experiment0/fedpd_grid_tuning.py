@@ -5,7 +5,7 @@ from datetime import datetime
 from itertools import product
 from pathlib import Path
 
-from experiments.femnist import experiment0 as exp0
+import experiment0 as exp0
 
 
 STEP_SIZE_VALUES = [0.01, 0.02, 0.03]

@@ -1,25 +1,19 @@
 from __future__ import annotations
 
 import logging
+import sys
 from datetime import datetime
 from pathlib import Path
+
+repo_root = Path(__file__).resolve().parents[3]
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
 
 import decent_bench.utils.interoperability as iop
 import torch
 from decent_bench import benchmark
 from decent_bench.agents import Agent
-from decent_bench.algorithms.federated import (
-    FedAdagrad,
-    FedAdam,
-    FedAvg,
-    FedDyn,
-    FedLT,
-    FedNova,
-    FedPD,
-    FedProx,
-    FedYogi,
-    Scaffold,
-)
+from decent_bench.algorithms.federated import FedAvg
 from decent_bench.algorithms.utils import pytorch_initialization
 from decent_bench.costs import PyTorchCost
 from decent_bench.networks import FedNetwork
@@ -31,17 +25,17 @@ from decent_bench.utils.types import SupportedDevices
 from experiments.femnist.src import FEMNISTCNN, FEMNISTDatasetHandler
 
 
-checkpoint_path = Path("experiments/femnist/checkpoints/lambda_smoke_feasibility") / f"run_{datetime.now():%Y%m%d_%H%M%S}"
+checkpoint_path = Path("experiments/femnist/checkpoints/lambda_smoke_test") / f"run_{datetime.now():%Y%m%d_%H%M%S}"
 
 seed = 20260524
-n_clients = 100
+n_clients = 20
 min_train_samples = 100
 min_test_samples = 20
 train_fraction = 0.8
-n_trials = 3
-iterations = 1000
-state_snapshot_period = 100
-progress_step = iterations // 10
+n_trials = 1
+iterations = 10
+state_snapshot_period = iterations
+progress_step = 1
 checkpoint_step = None
 batch_size = 32
 device = SupportedDevices.GPU
@@ -51,8 +45,7 @@ compute_metrics = True
 show_plots = False
 
 step_size = 0.01
-num_local_epochs = 5
-server_step_size = 0.001
+num_local_epochs = 1
 
 
 iop.set_seed(seed)
@@ -114,38 +107,13 @@ problem = benchmark.BenchmarkProblem(
 
 x0 = pytorch_initialization(network, all_same=True)
 algorithms = [
-    Scaffold(
+    FedAvg(
         iterations=iterations,
         step_size=step_size,
         num_local_epochs=num_local_epochs,
-        server_step_size=1.0,
         selection_scheme=None,
         x0=x0,
-    ),
-    FedNova(
-        iterations=iterations,
-        step_size=step_size,
-        num_local_steps=num_local_epochs,
-        selection_scheme=None,
-        x0=x0,
-    ),
-    FedLT(
-        iterations=iterations,
-        step_size=step_size,
-        num_local_epochs=num_local_epochs,
-        rho=1.0,
-        local_solver="gd",
-        selection_scheme=None,
-        x0=x0,
-    ),
-    FedDyn(
-        iterations=iterations,
-        step_size=step_size,
-        num_local_epochs=num_local_epochs,
-        alpha=0.01,
-        selection_scheme=None,
-        x0=x0,
-    ),
+    )
 ]
 
 checkpoint_manager = CheckpointManager(
@@ -153,7 +121,7 @@ checkpoint_manager = CheckpointManager(
     checkpoint_step=checkpoint_step,
     keep_n_checkpoints=1,
     benchmark_metadata={
-        "experiment": "smoke_feasibility",
+        "experiment": "lambda_smoke_test",
         "dataset": "FEMNIST",
         "dataset_source": "flwrlabs/femnist",
         "partition": "natural writer/client split",
@@ -165,6 +133,7 @@ checkpoint_manager = CheckpointManager(
         "iterations": iterations,
         "seed": seed,
         "batch_size": batch_size,
+        "local_files_only": local_files_only,
         "load_dataset": load_dataset,
         "model": "CNN: conv 1->32, conv 32->64, dense 256, output 62 logits",
         "loss": "torch.nn.CrossEntropyLoss",
@@ -177,10 +146,9 @@ checkpoint_manager = CheckpointManager(
             "compression": "NoCompression",
         },
         "algorithms": [algorithm.name for algorithm in algorithms],
-        "shared_hyperparameters": {
+        "hyperparameters": {
             "step_size": step_size,
             "num_local_epochs": num_local_epochs,
-            "server_step_size": server_step_size,
         },
     },
 )
@@ -208,4 +176,4 @@ if compute_metrics:
         show_plots=show_plots,
     )
 
-print(f"Smoke feasibility run complete: {checkpoint_manager.checkpoint_dir}")
+print(f"Lambda smoke test complete: {checkpoint_manager.checkpoint_dir}")

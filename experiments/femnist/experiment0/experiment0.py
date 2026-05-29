@@ -6,6 +6,7 @@ import gc
 import json
 import logging
 import pickle
+import sys
 import time
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
@@ -13,6 +14,10 @@ from datetime import datetime
 from itertools import product
 from pathlib import Path
 from typing import Any
+
+repo_root = Path(__file__).resolve().parents[3]
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
 
 import decent_bench.utils.interoperability as iop
 import matplotlib.pyplot as plt

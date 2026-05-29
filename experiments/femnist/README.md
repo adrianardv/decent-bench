@@ -5,8 +5,8 @@ This folder contains the thesis-specific FEMNIST setup and inspection utilities.
 ## Folder Structure
 
 - `inspect_femnist.py`: command-line inspection script.
-- `smoke_test.py`: small Lambda/remote-GPU smoke test.
-- `smoke_run.py`: plain small smoke run.
+- `smoke/`: smoke and feasibility scripts for local/Lambda test runs.
+- `experiment0/`: hyperparameter tuning scripts and selected Experiment 0 hyperparameter summary.
 - `src/inspection_helpers.py`: inspection/statistics helpers.
 - `src/femnist_handler.py`: `FEMNISTDatasetHandler`, used to create decent-bench train/test datasets.
 - `src/model.py`: FEMNIST CNN used by the experiment scripts.

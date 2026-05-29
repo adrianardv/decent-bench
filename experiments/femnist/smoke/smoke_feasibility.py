@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import logging
+import sys
 from datetime import datetime
 from pathlib import Path
+
+repo_root = Path(__file__).resolve().parents[3]
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
 
 import decent_bench.utils.interoperability as iop
 import torch
@@ -31,16 +36,16 @@ from decent_bench.utils.types import SupportedDevices
 from experiments.femnist.src import FEMNISTCNN, FEMNISTDatasetHandler
 
 
-checkpoint_path = Path("experiments/femnist/checkpoints/lambda_smoke_run") / f"run_{datetime.now():%Y%m%d_%H%M%S}"
+checkpoint_path = Path("experiments/femnist/checkpoints/lambda_smoke_feasibility") / f"run_{datetime.now():%Y%m%d_%H%M%S}"
 
 seed = 20260524
 n_clients = 100
 min_train_samples = 100
 min_test_samples = 20
 train_fraction = 0.8
-n_trials = 1
+n_trials = 3
 iterations = 1000
-state_snapshot_period = 50
+state_snapshot_period = 100
 progress_step = iterations // 10
 checkpoint_step = None
 batch_size = 32
@@ -114,21 +119,6 @@ problem = benchmark.BenchmarkProblem(
 
 x0 = pytorch_initialization(network, all_same=True)
 algorithms = [
-    FedAvg(
-        iterations=iterations,
-        step_size=step_size,
-        num_local_epochs=num_local_epochs,
-        selection_scheme=None,
-        x0=x0,
-    ),
-    FedProx(
-        iterations=iterations,
-        step_size=step_size,
-        num_local_epochs=num_local_epochs,
-        mu=0.01,
-        selection_scheme=None,
-        x0=x0,
-    ),
     Scaffold(
         iterations=iterations,
         step_size=step_size,
@@ -141,30 +131,6 @@ algorithms = [
         iterations=iterations,
         step_size=step_size,
         num_local_steps=num_local_epochs,
-        selection_scheme=None,
-        x0=x0,
-    ),
-    FedAdam(
-        iterations=iterations,
-        step_size=step_size,
-        num_local_epochs=num_local_epochs,
-        server_step_size=server_step_size,
-        selection_scheme=None,
-        x0=x0,
-    ),
-    FedYogi(
-        iterations=iterations,
-        step_size=step_size,
-        num_local_epochs=num_local_epochs,
-        server_step_size=server_step_size,
-        selection_scheme=None,
-        x0=x0,
-    ),
-    FedAdagrad(
-        iterations=iterations,
-        step_size=step_size,
-        num_local_epochs=num_local_epochs,
-        server_step_size=server_step_size,
         selection_scheme=None,
         x0=x0,
     ),
@@ -185,14 +151,6 @@ algorithms = [
         selection_scheme=None,
         x0=x0,
     ),
-    FedPD(
-        iterations=iterations,
-        step_size=step_size,
-        num_local_steps=num_local_epochs,
-        eta=1.0,
-        skip_probability=0.0,
-        x0=x0,
-    ),
 ]
 
 checkpoint_manager = CheckpointManager(
@@ -200,7 +158,7 @@ checkpoint_manager = CheckpointManager(
     checkpoint_step=checkpoint_step,
     keep_n_checkpoints=1,
     benchmark_metadata={
-        "experiment": "smoke_run",
+        "experiment": "smoke_feasibility",
         "dataset": "FEMNIST",
         "dataset_source": "flwrlabs/femnist",
         "partition": "natural writer/client split",
@@ -255,4 +213,4 @@ if compute_metrics:
         show_plots=show_plots,
     )
 
-print(f"Smoke run complete: {checkpoint_manager.checkpoint_dir}")
+print(f"Smoke feasibility run complete: {checkpoint_manager.checkpoint_dir}")

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
-from experiments.femnist import experiment0 as exp0
+import experiment0 as exp0
 
 
 STEP_SIZE_LOWER = 1e-3

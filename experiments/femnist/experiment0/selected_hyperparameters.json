@@ -1,0 +1,94 @@
+{
+  "experiment": "FEMNIST Experiment 0",
+  "purpose": "Selected hyperparameters to carry forward into the main FEMNIST benchmark experiments.",
+  "selection_notes": {
+    "metric": "Primary selection used validation/server accuracy with validation loss as a tie-breaker.",
+    "tuning_trials": 1,
+    "main_experiment_trials": 3,
+    "main_experiment_client_selection_fraction": 0.2,
+    "fedpd_caveat": "FedPD was tuned with full participation because the current implementation does not support partial client participation."
+  },
+  "algorithms": {
+    "fedavg": {
+      "algorithm_name": "FedAvg",
+      "hyperparameters": {
+        "step_size": 0.1,
+        "num_local_epochs": 4
+      }
+    },
+    "fedprox": {
+      "algorithm_name": "FedProx",
+      "hyperparameters": {
+        "step_size": 0.1,
+        "num_local_epochs": 4,
+        "mu": 0.025887619090591573
+      }
+    },
+    "scaffold": {
+      "algorithm_name": "SCAFFOLD",
+      "hyperparameters": {
+        "step_size": 0.02441691061516309,
+        "num_local_epochs": 8,
+        "server_step_size": 1.0
+      }
+    },
+    "fednova": {
+      "algorithm_name": "FedNova",
+      "selected_variant": "local_plus_server_momentum_no_prox",
+      "hyperparameters": {
+        "step_size": 0.015780201353739066,
+        "num_local_epochs": 3,
+        "use_momentum": true,
+        "use_server_momentum": true,
+        "use_prox": false,
+        "beta": 0.5,
+        "gamma": 0.9
+      }
+    },
+    "fedopt": {
+      "algorithm_name": "FedAdam",
+      "selected_family_member": "FedAdam",
+      "hyperparameters": {
+        "step_size": 0.016454811464286817,
+        "num_local_epochs": 7,
+        "server_step_size": 0.005781649782731609,
+        "beta_1": 0.9,
+        "beta_2": 0.9,
+        "tau": 0.001
+      }
+    },
+    "fedlt": {
+      "algorithm_name": "FedLT",
+      "selected_variant": "adam_local_solver_no_server_regularizer",
+      "hyperparameters": {
+        "step_size": 0.005,
+        "num_local_epochs": 8,
+        "rho": 1.0,
+        "local_solver": "adam",
+        "solver_args": {
+          "beta1": 0.5,
+          "beta2": 0.999,
+          "epsilon": 1e-8
+        }
+      }
+    },
+    "feddyn": {
+      "algorithm_name": "FedDyn",
+      "hyperparameters": {
+        "step_size": 0.02760842017693185,
+        "num_local_epochs": 2,
+        "alpha": 1.0
+      }
+    },
+    "fedpd": {
+      "algorithm_name": "FedPD",
+      "participation": "full",
+      "hyperparameters": {
+        "step_size": 0.03,
+        "num_local_epochs": 5,
+        "eta": 0.3,
+        "skip_probability": 0.2
+      }
+    }
+  }
+}
