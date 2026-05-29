@@ -218,6 +218,7 @@ current candidates to carry forward into the main FEMNIST experiments.
 | SCAFFOLD | SCAFFOLD | `step_size = 0.02441691061516309`, `num_local_epochs = 8` | `server_step_size = 1.0` | Stable final curve after focused rerun; about `82%` server accuracy. |
 | FedNova | local + server momentum, no prox | `step_size = 0.015780201353739066`, `num_local_epochs = 3` | `use_momentum = True`, `use_server_momentum = True`, `use_prox = False`, `beta = 0.5`, `gamma = 0.9` | Stable final curve; about `84%` server accuracy. |
 | FedOpt family | FedAdam | `step_size = 0.016454811464286817`, `num_local_epochs = 7` | `server_step_size = 0.005781649782731609`, `beta_1 = 0.9`, `beta_2 = 0.9`, `tau = 0.001` | FedAdam selected over FedYogi and FedAdagrad; about `83%` server accuracy. |
+| FedLT | Adam local solver, no server regularizer | `step_size = 0.005`, `num_local_epochs = 8` | `rho = 1.0`, `local_solver = "adam"`, `solver_args = {"beta1": 0.5, "beta2": 0.999, "epsilon": 1e-8}` | Selected over GD and Nesterov; stable final curve; about `81%` server accuracy. A scaled L2 server regularizer was tested as a diagnostic but not selected as it did not improve the primary server-accuracy/loss criterion. |
 | FedDyn | FedDyn | `step_size = 0.02760842017693185`, `num_local_epochs = 2` | `alpha = 1.0` | Stable final curve; about `83%` server accuracy. |
 
 ### FedNova Variant Choice
