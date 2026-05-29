@@ -67,7 +67,7 @@ Quantitatively, for the selected 100 clients:
 This means the fixed FEMNIST subset has both quantity skew and label-distribution skew while still covering all 62
 classes.
 
-## Model
+## Model and configuration
 
 - Model: LEAF-lite CNN with convolution channels `32 -> 64`, `5x5` kernels, and dense layer size `256`.
 - Parameter count: `871,102`.
@@ -77,14 +77,25 @@ classes.
 - Batch size: `32`.
 - Max batch size: `256`.
 - Default device: CPU, but GPU is preferred for practical runs.
-- Final FEMNIST comparison target:
-  - clients: `100`
-  - selected clients per round: `20 / 100`
-  - selection scheme: `UniformSelection(fraction_selected_clients=0.2)`
-  - trials: `3`
-  - iterations: `???`
-  - state snapshot period: `100` by default, `50` only for selected plotting runs
-  - checkpoint step: `None`
+- Main FEMNIST experiment configuration:
+
+| Setting | Value |
+| --- | --- |
+| Number of clients | `100` |
+| Minimum train samples/client | `100` |
+| Minimum test samples/client | `20` |
+| Number of classes | `62` |
+| Train/test split | deterministic per-writer `80/20` |
+| Client selection per round | `20 / 100` clients |
+| Client selection scheme | `UniformSelection(fraction_selected_clients=0.2)` |
+| Trials | `3` independent trials |
+| Iterations | `1000` |
+| Model | Conv32 -> Conv64 -> Dense256 -> 62 logits |
+| Checkpoint step | `None` |
+| Batch size | `32` |
+| Algorithms | final selected subset after Experiment 0 tuning |
+| Seed | `20260524` |
+
 
 The model intentionally has no final softmax layer. `CrossEntropyLoss` expects logits, and class predictions only need
 `argmax(logits)`.
@@ -150,7 +161,7 @@ Failed or memory-limited pilot runs:
 | NVIDIA A10 24 GB (Lambda)| 200 | All 10 algorithms | Full | 2 | 400 | `40` | `200` | CUDA out of memory after FedAvg completed both trials in about `23-24` minutes; the process was using almost the full A10 memory during deep-copy/state retention. |
 | NVIDIA A10 24 GB (Lambda)| 100 | All 10 algorithms | Full | 1 | 400 | `400` | `None` | Completed successfully; FedAvg and FedProx each finished in under `6` minutes. This motivated moving the locked subset from 200 to 100 clients. |
 | NVIDIA A100 SXM4 40 GB (Lambda) | 100 | All 10 algorithms via `smoke_run.py` | Full | 1 | 800 | `100` | `None` | CUDA out of memory in the last algorithm, `FedPD`. This run used the selected 100-client FEMNIST setup, the LEAF-lite CNN, batch size `32`, and the same fixed shared smoke hyperparameters. It shows that even with fewer iterations and fewer snapshots, the full 10-algorithm benchmark in one `benchmark()` call is too memory-heavy for an A100 40 GB. |
-| NVIDIA H100 80 GB HBM3 (Lambda) | 100 | 4 algorithms via `smoke_feasibility.py`: SCAFFOLD, FedNova, FedLT, FedDyn | Full | 3 | 1000 | `100` | `None` | Benchmark execution completed for all 4 algorithms. Each algorithm took about `30` minutes to complete 3 trials. GPU memory usage was about `60 / 80` GB after all 4 algorithms finished. This suggests the selected 100-client, 1000-iteration, 3-trial setting is feasible on H100 for a 4-algorithm benchmark, but with limited memory margin. |
+| NVIDIA H100 80 GB HBM3 (Lambda) | 100 | 4 algorithms via `smoke_feasibility.py`: SCAFFOLD, FedNova, FedLT, FedDyn | Full | 3 | 1000 | `100` | `None` | Benchmark execution completed for all 4 algorithms. Each algorithm took about `30` minutes to complete 3 trials. GPU memory usage was about `60 / 80` GB after all 4 algorithms finished. This suggests the selected 100-client, 1000-iteration, 3-trial, full participation setting is feasible on H100 for a 4-algorithm benchmark, but with limited memory margin. |
 
 These failures were mostly memory/state-retention issues. The expensive part is the
 combination of clients, algorithms, trials, stored snapshots, PyTorch model state, and decent-bench deep copies used to
@@ -171,17 +182,9 @@ multiply the cost of every federated hyperparameter candidate.
 
 Final comparison experiments should train on the full handler train split and evaluate on the handler test split.
 
-Experiment 0 script tunes one algorithm family per run, for example:
-
-```powershell
-python experiments\femnist\experiment0.py --algorithm fedavg
-python experiments\femnist\experiment0.py --algorithm fedprox
-python experiments\femnist\experiment0.py --algorithm fedlt
-```
-
 Current tuning protocol:
 
-- run one algorithm family per process/Lambda job;
+- run one algorithm family per process;
 - use `n_trials = 1` for tuning to reduce runtime and memory;
 - use `UniformSelection(fraction_selected_clients=0.2)` for all algorithms except `FedPD`;
 - tune `FedPD` with full participation because it does not support partial participation;
@@ -195,37 +198,26 @@ Current tuning protocol:
 - for `FedNova`, compare the plain variant, each optional mechanism alone, both momentum mechanisms together, and all
   three optional mechanisms together (`use_momentum`, `use_prox`, and `use_server_momentum`); for the proximal term,
   restrict `mu` to the values used in the FedNova paper: `{0.0005, 0.001, 0.005, 0.01}`;
-- for `FedPD`, use a reduced candidate budget (`--n-random-candidates 6 --max-grid-candidates 9`) because it is tuned
-  with full participation and each candidate is substantially slower than the partial-participation algorithms;
-- cap the focused grid to a deterministic subset when the local grid is too large, to keep the run feasible;
 - for `FedLT`, first tune `step_size`, `num_local_epochs`, and `rho` with `local_solver="gd"`, then compare `gd`,
-  `adam`, and `nesterov` using the tuned base hyperparameters and default solver-specific parameters;
+  `adam`, and `nesterov` and default solver-specific parameters;
 - optionally run the final best candidate for `2000` iterations with `state_snapshot_period = final_iterations / 10`
   to inspect whether performance plateaus before the end.
 
 The final best-candidate curve is meant to help decide whether the later FEMNIST benchmark experiments should use
 `1000` or `2000` iterations.
 
-The final best-candidate run also saves a compressed decent-bench `MetricResult` object at:
+### Experiment 0 Selected Hyperparameters
 
-```text
-experiments/femnist/checkpoints/experiment0/<algorithm>/run_<timestamp>/final_best_candidate_curve/metric_computation.pkl.zst
-```
+The following hyperparameters have been selected from the completed and accepted Experiment 0 tuning runs. These are the
+current candidates to carry forward into the main FEMNIST experiments.
 
-After several algorithms have been tuned separately, use:
-
-```powershell
-python experiments\femnist\experiment0.py --combined_curves
-```
-
-This loads the latest saved final-curve metric result for each available algorithm and produces combined accuracy/loss
-plots under:
-
-```text
-experiments/femnist/checkpoints/experiment0/combined_curves/run_<timestamp>/
-```
-
-This gives an all-algorithm comparison plot without running all algorithms inside one memory-heavy `benchmark()` call.
+| Algorithm | Selected variant | "Shared" hyperparameters | Algorithm-specific hyperparameters | Validation result |
+| --- | --- | --- | --- | --- |
+| FedAvg | FedAvg | `step_size = 0.1`, `num_local_epochs = 4` | none | Stable final curve; about `83%` server accuracy. |
+| FedProx | FedProx | `step_size = 0.1`, `num_local_epochs = 4` | `mu = 0.025887619090591573` | Stable final curve; about `83%` server accuracy. |
+| FedNova | local + server momentum, no prox | `step_size = 0.015780201353739066`, `num_local_epochs = 3` | `use_momentum = True`, `use_server_momentum = True`, `use_prox = False`, `beta = 0.5`, `gamma = 0.9` | Stable final curve; about `84%` server accuracy. |
+| FedOpt family | FedAdam | `step_size = 0.016454811464286817`, `num_local_epochs = 7` | `server_step_size = 0.005781649782731609`, `beta_1 = 0.9`, `beta_2 = 0.9`, `tau = 0.001` | FedAdam selected over FedYogi and FedAdagrad; about `83%` server accuracy. |
+| FedDyn | FedDyn | `step_size = 0.02760842017693185`, `num_local_epochs = 2` | `alpha = 1.0` | Stable final curve; about `83%` server accuracy. |
 
 ### FedNova Variant Choice
 
@@ -249,3 +241,9 @@ For the proximal FedNova variants, `mu` is restricted to the paper/code values:
 
 I found evidence for the first five variants in the paper/code. I added `all_three` as an extra benchmark variant because
 it is a natural combination to test once the framework already supports the three mechanisms.
+
+The selected FedNova configuration uses both local momentum and server momentum, but not the proximal term. This agrees
+with the FedNova paper's experimental discussion: in their CIFAR-10 experiments, the local-momentum FedNova variant is
+reported as the best individual mechanism, and combining local and server momentum performs even better. The FEMNIST
+tuning result here follows the same qualitative pattern, with the `both_momentums` variant outperforming the plain,
+proximal-only, server-momentum-only, and all-three variants in the accepted run.
