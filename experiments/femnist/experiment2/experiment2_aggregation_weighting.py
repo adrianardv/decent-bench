@@ -133,10 +133,6 @@ def build_plot_metrics() -> list[ml.Metric]:
     ]
 
 
-def metric_lookup(metrics: list[ml.Metric]) -> dict[str, ml.Metric]:
-    return {metric.description: metric for metric in metrics}
-
-
 def slugify(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")
 
@@ -316,37 +312,6 @@ def build_algorithms(algorithm_key: str, x0: Any, selected_hyperparameters: dict
 
 
 # -----------------------------------------------------------------------------
-# Metric merging
-# -----------------------------------------------------------------------------
-
-
-def merge_metric_result(
-    source: MetricResult,
-    *,
-    combined_table_results: dict[Any, dict[ml.Metric, Any]],
-    combined_plot_results: dict[Any, dict[ml.Metric, Any]],
-    canonical_table_metrics: list[ml.Metric],
-    canonical_plot_metrics: list[ml.Metric],
-) -> None:
-    table_lookup = metric_lookup(source.table_metrics or [])
-    plot_lookup = metric_lookup(source.plot_metrics or [])
-    canonical_table_lookup = metric_lookup(canonical_table_metrics)
-    canonical_plot_lookup = metric_lookup(canonical_plot_metrics)
-
-    for algorithm, metric_values in (source.table_results or {}).items():
-        combined_table_results[algorithm] = {}
-        for description, source_metric in table_lookup.items():
-            if source_metric in metric_values:
-                combined_table_results[algorithm][canonical_table_lookup[description]] = metric_values[source_metric]
-
-    for algorithm, metric_values in (source.plot_results or {}).items():
-        combined_plot_results[algorithm] = {}
-        for description, source_metric in plot_lookup.items():
-            if source_metric in metric_values:
-                combined_plot_results[algorithm][canonical_plot_lookup[description]] = metric_values[source_metric]
-
-
-# -----------------------------------------------------------------------------
 # Metadata and execution
 # -----------------------------------------------------------------------------
 
@@ -365,7 +330,9 @@ def write_run_inputs(
         "experiment": experiment_name,
         "title": "FEMNIST aggregation weighting benchmark",
         "purpose": "Compare uniform and data-size weighted aggregation for each tuned federated algorithm.",
-        "execution": "one algorithm pair per benchmark() call; algorithms can be selected with --algorithm",
+        "execution": (
+            "one algorithm pair per benchmark() call; each pair writes to experiment2/<algorithm>/run_<timestamp>"
+        ),
         "dataset": "FEMNIST",
         "dataset_source": "flwrlabs/femnist",
         "partition": "natural writer/client split",
@@ -424,9 +391,8 @@ def run_algorithm_pair(
     n_train_samples: int,
     n_test_samples: int,
     statuses: list[dict[str, Any]],
-) -> tuple[MetricResult, list[str], int, int]:
-    algorithm_path = run_path / "per_algorithm" / algorithm_key
-    print(f"Running {algorithm_key}; results: {algorithm_path}")
+) -> tuple[list[str], int, int]:
+    print(f"Running {algorithm_key}; results: {run_path}")
 
     problem, x0, writer_ids, current_n_train_samples, current_n_test_samples = build_problem()
     if selected_writer_ids is None:
@@ -438,7 +404,7 @@ def run_algorithm_pair(
 
     algorithms = build_algorithms(algorithm_key, x0, selected_hyperparameters)
     checkpoint_manager = CheckpointManager(
-        checkpoint_dir=algorithm_path,
+        checkpoint_dir=run_path,
         checkpoint_step=checkpoint_step,
         keep_n_checkpoints=1,
         benchmark_metadata={
@@ -480,8 +446,8 @@ def run_algorithm_pair(
         )
         save_metric_dataframes(metric_result, checkpoint_manager.get_results_path())
         metric_result.agent_metrics = None
-        save_pickle_zst(metric_result, algorithm_path / metric_result_filename)
-        (algorithm_path / "metric_computation_complete.json").write_text(
+        save_pickle_zst(metric_result, run_path / metric_result_filename)
+        (run_path / "metric_computation_complete.json").write_text(
             json.dumps({"metric_computation_complete": True}, indent=2),
             encoding="utf-8",
         )
@@ -505,7 +471,7 @@ def run_algorithm_pair(
         raise
 
     else:
-        return metric_result, selected_writer_ids or [], n_train_samples, n_test_samples
+        return selected_writer_ids or [], n_train_samples, n_test_samples
 
     finally:
         if "metric_result" in locals():
@@ -541,24 +507,21 @@ def main() -> None:
     if args.run_label:
         run_id = f"{run_id}_{slugify(args.run_label)}"
     checkpoint_root = Path("experiments/femnist/checkpoints") / experiment_group
-    run_path = checkpoint_root / run_id
-    run_path.mkdir(parents=True, exist_ok=True)
 
     selected_hyperparameters = load_selected_hyperparameters()
     selected_writer_ids: list[str] | None = None
     n_train_samples = 0
     n_test_samples = 0
-    statuses: list[dict[str, Any]] = []
-    combined_table_results: dict[Any, dict[ml.Metric, Any]] = {}
-    combined_plot_results: dict[Any, dict[ml.Metric, Any]] = {}
-    canonical_table_metrics: list[ml.Metric] | None = None
-    canonical_plot_metrics: list[ml.Metric] | None = None
 
-    print(f"Writing Experiment 2 results to: {run_path}")
+    print(f"Writing Experiment 2 results under: {checkpoint_root}")
 
-    try:
-        for algorithm_key in requested_algorithms:
-            metric_result, selected_writer_ids, n_train_samples, n_test_samples = run_algorithm_pair(
+    for algorithm_key in requested_algorithms:
+        run_path = checkpoint_root / algorithm_key / run_id
+        run_path.mkdir(parents=True, exist_ok=True)
+        statuses: list[dict[str, Any]] = []
+
+        try:
+            selected_writer_ids, n_train_samples, n_test_samples = run_algorithm_pair(
                 algorithm_key=algorithm_key,
                 selected_hyperparameters=selected_hyperparameters,
                 run_path=run_path,
@@ -567,66 +530,17 @@ def main() -> None:
                 n_test_samples=n_test_samples,
                 statuses=statuses,
             )
-
-            if canonical_table_metrics is None or canonical_plot_metrics is None:
-                canonical_table_metrics = metric_result.table_metrics
-                canonical_plot_metrics = metric_result.plot_metrics
-
-            if canonical_table_metrics is None or canonical_plot_metrics is None:
-                raise RuntimeError("Metric computation returned no table or plot metrics.")
-
-            merge_metric_result(
-                metric_result,
-                combined_table_results=combined_table_results,
-                combined_plot_results=combined_plot_results,
-                canonical_table_metrics=canonical_table_metrics,
-                canonical_plot_metrics=canonical_plot_metrics,
+        finally:
+            write_run_inputs(
+                run_path=run_path,
+                selected_writer_ids=selected_writer_ids or [],
+                n_train_samples=n_train_samples,
+                n_test_samples=n_test_samples,
+                requested_algorithms=[algorithm_key],
+                statuses=statuses,
             )
 
-    finally:
-        write_run_inputs(
-            run_path=run_path,
-            selected_writer_ids=selected_writer_ids or [],
-            n_train_samples=n_train_samples,
-            n_test_samples=n_test_samples,
-            requested_algorithms=requested_algorithms,
-            statuses=statuses,
-        )
-
-    if canonical_table_metrics is None or canonical_plot_metrics is None:
-        raise RuntimeError("No algorithm pair completed successfully.")
-
-    combined_metric_result = MetricResult(
-        agent_metrics=None,
-        table_metrics=canonical_table_metrics,
-        plot_metrics=canonical_plot_metrics,
-        table_results=combined_table_results,
-        plot_results=combined_plot_results,
-    )
-    combined_results_path = run_path / "results"
-    benchmark.display_metrics(
-        metrics_result=combined_metric_result,
-        save_path=combined_results_path,
-        individual_plots=True,
-        show_plots=show_plots,
-        log_level=logging.INFO,
-    )
-    save_metric_dataframes(combined_metric_result, combined_results_path)
-    save_pickle_zst(combined_metric_result, run_path / metric_result_filename)
-    (run_path / "metric_computation_complete.json").write_text(
-        json.dumps({"metric_computation_complete": True}, indent=2),
-        encoding="utf-8",
-    )
-    write_run_inputs(
-        run_path=run_path,
-        selected_writer_ids=selected_writer_ids or [],
-        n_train_samples=n_train_samples,
-        n_test_samples=n_test_samples,
-        requested_algorithms=requested_algorithms,
-        statuses=statuses,
-    )
-
-    print(f"Experiment 2 aggregation-weighting benchmark complete: {run_path}")
+    print(f"Experiment 2 aggregation-weighting benchmark complete: {checkpoint_root}")
 
 
 if __name__ == "__main__":

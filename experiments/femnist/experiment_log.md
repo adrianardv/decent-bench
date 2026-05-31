@@ -318,16 +318,16 @@ Execution:
 Outputs should be saved under:
 
 ```text
-experiments/femnist/checkpoints/experiment2/run_<timestamp>/
+experiments/femnist/checkpoints/experiment2/<algorithm_key>/run_<timestamp>/
 ```
 
-For each run, the runner saves:
+For each algorithm run, the runner saves:
 
-- per-algorithm benchmark artifacts under `per_algorithm/<algorithm_key>/`;
-- `results/` tables and individual metric plots for the combined run;
+- benchmark artifacts for the two aggregation variants;
+- `results/` tables and individual metric plots comparing the uniform and data-size weighted variants;
 - CSV exports `table_metrics.csv` and `plot_metrics.csv` for possible later post-processing;
 - compressed `metric_computation.pkl.zst`;
-- `experiment2_metadata.json` with the selected clients, fixed setup, requested algorithms, and run statuses.
+- `experiment2_metadata.json` with the selected clients, fixed setup, requested algorithm, and run status.
 
 ## Experiment 5 Design
 
