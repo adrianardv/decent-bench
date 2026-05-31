@@ -20,7 +20,7 @@ import numpy as np
 import torch
 import zstandard as zstd
 
-repo_root = Path(__file__).resolve().parents[2]
+repo_root = Path(__file__).resolve().parents[3]
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
@@ -62,8 +62,9 @@ local_files_only = False
 load_dataset = True
 show_plots = False
 
+experiment_group = "experiment1"
 experiment_name = "experiment1_baseline_sequential"
-run_path = Path("experiments/femnist/checkpoints") / experiment_name / f"run_{datetime.now():%Y%m%d_%H%M%S}"
+run_path = Path("experiments/femnist/checkpoints") / experiment_group / experiment_name / f"run_{datetime.now():%Y%m%d_%H%M%S}"
 selected_hyperparameters_path = Path("experiments/femnist/experiment0/selected_hyperparameters.json")
 metric_result_filename = "metric_computation.pkl.zst"
 
@@ -115,13 +116,15 @@ def build_table_metrics() -> list[ml.Metric]:
         ml.Loss([np.average]),
         ml.ClientDriftFromServer([min, np.average, max], x_log=False, y_log=False),
         ml.GradientCalls([np.average, sum]),
-        ml.ProximalCalls([np.average, sum]),
+        ml.SentMessages([np.average, sum]),
+        ml.ReceivedMessages([np.average, sum]),
     ]
 
 
 def build_plot_metrics() -> list[ml.Metric]:
     return [
         ml.ServerAccuracy(fmt=".2%", x_log=False, y_log=False),
+        ml.Accuracy([np.average], fmt=".2%", x_log=False, y_log=False),
         ml.Loss([np.average]),
         ml.ClientDriftFromServer([], x_log=False, y_log=False),
     ]
@@ -271,7 +274,6 @@ def merge_metric_result(
 
 def write_run_inputs(
     *,
-    selected_hyperparameters: dict[str, Any],
     selected_writer_ids: list[str],
     n_train_samples: int,
     n_test_samples: int,
@@ -300,6 +302,7 @@ def write_run_inputs(
         "seed": seed,
         "device": str(device),
         "load_dataset": load_dataset,
+        "selected_hyperparameters_path": str(selected_hyperparameters_path),
         "model": "CNN: conv 1->32, conv 32->64, dense 256, output 62 logits",
         "loss": "torch.nn.CrossEntropyLoss",
         "network": {
@@ -323,10 +326,6 @@ def write_run_inputs(
         "statuses": statuses,
     }
     (run_path / "experiment1_metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
-    (run_path / "selected_hyperparameters.json").write_text(
-        json.dumps(selected_hyperparameters, indent=2),
-        encoding="utf-8",
-    )
 
 
 def main() -> None:
@@ -394,6 +393,7 @@ def main() -> None:
             benchmark.display_metrics(
                 metrics_result=metric_result,
                 checkpoint_manager=checkpoint_manager,
+                individual_plots=True,
                 show_plots=show_plots,
                 log_level=logging.INFO,
             )
@@ -414,7 +414,6 @@ def main() -> None:
         except Exception as error:  # noqa: BLE001
             statuses.append({"algorithm": algorithm_key, "status": "failed", "error": repr(error)})
             write_run_inputs(
-                selected_hyperparameters=selected_hyperparameters,
                 selected_writer_ids=selected_writer_ids or [],
                 n_train_samples=n_train_samples,
                 n_test_samples=n_test_samples,
@@ -424,7 +423,6 @@ def main() -> None:
 
         finally:
             write_run_inputs(
-                selected_hyperparameters=selected_hyperparameters,
                 selected_writer_ids=selected_writer_ids or [],
                 n_train_samples=n_train_samples,
                 n_test_samples=n_test_samples,
@@ -450,6 +448,7 @@ def main() -> None:
     benchmark.display_metrics(
         metrics_result=combined_metric_result,
         save_path=run_path / "results",
+        individual_plots=True,
         show_plots=show_plots,
         log_level=logging.INFO,
     )
@@ -459,7 +458,6 @@ def main() -> None:
         encoding="utf-8",
     )
     write_run_inputs(
-        selected_hyperparameters=selected_hyperparameters,
         selected_writer_ids=selected_writer_ids or [],
         n_train_samples=n_train_samples,
         n_test_samples=n_test_samples,
