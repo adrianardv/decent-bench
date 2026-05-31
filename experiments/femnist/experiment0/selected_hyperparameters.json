@@ -60,10 +60,10 @@
     },
     "fedlt": {
       "algorithm_name": "FedLT",
-      "selected_variant": "adam_local_solver_no_server_regularizer",
+      "selected_variant": "adam_drift_lr_0p0015_e5_rho_1_b1_0p5_b2_0p999",
       "hyperparameters": {
-        "step_size": 0.005,
-        "num_local_epochs": 8,
+        "step_size": 0.0015,
+        "num_local_epochs": 5,
         "rho": 1.0,
         "local_solver": "adam",
         "solver_args": {
