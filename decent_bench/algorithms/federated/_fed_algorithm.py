@@ -134,16 +134,6 @@ class FedAlgorithm(Algorithm[FedNetwork]):
         total_weight = float(sum(weights))
         return weights, total_weight
 
-    def _aggregation_participation_fraction(
-        self,
-        network: FedNetwork,
-        received_clients: Sequence["Agent"],
-    ) -> float:
-        """Return the received clients' weight mass relative to the full client population."""
-        _, received_weight = self._aggregation_weights(received_clients)
-        _, total_weight = self._aggregation_weights(network.clients())
-        return received_weight / total_weight
-
     def aggregate(
         self,
         network: FedNetwork,

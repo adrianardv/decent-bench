@@ -250,14 +250,31 @@ proximal-only, server-momentum-only, and all-three variants in the accepted run.
 
 Aggregation weighting sensitivity.
 
+While implementing the federated algorithms, I observed that the aggregation rule is not always treated consistently
+across papers and their reference implementations. In particular, some papers describe client aggregation as a uniform
+average over the participating clients, whereas the corresponding GitHub implementations often use data-size weighted
+aggregation. For example, FedAvg is originally formulated with data-size weights, while FedProx presents both FedAvg
+and FedProx using uniform averaging, even though the official FedProx implementation uses data-size weighted
+aggregation. A similar mismatch appears in FedOpt, where the main paper uses uniform aggregation in the main
+algorithms, but the appendix and official implementation use data-size weighted aggregation.
+
+This mismatch suggests that the choice of aggregation rule is not merely an implementation detail, but may affect the
+empirical behavior of the algorithms. Therefore, this experiment compares, for each algorithm, the performance obtained
+with uniform aggregation against the performance obtained with data-size weighted aggregation. The goal is to quantify
+whether this commonly observed difference between theoretical descriptions and practical implementations leads to
+meaningful changes in convergence, optimality, or predictive accuracy.
+
 Experiment 2 benchmarks how each federated algorithm is affected by the server aggregation rule. For each
 algorithm, the experiment compares:
 
 - uniform aggregation, where every received client update has equal weight;
-- data-size weighted aggregation, where each received client update is weighted by its local FEMNIST train sample count.
+- data-size weighted aggregation, where each received client update is weighted by its local FEMNIST train sample
+  count.
 
-To be able to test this, `decent-bench` federated algorithms have been slightly modified. The aggregation choice is an algorithm initialization option, `weighted_aggregation` (can be set to `True`or `False`), so the two variants are passed to
-`benchmark()` as separate algorithm instances. Default algorithm behavior is preserved outside this experiment:
+To be able to test this, `decent-bench` federated algorithms have been slightly modified. The aggregation choice is an
+algorithm initialization option, `weighted_aggregation` (can be set to `True` or `False`), so the two variants are
+passed to `benchmark()` as separate algorithm instances. Default algorithm behavior is preserved outside this
+experiment:
 
 - `FedAvg`, `FedProx`, `SCAFFOLD`, `FedAdam`, `FedLT`, `FedDyn`, and `FedPD` default to uniform aggregation;
 - `FedNova` defaults to data-size weighted aggregation, matching its existing implementation and expected FedNova
