@@ -26,9 +26,10 @@
     },
     "scaffold": {
       "algorithm_name": "SCAFFOLD",
+      "selected_variant": "stability_grid_lr_0p02_e5_server_1",
       "hyperparameters": {
-        "step_size": 0.02441691061516309,
-        "num_local_epochs": 8,
+        "step_size": 0.02,
+        "num_local_epochs": 5,
         "server_step_size": 1.0
       }
     },
