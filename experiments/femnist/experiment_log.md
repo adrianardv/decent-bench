@@ -277,8 +277,8 @@ Planned conditions:
 | `clean_baseline` | Always active clients, no compression, no drops. |
 | `activation_uniform_low` | Uniform client activation with activation probability `0.30`, no compression, no drops. |
 | `activation_uniform_high` | Uniform client activation with activation probability `0.80`, no compression, no drops. |
-| `activation_markov_sticky_online` | Markov-chain activation with one inactive-to-active / active-to-inactive combination, no compression, no drops. |
-| `activation_markov_bursty_offline` | Markov-chain activation with another inactive-to-active / active-to-inactive combination, no compression, no drops. |
+| `activation_markov_high_availability` | Markov-chain activation with inactive-to-active `0.20` and active-to-inactive `0.10`, no compression, no drops. |
+| `activation_markov_low_availability` | Markov-chain activation with inactive-to-active `0.10` and active-to-inactive `0.30`, no compression, no drops. |
 | `compression_topk_low` | Low-`k` `TopK` compression, always active clients, no drops. |
 | `compression_topk_high` | Higher-`k` `TopK` compression, always active clients, no drops. |
 | `compression_qsgd_low` | `StochasticQuantization` with fewer levels, always active clients, no drops. |

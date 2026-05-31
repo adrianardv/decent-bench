@@ -145,8 +145,8 @@ conditions: tuple[Condition, ...] = (
         parameters={"activation": "UniformActivationRate", "activation_probability": 0.80},
     ),
     Condition(
-        key="activation_markov_sticky_online",
-        label="Markov activation, sticky online",
+        key="activation_markov_high_availability",
+        label="Markov activation, high availability",
         impairment_label="Availability: Markov 0.20/0.10",
         activation_factory=lambda: MarkovChainActivation(inactive_to_active=0.20, active_to_inactive=0.10),
         compression_factory=NoCompression,
@@ -154,8 +154,8 @@ conditions: tuple[Condition, ...] = (
         parameters={"activation": "MarkovChainActivation", "inactive_to_active": 0.20, "active_to_inactive": 0.10},
     ),
     Condition(
-        key="activation_markov_bursty_offline",
-        label="Markov activation, bursty offline",
+        key="activation_markov_low_availability",
+        label="Markov activation, low availability",
         impairment_label="Availability: Markov 0.10/0.30",
         activation_factory=lambda: MarkovChainActivation(inactive_to_active=0.10, active_to_inactive=0.30),
         compression_factory=NoCompression,
