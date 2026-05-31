@@ -660,15 +660,6 @@ def main() -> None:
     statuses: list[dict[str, Any]] = []
 
     print(f"Writing Experiment 5 results to: {run_path}")
-    write_run_inputs(
-        run_path=run_path,
-        selected_writer_ids=[],
-        n_train_samples=n_train_samples,
-        n_test_samples=n_test_samples,
-        requested_conditions=requested_conditions,
-        requested_algorithms=requested_algorithms,
-        statuses=statuses,
-    )
 
     try:
         selected_writer_ids, n_train_samples, n_test_samples = run_condition(
