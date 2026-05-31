@@ -275,17 +275,17 @@ Planned conditions:
 | Condition key | Description |
 | --- | --- |
 | `clean_baseline` | Always active clients, no compression, no drops. |
-| `activation_uniform_low` | Uniform client activation with low activation probability, no compression, no drops. |
-| `activation_uniform_high` | Uniform client activation with high activation probability, no compression, no drops. |
+| `activation_uniform_low` | Uniform client activation with activation probability `0.30`, no compression, no drops. |
+| `activation_uniform_high` | Uniform client activation with activation probability `0.80`, no compression, no drops. |
 | `activation_markov_sticky_online` | Markov-chain activation with one inactive-to-active / active-to-inactive combination, no compression, no drops. |
 | `activation_markov_bursty_offline` | Markov-chain activation with another inactive-to-active / active-to-inactive combination, no compression, no drops. |
 | `compression_topk_low` | Low-`k` `TopK` compression, always active clients, no drops. |
 | `compression_topk_high` | Higher-`k` `TopK` compression, always active clients, no drops. |
 | `compression_qsgd_low` | `StochasticQuantization` with fewer levels, always active clients, no drops. |
 | `compression_qsgd_high` | `StochasticQuantization` with more levels, always active clients, no drops. |
-| `drops_uniform_low` | Low-rate uniform message drops, always active clients, no compression. |
-| `drops_uniform_high` | Higher-rate uniform message drops, always active clients, no compression. |
-| `combined_uniform_topk_drops` | Uniform activation + `TopK` compression + uniform message drops. |
+| `drops_uniform_low` | Uniform message drops with drop rate `0.05`, always active clients, no compression. |
+| `drops_uniform_high` | Uniform message drops with drop rate `0.50`, always active clients, no compression. |
+| `combined_uniform_topk_drops` | Uniform activation probability `0.50` + `TopK(0.10)` compression + uniform message drop rate `0.10`. |
 
 Outputs should be saved under:
 
