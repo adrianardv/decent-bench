@@ -1,0 +1,29 @@
+{
+  "sweep_name": "run_fedlt_drift_final8_20260531_082137",
+  "version_index": 2,
+  "n_versions": 8,
+  "candidate": {
+    "algorithm_name": "FedLT",
+    "variant": "adam_drift_lr_0p0015_e5_rho_1_b1_0p5_b2_0p999",
+    "search_stage": "drift_grid",
+    "hyperparameters": {
+      "step_size": 0.0015,
+      "num_local_epochs": 5,
+      "rho": 1.0,
+      "local_solver": "adam",
+      "solver_args": {
+        "beta1": 0.5,
+        "beta2": 0.999,
+        "epsilon": 1e-08
+      }
+    },
+    "selected_solver": "adam"
+  },
+  "run_config": {
+    "algorithm": "fedlt",
+    "iterations": 1500,
+    "state_snapshot_period": 150,
+    "n_trials": 3,
+    "selection_fraction": 0.2
+  }
+}

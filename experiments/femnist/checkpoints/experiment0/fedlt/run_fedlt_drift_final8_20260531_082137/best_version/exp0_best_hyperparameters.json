@@ -1,0 +1,36 @@
+{
+  "metadata": {
+    "experiment": "experiment0",
+    "algorithm": "fedlt",
+    "dataset": "FEMNIST",
+    "search_strategy": "parallel drift-aware FedLT grid",
+    "selection_rule": "Reject failed/non-finite versions. Rank by server accuracy lower confidence bound minus 0.01 * average client drift, then lower average drift, lower validation loss, and higher average client accuracy."
+  },
+  "best_hyperparameters": {
+    "algorithm_name": "FedLT",
+    "variant": "adam_drift_lr_0p0015_e5_rho_1_b1_0p5_b2_0p999",
+    "search_stage": "drift_grid",
+    "hyperparameters": {
+      "step_size": 0.0015,
+      "num_local_epochs": 5,
+      "rho": 1.0,
+      "local_solver": "adam",
+      "solver_args": {
+        "beta1": 0.5,
+        "beta2": 0.999,
+        "epsilon": 1e-08
+      }
+    },
+    "server_accuracy_mean": 0.8057259713701431,
+    "server_accuracy_margin_of_error": 0.0006350045275435034,
+    "accuracy_avg_mean": 0.7497426721199728,
+    "accuracy_avg_margin_of_error": 0.003067468446327992,
+    "validation_loss_mean": 0.48394277332971497,
+    "validation_loss_margin_of_error": 0.009979589009096346,
+    "client_drift_avg_mean": 2.4716586867968244,
+    "client_drift_avg_margin_of_error": 0.0029185374888998084,
+    "client_drift_max_mean": 2.5823074181874595,
+    "client_drift_max_margin_of_error": 0.010206327254761671,
+    "selected_solver": "adam"
+  }
+}
