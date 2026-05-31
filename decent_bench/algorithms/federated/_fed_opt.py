@@ -67,6 +67,7 @@ class FedOpt(FedAlgorithm, ABC):
     server_step_size: float = 0.001
     beta_1: float = 0.9
     tau: float = 1e-6
+    weighted_aggregation: bool = False
     selection_scheme: ClientSelectionScheme | None = field(
         default_factory=lambda: UniformSelection(fraction_selected_clients=1.0)
     )
@@ -151,8 +152,7 @@ class FedOpt(FedAlgorithm, ABC):
             return
         server_x = iop.copy(server.x)
         model_deltas = [server.messages[client] for client in received_clients]
-        weights = [1.0] * len(received_clients)
-        total_weight = float(len(received_clients))
+        weights, total_weight = self._aggregation_weights(received_clients)
         average_delta = self._weighted_average(model_deltas, weights, total_weight)
 
         server.aux_vars["m"] = self.beta_1 * server.aux_vars["m"] + (1 - self.beta_1) * average_delta

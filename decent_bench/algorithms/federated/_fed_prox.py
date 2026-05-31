@@ -52,6 +52,7 @@ class FedProx(FedAlgorithm):
     step_size: float = 0.001
     num_local_epochs: int = 1
     mu: float = 0.01
+    weighted_aggregation: bool = False
     selection_scheme: ClientSelectionScheme | None = field(
         default_factory=lambda: UniformSelection(fraction_selected_clients=1.0)
     )

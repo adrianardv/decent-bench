@@ -126,6 +126,7 @@ class FedLT(FedAlgorithm):
     rho: float = 1.0
     local_solver: str = "gd"
     solver_args: SolverArgs = field(default_factory=dict)
+    weighted_aggregation: bool = False
     selection_scheme: ClientSelectionScheme | None = field(
         default_factory=lambda: UniformSelection(fraction_selected_clients=1.0)
     )
@@ -212,8 +213,11 @@ class FedLT(FedAlgorithm):
         self.aggregate(network, participating_clients)
 
     def _compute_server_y(self, network: FedNetwork) -> "Array":
-        z_values = list(network.server().aux_vars["z_by_client"].values())
-        average_z = iop.mean(iop.stack(z_values, dim=0), dim=0)
+        z_by_client = network.server().aux_vars["z_by_client"]
+        clients = network.clients()
+        z_values = [z_by_client[client] for client in clients]
+        weights, total_weight = self._aggregation_weights(clients)
+        average_z = self._weighted_average(z_values, weights, total_weight)
         return network.server().cost.proximal(average_z, self.rho / len(network.clients()))
 
     def _run_local_updates(self, network: FedNetwork, participating_clients: Sequence["Agent"]) -> None:

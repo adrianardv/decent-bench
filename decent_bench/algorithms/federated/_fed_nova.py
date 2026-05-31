@@ -114,6 +114,7 @@ class FedNova(FedAlgorithm):
     mu: float = 0.01
     use_server_momentum: bool = False
     gamma: float = 0.9
+    weighted_aggregation: bool = True
     selection_scheme: ClientSelectionScheme | None = field(
         default_factory=lambda: UniformSelection(fraction_selected_clients=1.0)
     )
@@ -150,9 +151,10 @@ class FedNova(FedAlgorithm):
         server = network.server()
         server_x0 = self.x0[server]
         aux_vars: dict[str, Any] = {
-            "client_sample_counts": self._resolve_client_sample_counts(network),
             "received_a_i": {},
         }
+        if self.weighted_aggregation:
+            aux_vars["client_sample_counts"] = self._resolve_client_sample_counts(network)
         if self.use_server_momentum:
             aux_vars["m"] = iop.zeros_like(server_x0)
         server.initialize(x=server_x0, aux_vars=aux_vars)
@@ -270,16 +272,19 @@ class FedNova(FedAlgorithm):
         received_clients = [client for client in received_gradient_clients if client in received_normalizers]
         if not received_clients:
             return
-        server_sample_counts = server.aux_vars["client_sample_counts"]
         server_x = iop.copy(server.x)
         cumulative_gradients = [server.messages[client] for client in received_clients]
         a_values = [received_normalizers[client] for client in received_clients]
         if any(a_i <= 0 for a_i in a_values):
             raise ValueError("FedNova coefficients `a_i` must be positive")
 
-        sample_counts = [server_sample_counts[client] for client in received_clients]
-        total_samples = float(sum(sample_counts))
-        client_weights = [n_i / total_samples for n_i in sample_counts]
+        if self.weighted_aggregation:
+            server_sample_counts = server.aux_vars["client_sample_counts"]
+            sample_counts = [server_sample_counts[client] for client in received_clients]
+            total_weight = float(sum(sample_counts))
+            client_weights = [sample_count / total_weight for sample_count in sample_counts]
+        else:
+            client_weights = [1.0 / len(received_clients)] * len(received_clients)
 
         tau_eff = sum(client_weight * a_i for client_weight, a_i in zip(client_weights, a_values, strict=True))
         weighted_terms = [

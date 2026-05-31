@@ -72,6 +72,7 @@ class Scaffold(FedAlgorithm):
     step_size: float = 0.001
     num_local_epochs: int = 1
     server_step_size: float = 1.0
+    weighted_aggregation: bool = False
     selection_scheme: ClientSelectionScheme | None = field(
         default_factory=lambda: UniformSelection(fraction_selected_clients=1.0)
     )
@@ -174,8 +175,7 @@ class Scaffold(FedAlgorithm):
             return
         uploads = [server.messages[client] for client in received_clients]
         model_deltas = [upload[0] for upload in uploads]
-        weights = [1.0] * len(received_clients)
-        total_weight = float(len(received_clients))
+        weights, total_weight = self._aggregation_weights(received_clients)
         average_model_delta = self._weighted_average(model_deltas, weights, total_weight)
         server_x = iop.copy(server.x)
         server.x = server_x + self.server_step_size * average_model_delta

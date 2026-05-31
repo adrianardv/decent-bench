@@ -5,6 +5,7 @@ import decent_bench.utils.interoperability as iop
 from decent_bench.algorithms._algorithm import Algorithm
 from decent_bench.networks import FedNetwork
 from decent_bench.schemes import ClientSelectionScheme
+from decent_bench.utils.agent_utils import infer_client_data_size
 from decent_bench.utils.types import LocalSteps
 
 if TYPE_CHECKING:
@@ -17,6 +18,7 @@ class FedAlgorithm(Algorithm[FedNetwork]):
 
     selection_scheme: ClientSelectionScheme | None = None
     num_local_steps: LocalSteps = 1
+    weighted_aggregation: bool = False
 
     def cleanup_agents(self, network: FedNetwork) -> Iterable["Agent"]:
         return [network.server(), *network.clients()]
@@ -114,6 +116,34 @@ class FedAlgorithm(Algorithm[FedNetwork]):
         weighted_values = [value * weight for value, weight in zip(values, weights, strict=True)]
         return iop.sum(iop.stack(weighted_values, dim=0), dim=0) / total_weight
 
+    def _aggregation_weights(
+        self,
+        received_clients: Sequence["Agent"],
+    ) -> tuple[list[float], float]:
+        """
+        Return aggregation weights for the received clients.
+
+        Algorithms default to uniform aggregation unless initialized with
+        ``weighted_aggregation=True``. Data-size weighting infers local sample
+        counts from each client's empirical-risk cost.
+        """
+        if not self.weighted_aggregation:
+            return [1.0] * len(received_clients), float(len(received_clients))
+
+        weights = [infer_client_data_size(client) for client in received_clients]
+        total_weight = float(sum(weights))
+        return weights, total_weight
+
+    def _aggregation_participation_fraction(
+        self,
+        network: FedNetwork,
+        received_clients: Sequence["Agent"],
+    ) -> float:
+        """Return the received clients' weight mass relative to the full client population."""
+        _, received_weight = self._aggregation_weights(received_clients)
+        _, total_weight = self._aggregation_weights(network.clients())
+        return received_weight / total_weight
+
     def aggregate(
         self,
         network: FedNetwork,
@@ -128,6 +158,5 @@ class FedAlgorithm(Algorithm[FedNetwork]):
         if not received_clients:
             return
         updates = [network.server().messages[client] for client in received_clients]
-        weights = [1.0] * len(received_clients)
-        total_weight = float(len(received_clients))
+        weights, total_weight = self._aggregation_weights(received_clients)
         network.server().x = self._weighted_average(updates, weights, total_weight)

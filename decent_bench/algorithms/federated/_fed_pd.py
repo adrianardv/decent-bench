@@ -62,6 +62,7 @@ class FedPD(FedAlgorithm):
     eta: float = 1.0
     skip_probability: float = 0.0
     num_local_steps: LocalSteps = 1
+    weighted_aggregation: bool = False
     x0: InitialStates = None
     name: str = "FedPD"
     _num_local_steps_by_client: dict["Agent", int] = field(init=False, repr=False, default_factory=dict)
@@ -161,8 +162,7 @@ class FedPD(FedAlgorithm):
         if not received_clients:
             return
         center_candidates = [server.messages[client] for client in received_clients]
-        weights = [1.0] * len(received_clients)
-        total_weight = float(len(received_clients))
+        weights, total_weight = self._aggregation_weights(received_clients)
         server.x = self._weighted_average(center_candidates, weights, total_weight)
         self.server_broadcast(network, participating_clients)
         for client in participating_clients:

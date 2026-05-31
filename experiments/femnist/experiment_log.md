@@ -246,6 +246,72 @@ reported as the best individual mechanism, and combining local and server moment
 tuning result here follows the same qualitative pattern, with the `both_momentums` variant outperforming the plain,
 proximal-only, server-momentum-only, and all-three variants in the accepted run.
 
+## Experiment 2 Design
+
+Aggregation weighting sensitivity.
+
+Experiment 2 benchmarks how each federated algorithm is affected by the server aggregation rule. For each
+algorithm, the experiment compares:
+
+- uniform aggregation, where every received client update has equal weight;
+- data-size weighted aggregation, where each received client update is weighted by its local FEMNIST train sample count.
+
+To be able to test this, `decent-bench` federated algorithms have been slightly modified. The aggregation choice is an algorithm initialization option, `weighted_aggregation` (can be set to `True`or `False`), so the two variants are passed to
+`benchmark()` as separate algorithm instances. Default algorithm behavior is preserved outside this experiment:
+
+- `FedAvg`, `FedProx`, `SCAFFOLD`, `FedAdam`, `FedLT`, `FedDyn`, and `FedPD` default to uniform aggregation;
+- `FedNova` defaults to data-size weighted aggregation, matching its existing implementation and expected FedNova
+  behavior.
+
+Fixed setup:
+
+- FEMNIST CNN model;
+- `100` clients;
+- `UniformSelection(fraction_selected_clients=0.2)`;
+- `3` trials;
+- `1500` iterations;
+- state snapshots every `150` iterations;
+- checkpoint step `None`;
+- batch size `32`;
+- seed `20260524`;
+- always active clients;
+- no message drops, no compression, and no message noise;
+- tuned hyperparameters from `experiment0/selected_hyperparameters.json`.
+
+Planned comparisons:
+
+| Algorithm key | Uniform variant | Data-size weighted variant |
+| --- | --- | --- |
+| `fedavg` | `FedAvg uniform` | `FedAvg data-size weighted` |
+| `fedprox` | `FedProx uniform` | `FedProx data-size weighted` |
+| `scaffold` | `SCAFFOLD uniform` | `SCAFFOLD data-size weighted` |
+| `fednova` | `FedNova uniform` | `FedNova data-size weighted` |
+| `fedopt` | `FedAdam uniform` | `FedAdam data-size weighted` |
+| `fedlt` | `FedLT uniform` | `FedLT data-size weighted` |
+| `feddyn` | `FedDyn uniform` | `FedDyn data-size weighted` |
+
+`FedPD` is excluded from the main Experiment 2 run for the same reason as the other partial-participation FEMNIST
+experiments: FedPD does not support client subsampling.
+
+Execution:
+
+- run one algorithm pair per `benchmark()` call: `benchmark([algorithm uniform, algorithm data-size weighted])`;
+- use `--algorithm <key>` to run a single algorithm pair, or `--algorithm all` to run all pairs sequentially;
+
+Outputs should be saved under:
+
+```text
+experiments/femnist/checkpoints/experiment2/run_<timestamp>/
+```
+
+For each run, the runner saves:
+
+- per-algorithm benchmark artifacts under `per_algorithm/<algorithm_key>/`;
+- `results/` tables and individual metric plots for the combined run;
+- CSV exports `table_metrics.csv` and `plot_metrics.csv` for possible later post-processing;
+- compressed `metric_computation.pkl.zst`;
+- `experiment2_metadata.json` with the selected clients, fixed setup, requested algorithms, and run statuses.
+
 ## Experiment 5 Design
 
 Communication impairment robustness.

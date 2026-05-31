@@ -62,6 +62,7 @@ class FedDyn(FedAlgorithm):
     step_size: float = 0.001
     alpha: float = 0.01
     num_local_epochs: int = 1
+    weighted_aggregation: bool = False
     selection_scheme: ClientSelectionScheme | None = field(
         default_factory=lambda: UniformSelection(fraction_selected_clients=1.0)
     )
@@ -142,11 +143,19 @@ class FedDyn(FedAlgorithm):
             return
         reference_x = iop.copy(server.x)
         client_models = [server.messages[client] for client in received_clients]
-        average_model = self._weighted_average(
-            client_models,
-            weights=[1.0] * len(received_clients),
-            total_weight=float(len(received_clients)),
-        )
-        model_delta_sum = iop.sum(iop.stack([model - reference_x for model in client_models], dim=0), dim=0)
-        server.aux_vars["h"] -= self.alpha * model_delta_sum / len(network.clients())
+        weights, total_weight = self._aggregation_weights(received_clients)
+        average_model = self._weighted_average(client_models, weights, total_weight)
+        if self.weighted_aggregation:
+            _, total_client_weight = self._aggregation_weights(network.clients())
+            weighted_model_delta_sum = iop.sum(
+                iop.stack(
+                    [(model - reference_x) * weight for model, weight in zip(client_models, weights, strict=True)],
+                    dim=0,
+                ),
+                dim=0,
+            )
+            server.aux_vars["h"] -= self.alpha * weighted_model_delta_sum / total_client_weight
+        else:
+            model_delta_sum = iop.sum(iop.stack([model - reference_x for model in client_models], dim=0), dim=0)
+            server.aux_vars["h"] -= self.alpha * model_delta_sum / len(network.clients())
         server.x = average_model - server.aux_vars["h"] / self.alpha
