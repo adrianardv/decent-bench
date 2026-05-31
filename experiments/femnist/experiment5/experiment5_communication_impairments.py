@@ -293,10 +293,6 @@ def build_plot_metrics() -> list[ml.Metric]:
     ]
 
 
-def metric_lookup(metrics: list[ml.Metric]) -> dict[str, ml.Metric]:
-    return {metric.description: metric for metric in metrics}
-
-
 def slugify(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")
 
@@ -402,37 +398,13 @@ def build_algorithm(algorithm_key: str, x0: Any, selected_hyperparameters: dict[
     raise ValueError(f"Unknown algorithm key: {algorithm_key}")
 
 
+def build_algorithms(x0: Any, selected_hyperparameters: dict[str, Any], algorithm_keys: list[str]) -> list[Any]:
+    return [build_algorithm(algorithm_key, x0, selected_hyperparameters) for algorithm_key in algorithm_keys]
+
+
 # -----------------------------------------------------------------------------
-# Metric merging and annotated plots
+# Annotated plots
 # -----------------------------------------------------------------------------
-
-
-def merge_metric_result(
-    source: MetricResult,
-    *,
-    combined_table_results: dict[str, dict[ml.Metric, Any]],
-    combined_plot_results: dict[str, dict[ml.Metric, Any]],
-    canonical_table_metrics: list[ml.Metric],
-    canonical_plot_metrics: list[ml.Metric],
-) -> None:
-    table_lookup = metric_lookup(source.table_metrics)
-    plot_lookup = metric_lookup(source.plot_metrics)
-    canonical_table_lookup = metric_lookup(canonical_table_metrics)
-    canonical_plot_lookup = metric_lookup(canonical_plot_metrics)
-
-    for algorithm_name, metric_values in source.table_results.items():
-        combined_table_results[algorithm_name] = {}
-        for description, source_metric in table_lookup.items():
-            if source_metric in metric_values:
-                combined_table_results[algorithm_name][canonical_table_lookup[description]] = metric_values[
-                    source_metric
-                ]
-
-    for algorithm_name, metric_values in source.plot_results.items():
-        combined_plot_results[algorithm_name] = {}
-        for description, source_metric in plot_lookup.items():
-            if source_metric in metric_values:
-                combined_plot_results[algorithm_name][canonical_plot_lookup[description]] = metric_values[source_metric]
 
 
 def save_annotated_metric_plots(metric_result: MetricResult, condition: Condition, output_dir: Path) -> None:
@@ -498,7 +470,7 @@ def write_run_inputs(
             "Evaluate the robustness of selected tuned federated algorithms under client availability, "
             "message compression, and message-drop impairments."
         ),
-        "execution": "one condition and one algorithm at a time; combined metrics produced per condition",
+        "execution": "one planned condition per launch; all algorithms are run together in one benchmark() call",
         "dataset": "FEMNIST",
         "dataset_source": "flwrlabs/femnist",
         "partition": "natural writer/client split",
@@ -557,130 +529,93 @@ def run_condition(
     n_test_samples: int,
     statuses: list[dict[str, Any]],
 ) -> tuple[list[str], int, int]:
-    condition_path = run_path
-    combined_table_results: dict[str, dict[ml.Metric, Any]] = {}
-    combined_plot_results: dict[str, dict[ml.Metric, Any]] = {}
-    canonical_table_metrics: list[ml.Metric] | None = None
-    canonical_plot_metrics: list[ml.Metric] | None = None
+    print(f"Running condition={condition.key}; results: {run_path}")
+    problem, x0, writer_ids, current_n_train_samples, current_n_test_samples = build_problem(condition)
+    if selected_writer_ids is None:
+        selected_writer_ids = writer_ids
+        n_train_samples = current_n_train_samples
+        n_test_samples = current_n_test_samples
+    elif writer_ids != selected_writer_ids:
+        raise RuntimeError("Selected writer IDs changed between runs.")
 
-    for algorithm_key in algorithm_order:
-        algorithm_path = condition_path / "per_algorithm" / algorithm_key
-        print(f"Running condition={condition.key}, algorithm={algorithm_key}; results: {algorithm_path}")
+    algorithms = build_algorithms(x0, selected_hyperparameters, algorithm_order)
+    checkpoint_manager = CheckpointManager(
+        checkpoint_dir=run_path,
+        checkpoint_step=checkpoint_step,
+        keep_n_checkpoints=1,
+        benchmark_metadata={
+            "experiment": experiment_name,
+            "condition": condition.key,
+            "n_trials": n_trials,
+            "iterations": iterations,
+            "state_snapshot_period": state_snapshot_period,
+            "checkpoint_step": checkpoint_step,
+            "algorithms": [algorithm.name for algorithm in algorithms],
+        },
+    )
 
-        problem, x0, writer_ids, current_n_train_samples, current_n_test_samples = build_problem(condition)
-        if selected_writer_ids is None:
-            selected_writer_ids = writer_ids
-            n_train_samples = current_n_train_samples
-            n_test_samples = current_n_test_samples
-        elif writer_ids != selected_writer_ids:
-            raise RuntimeError("Selected writer IDs changed between runs.")
-
-        algorithm = build_algorithm(algorithm_key, x0, selected_hyperparameters)
-        checkpoint_manager = CheckpointManager(
-            checkpoint_dir=algorithm_path,
-            checkpoint_step=checkpoint_step,
-            keep_n_checkpoints=1,
-            benchmark_metadata={
-                "experiment": experiment_name,
+    try:
+        result = benchmark.benchmark(
+            algorithms=algorithms,
+            benchmark_problem=problem,
+            n_trials=n_trials,
+            max_processes=1,
+            progress_step=progress_step,
+            show_speed=True,
+            show_trial=True,
+            checkpoint_manager=checkpoint_manager,
+            log_level=logging.INFO,
+        )
+        metric_result = benchmark.compute_metrics(
+            benchmark_result=result,
+            table_metrics=build_table_metrics(),
+            plot_metrics=build_plot_metrics(),
+            checkpoint_manager=checkpoint_manager,
+            log_level=logging.INFO,
+        )
+        benchmark.display_metrics(
+            metrics_result=metric_result,
+            checkpoint_manager=checkpoint_manager,
+            individual_plots=True,
+            show_plots=show_plots,
+            log_level=logging.INFO,
+        )
+        save_annotated_metric_plots(metric_result, condition, run_path / "annotated_plots")
+        metric_result.agent_metrics = None
+        save_pickle_zst(metric_result, run_path / metric_result_filename)
+        (run_path / "metric_computation_complete.json").write_text(
+            json.dumps({"metric_computation_complete": True}, indent=2),
+            encoding="utf-8",
+        )
+        statuses.append(
+            {
                 "condition": condition.key,
-                "algorithm": algorithm_key,
-                "n_trials": n_trials,
-                "iterations": iterations,
-                "state_snapshot_period": state_snapshot_period,
-                "checkpoint_step": checkpoint_step,
-            },
+                "status": "ok",
+                "algorithms": [algorithm.name for algorithm in algorithms],
+            }
         )
 
-        try:
-            result = benchmark.benchmark(
-                algorithms=[algorithm],
-                benchmark_problem=problem,
-                n_trials=n_trials,
-                max_processes=1,
-                progress_step=progress_step,
-                show_speed=True,
-                show_trial=True,
-                checkpoint_manager=checkpoint_manager,
-                log_level=logging.INFO,
-            )
-            metric_result = benchmark.compute_metrics(
-                benchmark_result=result,
-                table_metrics=build_table_metrics(),
-                plot_metrics=build_plot_metrics(),
-                checkpoint_manager=checkpoint_manager,
-                log_level=logging.INFO,
-            )
-            benchmark.display_metrics(
-                metrics_result=metric_result,
-                checkpoint_manager=checkpoint_manager,
-                individual_plots=True,
-                show_plots=show_plots,
-                log_level=logging.INFO,
-            )
+    except Exception as error:
+        statuses.append(
+            {
+                "condition": condition.key,
+                "status": "failed",
+                "algorithms": [algorithm.name for algorithm in algorithms],
+                "error": repr(error),
+            }
+        )
+        raise
 
-            if canonical_table_metrics is None or canonical_plot_metrics is None:
-                canonical_table_metrics = metric_result.table_metrics
-                canonical_plot_metrics = metric_result.plot_metrics
+    else:
+        return selected_writer_ids or [], n_train_samples, n_test_samples
 
-            merge_metric_result(
-                metric_result,
-                combined_table_results=combined_table_results,
-                combined_plot_results=combined_plot_results,
-                canonical_table_metrics=canonical_table_metrics,
-                canonical_plot_metrics=canonical_plot_metrics,
-            )
-            statuses.append(
-                {
-                    "condition": condition.key,
-                    "algorithm": algorithm_key,
-                    "status": "ok",
-                    "name": algorithm.name,
-                }
-            )
-
-        except Exception as error:
-            statuses.append(
-                {
-                    "condition": condition.key,
-                    "algorithm": algorithm_key,
-                    "status": "failed",
-                    "error": repr(error),
-                }
-            )
-            raise
-
-        finally:
-            if "metric_result" in locals():
-                del metric_result
-            if "result" in locals():
-                del result
-            del algorithm, problem, x0
-            clear_cuda_cache()
-
-    if canonical_table_metrics is None or canonical_plot_metrics is None:
-        raise RuntimeError(f"No algorithm completed successfully for condition {condition.key}.")
-
-    combined_metric_result = MetricResult(
-        agent_metrics=None,
-        table_metrics=canonical_table_metrics,
-        plot_metrics=canonical_plot_metrics,
-        table_results=combined_table_results,
-        plot_results=combined_plot_results,
-    )
-    benchmark.display_metrics(
-        metrics_result=combined_metric_result,
-        save_path=condition_path / "results",
-        individual_plots=True,
-        show_plots=show_plots,
-        log_level=logging.INFO,
-    )
-    save_annotated_metric_plots(combined_metric_result, condition, condition_path / "annotated_plots")
-    save_pickle_zst(combined_metric_result, condition_path / metric_result_filename)
-    (condition_path / "metric_computation_complete.json").write_text(
-        json.dumps({"metric_computation_complete": True}, indent=2),
-        encoding="utf-8",
-    )
-    return selected_writer_ids or [], n_train_samples, n_test_samples
+    finally:
+        if "metric_result" in locals():
+            del metric_result
+        if "result" in locals():
+            del result
+        del algorithms, problem, x0
+        clear_cuda_cache()
 
 
 def parse_args() -> argparse.Namespace:

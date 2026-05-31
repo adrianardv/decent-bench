@@ -295,8 +295,8 @@ experiments/femnist/checkpoints/experiment5/<condition>/run_<timestamp>/
 
 For each condition, the runner saves:
 
-- per-algorithm checkpoints and raw metrics;
-- combined `results/` tables and individual metric plots;
+- benchmark artifacts and raw metrics for all algorithms in the condition;
+- `results/` tables and individual metric plots;
 - `annotated_plots/` with one metric per figure and a grey impairment label box;
 - compressed `metric_computation.pkl.zst` for later post-processing.
 
