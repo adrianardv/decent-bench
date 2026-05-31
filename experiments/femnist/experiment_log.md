@@ -302,3 +302,13 @@ For each condition, the runner saves:
 
 The saved metric object is intended for follow-up calculations such as percentage accuracy drop relative to
 `clean_baseline` for each algorithm and condition.
+
+Post-processing is handled by `experiment5/experiment5_postprocess_performance_drop.py`. It loads the saved
+`metric_computation.pkl.zst` files, uses the latest run found for `clean_baseline` and each requested impairment
+condition, and writes:
+
+- `experiment5_performance_drop_from_clean_baseline.csv`: headline percentage performance drop for final server
+  accuracy and average client accuracy;
+- `experiment5_metric_relative_changes.csv`: relative changes for all comparable final table metrics;
+- `experiment5_table_metrics.csv`: flattened source table metrics used for the comparison;
+- `experiment5_postprocess_metadata.json`: paths, requested conditions, and any missing condition results.
