@@ -413,13 +413,13 @@ def save_annotated_metric_plots(metric_result: MetricResult, condition: Conditio
 
     output_dir.mkdir(parents=True, exist_ok=True)
     for metric in metric_result.plot_metrics:
-        fig, ax = plt.subplots(figsize=(6.4, 4.0), constrained_layout=True)
+        fig, ax = plt.subplots(figsize=(7.0, 4.4))
         has_data = False
-        for algorithm_name, metric_values in metric_result.plot_results.items():
+        for algorithm, metric_values in metric_result.plot_results.items():
             if metric not in metric_values:
                 continue
             x, y_mean, y_min, y_max = metric_values[metric]
-            ax.plot(x, y_mean, marker="o", markersize=3, linewidth=1.5, label=algorithm_name)
+            ax.plot(x, y_mean, marker="o", markersize=3, linewidth=1.5, label=algorithm.name)
             ax.fill_between(x, y_min, y_max, alpha=0.10)
             has_data = True
 
@@ -442,8 +442,8 @@ def save_annotated_metric_plots(metric_result: MetricResult, condition: Conditio
         )
         ax.legend(loc="best", fontsize=8)
         metric_slug = slugify(metric.description)
+        fig.tight_layout()
         fig.savefig(output_dir / f"{condition.key}_{metric_slug}.png", dpi=600)
-        fig.savefig(output_dir / f"{condition.key}_{metric_slug}.pdf")
         plt.close(fig)
 
 
