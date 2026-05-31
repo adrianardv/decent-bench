@@ -246,6 +246,17 @@ reported as the best individual mechanism, and combining local and server moment
 tuning result here follows the same qualitative pattern, with the `both_momentums` variant outperforming the plain,
 proximal-only, server-momentum-only, and all-three variants in the accepted run.
 
+## Experiment 1 Design
+
+Baseline comparison of tuned federated algorithms.
+
+Experiment 1 benchmarks the selected algorithms from Experiment 0 on the fixed FEMNIST test setup. It uses the tuned
+hyperparameters stored in `experiment0/selected_hyperparameters.json`, the 100-client FEMNIST subset, partial
+participation with `UniformSelection(fraction_selected_clients=0.2)`, `3` trials, `1500` iterations, state snapshots
+every `150` iterations, batch size `32`, and no communication impairments. The purpose is to establish the clean
+baseline performance of each algorithm before running targeted follow-up experiments such as aggregation weighting
+sensitivity and communication impairment robustness.
+
 ## Experiment 2 Design
 
 Aggregation weighting sensitivity.
