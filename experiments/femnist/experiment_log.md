@@ -245,3 +245,60 @@ with the FedNova paper's experimental discussion: in their CIFAR-10 experiments,
 reported as the best individual mechanism, and combining local and server momentum performs even better. The FEMNIST
 tuning result here follows the same qualitative pattern, with the `both_momentums` variant outperforming the plain,
 proximal-only, server-momentum-only, and all-three variants in the accepted run.
+
+## Experiment 5 Design
+
+Communication impairment robustness.
+
+Experiment 5 benchmarks federated algorithms under controlled communication impairments:
+
+- client availability impairments via `UniformActivationRate` and `MarkovChainActivation`;
+- communication compression via `TopK` and `StochasticQuantization`;
+- message loss via `UniformDropRate`;
+- a combined availability + compression + drop condition.
+
+Fixed setup:
+
+- FEMNIST CNN model;
+- `100` clients;
+- `UniformSelection(fraction_selected_clients=0.2)`;
+- `3` trials;
+- `1500` iterations;
+- state snapshots every `150` iterations;
+- checkpoint step `None`;
+- batch size `32`;
+- seed `20260524`;
+- no message noise.
+
+Planned conditions:
+
+| Condition key | Description |
+| --- | --- |
+| `clean_baseline` | Always active clients, no compression, no drops. |
+| `activation_uniform_low` | Uniform client activation with low activation probability, no compression, no drops. |
+| `activation_uniform_high` | Uniform client activation with high activation probability, no compression, no drops. |
+| `activation_markov_sticky_online` | Markov-chain activation with one inactive-to-active / active-to-inactive combination, no compression, no drops. |
+| `activation_markov_bursty_offline` | Markov-chain activation with another inactive-to-active / active-to-inactive combination, no compression, no drops. |
+| `compression_topk_low` | Low-`k` `TopK` compression, always active clients, no drops. |
+| `compression_topk_high` | Higher-`k` `TopK` compression, always active clients, no drops. |
+| `compression_qsgd_low` | `StochasticQuantization` with fewer levels, always active clients, no drops. |
+| `compression_qsgd_high` | `StochasticQuantization` with more levels, always active clients, no drops. |
+| `drops_uniform_low` | Low-rate uniform message drops, always active clients, no compression. |
+| `drops_uniform_high` | Higher-rate uniform message drops, always active clients, no compression. |
+| `combined_uniform_topk_drops` | Uniform activation + `TopK` compression + uniform message drops. |
+
+Outputs should be saved under:
+
+```text
+experiments/femnist/checkpoints/experiment5/<condition>/run_<timestamp>/
+```
+
+For each condition, the runner saves:
+
+- per-algorithm checkpoints and raw metrics;
+- combined `results/` tables and individual metric plots;
+- `annotated_plots/` with one metric per figure and a grey impairment label box;
+- compressed `metric_computation.pkl.zst` for later post-processing.
+
+The saved metric object is intended for follow-up calculations such as percentage accuracy drop relative to
+`clean_baseline` for each algorithm and condition.
