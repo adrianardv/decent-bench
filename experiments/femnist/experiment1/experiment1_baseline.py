@@ -189,8 +189,7 @@ def write_run_inputs(
     n_train_samples: int,
     n_test_samples: int,
     algorithms: list[Any],
-) -> None:
-    run_path.mkdir(parents=True, exist_ok=True)
+) -> dict[str, Any]:
     metadata = {
         "experiment": experiment_name,
         "purpose": "Baseline benchmark of tuned federated algorithms on the fixed FEMNIST setup.",
@@ -234,7 +233,7 @@ def write_run_inputs(
         },
         "selected_writer_ids": selected_writer_ids,
     }
-    (run_path / "experiment1_metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+    return metadata
 
 
 def main() -> None:
@@ -243,7 +242,7 @@ def main() -> None:
     selected_hyperparameters = load_selected_hyperparameters()
     problem, x0, selected_writer_ids, n_train_samples, n_test_samples = build_problem()
     algorithms = build_algorithms(x0, selected_hyperparameters)
-    write_run_inputs(
+    run_inputs_metadata = write_run_inputs(
         selected_writer_ids=selected_writer_ids,
         n_train_samples=n_train_samples,
         n_test_samples=n_test_samples,
@@ -261,6 +260,7 @@ def main() -> None:
             "state_snapshot_period": state_snapshot_period,
             "checkpoint_step": checkpoint_step,
             "algorithms": [algorithm.name for algorithm in algorithms],
+            "run_inputs": run_inputs_metadata,
         },
     )
 
@@ -275,6 +275,7 @@ def main() -> None:
         checkpoint_manager=checkpoint_manager,
         log_level=logging.INFO,
     )
+    (run_path / "experiment1_metadata.json").write_text(json.dumps(run_inputs_metadata, indent=2), encoding="utf-8")
 
     if compute_metrics:
         metric_result = benchmark.compute_metrics(
