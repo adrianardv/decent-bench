@@ -38,6 +38,7 @@ from decent_bench.algorithms.utils import pytorch_initialization
 from decent_bench.benchmark import MetricResult
 from decent_bench.costs import PyTorchCost
 from decent_bench.metrics import metric_library as ml
+from decent_bench.metrics._plots import _add_legend_and_save, _plot_subplot
 from decent_bench.networks import FedNetwork
 from decent_bench.schemes import (
     AgentActivationScheme,
@@ -452,14 +453,13 @@ def save_annotated_metric_plots(metric_result: MetricResult, condition: Conditio
 
     output_dir.mkdir(parents=True, exist_ok=True)
     for metric in metric_result.plot_metrics:
-        fig, ax = plt.subplots(figsize=(7.0, 4.4))
+        fig, ax = plt.subplots(layout="constrained")
         has_data = False
-        for algorithm, metric_values in metric_result.plot_results.items():
+        for algorithm_index, (algorithm, metric_values) in enumerate(metric_result.plot_results.items()):
             if metric not in metric_values:
                 continue
             x, y_mean, y_min, y_max = metric_values[metric]
-            ax.plot(x, y_mean, marker="o", markersize=3, linewidth=1.5, label=algorithm.name)
-            ax.fill_between(x, y_min, y_max, alpha=0.10)
+            _plot_subplot(ax, x, y_mean, y_min, y_max, algorithm.name, algorithm_index)
             has_data = True
 
         if not has_data:
@@ -468,7 +468,11 @@ def save_annotated_metric_plots(metric_result: MetricResult, condition: Conditio
 
         ax.set_xlabel("iterations")
         ax.set_ylabel(metric.description)
-        ax.grid(visible=True, alpha=0.25)
+        if metric.x_log:
+            ax.set_xscale("log")
+        if metric.y_log:
+            ax.set_yscale("log")
+        ax.grid(visible=True, which="major", linestyle="--", linewidth=0.5, alpha=0.7)
         ax.text(
             0.98,
             0.08,
@@ -479,10 +483,8 @@ def save_annotated_metric_plots(metric_result: MetricResult, condition: Conditio
             fontsize=9,
             bbox={"boxstyle": "square,pad=0.25", "facecolor": "#eeeeee", "edgecolor": "#777777", "alpha": 0.95},
         )
-        ax.legend(loc="best", fontsize=8)
         metric_slug = slugify(metric.description)
-        fig.tight_layout()
-        fig.savefig(output_dir / f"{condition.key}_{metric_slug}.png", dpi=600)
+        _add_legend_and_save(fig, [ax], output_dir / f"{condition.key}_{metric_slug}.png")
         plt.close(fig)
 
 
