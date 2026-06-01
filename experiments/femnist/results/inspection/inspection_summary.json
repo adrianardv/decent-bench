@@ -1,0 +1,30 @@
+{
+  "citations": [
+    "Caldas et al. (2018), LEAF: A Benchmark for Federated Settings.",
+    "Beutel et al. (2020), Flower: A Friendly Federated Learning Research Framework."
+  ],
+  "n_classes": 62,
+  "n_clients": 3597,
+  "n_rows": 814277,
+  "samples_per_client_quantiles": {
+    "0.0": 18.0,
+    "0.25": 165.0,
+    "0.5": 178.0,
+    "0.75": 306.0,
+    "0.9": 368.0,
+    "0.95": 392.0,
+    "1.0": 583.0
+  },
+  "seed": 20260524,
+  "selected_classes_covered": 62,
+  "selected_clients": 100,
+  "selected_min_test_samples": 20,
+  "selected_min_train_samples": 100,
+  "selected_missing_classes": [],
+  "selected_total_test_samples": 4886,
+  "selected_total_train_samples": 19554,
+  "source": "huggingface",
+  "test_samples": 162832,
+  "train_fraction": 0.8,
+  "train_samples": 651445
+}

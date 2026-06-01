@@ -1,0 +1,8 @@
+min_train_samples,min_test_samples,eligible_clients
+10,2,3597
+25,5,3593
+50,10,3581
+100,20,3478
+200,40,1242
+300,60,314
+500,100,0
