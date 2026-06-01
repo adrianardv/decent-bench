@@ -129,6 +129,8 @@ def write_run_inputs(
     n_test_samples: int,
     requested_algorithms: list[str],
     statuses: list[dict[str, Any]],
+    iterations: int,
+    state_snapshot_period: int,
 ) -> None:
     run_path.mkdir(parents=True, exist_ok=True)
     metadata = {
@@ -153,8 +155,8 @@ def write_run_inputs(
         "n_train_samples": n_train_samples,
         "n_test_samples": n_test_samples,
         "n_trials": clean_exp2.n_trials,
-        "iterations": clean_exp2.iterations,
-        "state_snapshot_period": clean_exp2.state_snapshot_period,
+        "iterations": iterations,
+        "state_snapshot_period": state_snapshot_period,
         "checkpoint_step": clean_exp2.checkpoint_step,
         "batch_size": clean_exp2.batch_size,
         "seed": clean_exp2.seed,
@@ -205,6 +207,8 @@ def run_algorithm_pair(
     n_train_samples: int,
     n_test_samples: int,
     statuses: list[dict[str, Any]],
+    iterations: int,
+    state_snapshot_period: int,
 ) -> tuple[list[str], int, int]:
     print(f"Running {algorithm_key} under {condition_key}; results: {run_path}")
 
@@ -227,8 +231,8 @@ def run_algorithm_pair(
             "algorithm": algorithm_key,
             "aggregation_variants": [algorithm.name for algorithm in algorithms],
             "n_trials": clean_exp2.n_trials,
-            "iterations": clean_exp2.iterations,
-            "state_snapshot_period": clean_exp2.state_snapshot_period,
+            "iterations": iterations,
+            "state_snapshot_period": state_snapshot_period,
             "checkpoint_step": clean_exp2.checkpoint_step,
         },
     )
@@ -312,6 +316,18 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional suffix for the output run directory.",
     )
+    parser.add_argument(
+        "--iterations",
+        type=int,
+        default=clean_exp2.iterations,
+        help="Number of iterations for each aggregation variant.",
+    )
+    parser.add_argument(
+        "--state-snapshot-period",
+        type=int,
+        default=None,
+        help="State snapshot period. Defaults to iterations // 10 when --iterations differs from the default.",
+    )
     return parser.parse_args()
 
 
@@ -319,6 +335,18 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     args = parse_args()
     requested_algorithms = list(algorithm_order) if args.algorithm == "all" else [args.algorithm]
+    if args.iterations <= 0:
+        raise ValueError("--iterations must be positive")
+    state_snapshot_period = args.state_snapshot_period
+    if state_snapshot_period is None:
+        state_snapshot_period = clean_exp2.state_snapshot_period
+        if args.iterations != clean_exp2.iterations:
+            state_snapshot_period = max(1, args.iterations // 10)
+    if state_snapshot_period <= 0:
+        raise ValueError("--state-snapshot-period must be positive")
+
+    clean_exp2.iterations = args.iterations
+    clean_exp2.state_snapshot_period = state_snapshot_period
 
     run_id = f"run_{datetime.now(UTC):%Y%m%d_%H%M%S}"
     if args.run_label:
@@ -346,6 +374,8 @@ def main() -> None:
                 n_train_samples=n_train_samples,
                 n_test_samples=n_test_samples,
                 statuses=statuses,
+                iterations=args.iterations,
+                state_snapshot_period=state_snapshot_period,
             )
         finally:
             write_run_inputs(
@@ -355,6 +385,8 @@ def main() -> None:
                 n_test_samples=n_test_samples,
                 requested_algorithms=[algorithm_key],
                 statuses=statuses,
+                iterations=args.iterations,
+                state_snapshot_period=state_snapshot_period,
             )
 
     print(f"Combined-impairment Experiment 2 benchmark complete: {checkpoint_root}")
