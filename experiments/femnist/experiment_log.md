@@ -257,6 +257,40 @@ every `150` iterations, batch size `32`, and no communication impairments. The p
 baseline performance of each algorithm before running targeted follow-up experiments such as aggregation weighting
 sensitivity and communication impairment robustness.
 
+### Experiment 1.1 Design
+
+Robustness to selected-client sampling.
+
+Experiment 1.1 is a robustness check for the clean Experiment 1 conclusions. The goal is to test whether the relative
+clean-baseline behavior of the selected algorithms is stable when the selected 100 FEMNIST writers change.
+Hyperparameters are not retuned. The model, algorithms, selected hyperparameters, batch size, train/test split rule,
+partial participation setting, metric set, number of trials, and number of iterations are kept the same as Experiment 1.
+
+The only experimental variable is the client-selection seed. The per-writer train/test split seed remains fixed at
+`20260524`, so the robustness check changes the selected writers but not the split rule used to define each writer's
+train and test examples. Planned client-selection seeds are:
+
+```text
+20260524, 20260525, 20260526, 20260537
+```
+
+For each seed, the experiment selects `100` writers satisfying the same minimum sample constraints used elsewhere:
+at least `100` train samples and `20` test samples. The clean baseline is then run with
+`UniformSelection(fraction_selected_clients=0.2)`, `3` trials, `1500` iterations, state snapshots every `150`
+iterations, and the selected hyperparameters from Experiment 0.
+
+Outputs are saved under:
+
+```text
+experiments/femnist/checkpoints/experiment1_1_client_sampling_robustness/seed_<seed>/run_<timestamp>/
+```
+
+For each seed, the runner saves Decent-Bench tables, plots, CSV exports, compressed metric computation output,
+metadata documenting the selected writer IDs and sample counts, `selected_clients_stats.csv`, and a
+`selected_client_class_distributions.png` plot for the selected writers.
+
+Execution is controlled through the `--seeds` argument.
+
 ## Experiment 2 Design
 
 Aggregation weighting sensitivity.
