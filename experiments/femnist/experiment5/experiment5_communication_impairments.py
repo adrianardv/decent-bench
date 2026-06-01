@@ -3,7 +3,7 @@
 FEMNIST communication-impairment robustness benchmark.
 
 The experiment evaluates how selected federated algorithms behave under client
-availability, compression, and message-drop impairments.
+availability, compression, message-drop, and additive-noise impairments.
 """
 
 from __future__ import annotations
@@ -44,9 +44,11 @@ from decent_bench.schemes import (
     AlwaysActive,
     CompressionScheme,
     DropScheme,
+    GaussianNoise,
     MarkovChainActivation,
     NoCompression,
     NoDrops,
+    NoiseScheme,
     NoNoise,
     StochasticQuantization,
     TopK,
@@ -103,6 +105,7 @@ algorithm_order = (
 ActivationFactory = Callable[[], AgentActivationScheme]
 CompressionFactory = Callable[[], CompressionScheme]
 DropFactory = Callable[[], DropScheme]
+NoiseFactory = Callable[[], NoiseScheme]
 
 
 @dataclass(frozen=True)
@@ -113,6 +116,7 @@ class Condition:
     activation_factory: ActivationFactory
     compression_factory: CompressionFactory
     drop_factory: DropFactory
+    noise_factory: NoiseFactory
     parameters: dict[str, Any]
 
 
@@ -124,6 +128,7 @@ conditions: tuple[Condition, ...] = (
         activation_factory=AlwaysActive,
         compression_factory=NoCompression,
         drop_factory=NoDrops,
+        noise_factory=NoNoise,
         parameters={"activation": "AlwaysActive", "compression": "NoCompression", "drops": "NoDrops"},
     ),
     Condition(
@@ -133,6 +138,7 @@ conditions: tuple[Condition, ...] = (
         activation_factory=lambda: UniformActivationRate(0.30),
         compression_factory=NoCompression,
         drop_factory=NoDrops,
+        noise_factory=NoNoise,
         parameters={"activation": "UniformActivationRate", "activation_probability": 0.30},
     ),
     Condition(
@@ -142,6 +148,7 @@ conditions: tuple[Condition, ...] = (
         activation_factory=lambda: UniformActivationRate(0.80),
         compression_factory=NoCompression,
         drop_factory=NoDrops,
+        noise_factory=NoNoise,
         parameters={"activation": "UniformActivationRate", "activation_probability": 0.80},
     ),
     Condition(
@@ -151,6 +158,7 @@ conditions: tuple[Condition, ...] = (
         activation_factory=lambda: MarkovChainActivation(inactive_to_active=0.20, active_to_inactive=0.10),
         compression_factory=NoCompression,
         drop_factory=NoDrops,
+        noise_factory=NoNoise,
         parameters={"activation": "MarkovChainActivation", "inactive_to_active": 0.20, "active_to_inactive": 0.10},
     ),
     Condition(
@@ -160,6 +168,7 @@ conditions: tuple[Condition, ...] = (
         activation_factory=lambda: MarkovChainActivation(inactive_to_active=0.10, active_to_inactive=0.30),
         compression_factory=NoCompression,
         drop_factory=NoDrops,
+        noise_factory=NoNoise,
         parameters={"activation": "MarkovChainActivation", "inactive_to_active": 0.10, "active_to_inactive": 0.30},
     ),
     Condition(
@@ -169,6 +178,7 @@ conditions: tuple[Condition, ...] = (
         activation_factory=AlwaysActive,
         compression_factory=lambda: TopK(0.01),
         drop_factory=NoDrops,
+        noise_factory=NoNoise,
         parameters={"compression": "TopK", "k": 0.01},
     ),
     Condition(
@@ -178,6 +188,7 @@ conditions: tuple[Condition, ...] = (
         activation_factory=AlwaysActive,
         compression_factory=lambda: TopK(0.10),
         drop_factory=NoDrops,
+        noise_factory=NoNoise,
         parameters={"compression": "TopK", "k": 0.10},
     ),
     Condition(
@@ -187,6 +198,7 @@ conditions: tuple[Condition, ...] = (
         activation_factory=AlwaysActive,
         compression_factory=lambda: StochasticQuantization(4),
         drop_factory=NoDrops,
+        noise_factory=NoNoise,
         parameters={"compression": "StochasticQuantization", "n_levels": 4},
     ),
     Condition(
@@ -196,6 +208,7 @@ conditions: tuple[Condition, ...] = (
         activation_factory=AlwaysActive,
         compression_factory=lambda: StochasticQuantization(16),
         drop_factory=NoDrops,
+        noise_factory=NoNoise,
         parameters={"compression": "StochasticQuantization", "n_levels": 16},
     ),
     Condition(
@@ -205,6 +218,7 @@ conditions: tuple[Condition, ...] = (
         activation_factory=AlwaysActive,
         compression_factory=NoCompression,
         drop_factory=lambda: UniformDropRate(0.05),
+        noise_factory=NoNoise,
         parameters={"drops": "UniformDropRate", "drop_rate": 0.05},
     ),
     Condition(
@@ -214,7 +228,28 @@ conditions: tuple[Condition, ...] = (
         activation_factory=AlwaysActive,
         compression_factory=NoCompression,
         drop_factory=lambda: UniformDropRate(0.50),
+        noise_factory=NoNoise,
         parameters={"drops": "UniformDropRate", "drop_rate": 0.50},
+    ),
+    Condition(
+        key="noise_gaussian_low",
+        label="Gaussian noise, low",
+        impairment_label="Noise: Gaussian mean=0, std=0.001",
+        activation_factory=AlwaysActive,
+        compression_factory=NoCompression,
+        drop_factory=NoDrops,
+        noise_factory=lambda: GaussianNoise(mean=0.0, std=0.001),
+        parameters={"noise": "GaussianNoise", "mean": 0.0, "std": 0.001},
+    ),
+    Condition(
+        key="noise_gaussian_high",
+        label="Gaussian noise, high",
+        impairment_label="Noise: Gaussian mean=0, std=0.01",
+        activation_factory=AlwaysActive,
+        compression_factory=NoCompression,
+        drop_factory=NoDrops,
+        noise_factory=lambda: GaussianNoise(mean=0.0, std=0.01),
+        parameters={"noise": "GaussianNoise", "mean": 0.0, "std": 0.01},
     ),
     Condition(
         key="combined_uniform_topk_drops",
@@ -223,6 +258,7 @@ conditions: tuple[Condition, ...] = (
         activation_factory=lambda: UniformActivationRate(0.50),
         compression_factory=lambda: TopK(0.10),
         drop_factory=lambda: UniformDropRate(0.10),
+        noise_factory=lambda: GaussianNoise(mean=0.0, std=0.001),
         parameters={
             "activation": "UniformActivationRate",
             "activation_probability": 0.50,
@@ -230,6 +266,9 @@ conditions: tuple[Condition, ...] = (
             "k": 0.10,
             "drops": "UniformDropRate",
             "drop_rate": 0.10,
+            "noise": "GaussianNoise",
+            "mean": 0.0,
+            "std": 0.001,
         },
     ),
 )
@@ -347,7 +386,7 @@ def build_problem(condition: Condition) -> tuple[benchmark.BenchmarkProblem, Any
     ]
     network = FedNetwork(
         clients=agents,
-        message_noise=NoNoise(),
+        message_noise=condition.noise_factory(),
         message_compression=condition.compression_factory(),
         message_drop=condition.drop_factory(),
     )
@@ -468,7 +507,7 @@ def write_run_inputs(
         "title": "FEMNIST communication impairment robustness benchmark",
         "purpose": (
             "Evaluate the robustness of selected tuned federated algorithms under client availability, "
-            "message compression, and message-drop impairments."
+            "message compression, message-drop, and additive-noise impairments."
         ),
         "execution": "one planned condition per launch; all algorithms are run together in one benchmark() call",
         "dataset": "FEMNIST",
@@ -497,7 +536,7 @@ def write_run_inputs(
             "client_selection": "UniformSelection",
             "selection_fraction": selection_fraction,
             "clients_per_round_without_activation_impairment": int(n_clients * selection_fraction),
-            "noise": "NoNoise",
+            "noise": "condition-specific",
             "impairments_apply_bidirectionally": True,
         },
         "requested_conditions": requested_conditions,

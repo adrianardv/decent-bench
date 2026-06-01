@@ -349,7 +349,8 @@ Experiment 5 benchmarks federated algorithms under controlled communication impa
 - client availability impairments via `UniformActivationRate` and `MarkovChainActivation`;
 - communication compression via `TopK` and `StochasticQuantization`;
 - message loss via `UniformDropRate`;
-- a combined availability + compression + drop condition.
+- additive message noise via `GaussianNoise`;
+- a combined availability + compression + drop + noise condition.
 
 Fixed setup:
 
@@ -362,7 +363,6 @@ Fixed setup:
 - checkpoint step `None`;
 - batch size `32`;
 - seed `20260524`;
-- no message noise.
 
 Planned conditions:
 
@@ -379,7 +379,9 @@ Planned conditions:
 | `compression_qsgd_high` | `StochasticQuantization` with more levels, always active clients, no drops. |
 | `drops_uniform_low` | Uniform message drops with drop rate `0.05`, always active clients, no compression. |
 | `drops_uniform_high` | Uniform message drops with drop rate `0.50`, always active clients, no compression. |
-| `combined_uniform_topk_drops` | Uniform activation probability `0.50` + `TopK(0.10)` compression + uniform message drop rate `0.10`. |
+| `noise_gaussian_low` | Gaussian message noise with mean `0.0` and standard deviation `0.001`, always active clients, no compression, no drops. |
+| `noise_gaussian_high` | Gaussian message noise with mean `0.0` and standard deviation `0.01`, always active clients, no compression, no drops. |
+| `combined_uniform_topk_drops` | Uniform activation probability `0.50` + `TopK(0.10)` compression + uniform message drop rate `0.10` + Gaussian noise with mean `0.0` and standard deviation `0.001`. |
 
 Outputs should be saved under:
 

@@ -36,6 +36,8 @@ condition_order = (
     "compression_qsgd_high",
     "drops_uniform_low",
     "drops_uniform_high",
+    "noise_gaussian_low",
+    "noise_gaussian_high",
     "combined_uniform_topk_drops",
 )
 
