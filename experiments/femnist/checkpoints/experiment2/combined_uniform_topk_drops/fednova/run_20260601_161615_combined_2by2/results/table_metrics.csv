@@ -1,0 +1,31 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedNova uniform,server accuracy,,0.813003138218038,0.018813811801722258
+FedNova uniform,accuracy,avg,0.818737208350389,0.005894397904946391
+FedNova uniform,loss,avg,0.12759652626390258,0.024102884170265237
+FedNova uniform,client drift from server,min,9.723894119262695,0.19890311859883703
+FedNova uniform,client drift from server,avg,9.7491712252299,0.1889993396229137
+FedNova uniform,client drift from server,max,9.846078554789225,0.1264804538330182
+FedNova uniform,fraction selected clients,,0.09600222222222222,0.0005240512312177231
+FedNova uniform,nr gradient calls,avg,12445.44,55.57082134191842
+FedNova uniform,nr gradient calls,sum,1244544.0,5557.082134191878
+FedNova uniform,nr sent messages,avg,27.093795508959598,0.1154255048103785
+FedNova uniform,nr sent messages,sum,2736.47334640492,11.657975985848225
+FedNova uniform,nr received messages,avg,24.38715534125696,0.14278944467930899
+FedNova uniform,nr received messages,sum,2463.102689466953,14.421733912611217
+FedNova uniform,nr sent messages dropped,avg,2.7066401677028935,0.029548902947758915
+FedNova uniform,nr sent messages dropped,sum,273.3706569379922,2.984439197723532
+FedNova data-size weighted,server accuracy,,0.8211897939691637,0.007947189433809676
+FedNova data-size weighted,accuracy,avg,0.8224519033974621,0.008473953160587078
+FedNova data-size weighted,loss,avg,0.12705000796976187,0.005394660349811856
+FedNova data-size weighted,client drift from server,min,9.701251029968262,0.008970089553628213
+FedNova data-size weighted,client drift from server,avg,9.726891816457112,0.010577428733439476
+FedNova data-size weighted,client drift from server,max,9.830356280008951,0.06989442950228586
+FedNova data-size weighted,fraction selected clients,,0.09606888888888891,0.00034434499069670166
+FedNova data-size weighted,nr gradient calls,avg,12480.0,136.6414123508348
+FedNova data-size weighted,nr gradient calls,sum,1248000.0,13664.141235083342
+FedNova data-size weighted,nr sent messages,avg,27.139340890863576,0.13575374502690352
+FedNova data-size weighted,nr sent messages,sum,2741.0734299772207,13.711128247717625
+FedNova data-size weighted,nr received messages,avg,24.43930101193595,0.23663609569351962
+FedNova data-size weighted,nr received messages,sum,2468.369402205531,23.900245665043713
+FedNova data-size weighted,nr sent messages dropped,avg,2.7000398789278974,0.15247378775781728
+FedNova data-size weighted,nr sent messages dropped,sum,272.7040277717176,15.399852563539469

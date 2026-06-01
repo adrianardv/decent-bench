@@ -1,0 +1,27 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedDyn uniform,server accuracy,,0.8217355710192388,0.005499397807017803
+FedDyn uniform,accuracy,avg,0.8185905307681812,0.006259239531895999
+FedDyn uniform,loss,avg,0.09011152681196109,0.013127380111440393
+FedDyn uniform,client drift from server,min,0.030728263780474663,0.00798003682409542
+FedDyn uniform,client drift from server,avg,0.1075462558058401,0.01540854372695645
+FedDyn uniform,client drift from server,max,0.3128589689731598,0.03343223792076544
+FedDyn uniform,fraction selected clients,,0.20000000000000004,0.0
+FedDyn uniform,nr gradient calls,avg,19200.0,0.0
+FedDyn uniform,nr gradient calls,sum,1920000.0,0.0
+FedDyn uniform,nr sent messages,avg,594.059405940594,0.0
+FedDyn uniform,nr sent messages,sum,60000.0,0.0
+FedDyn uniform,nr received messages,avg,594.059405940594,0.0
+FedDyn uniform,nr received messages,sum,60000.0,0.0
+FedDyn data-size weighted,server accuracy,,0.8204393505253105,0.003677997283319745
+FedDyn data-size weighted,accuracy,avg,0.8174075590121436,0.003770890737617494
+FedDyn data-size weighted,loss,avg,0.09771788533544168,0.032211275580512705
+FedDyn data-size weighted,client drift from server,min,0.03740848476688067,0.012058250870375833
+FedDyn data-size weighted,client drift from server,avg,0.10857603215922912,0.020600731414607762
+FedDyn data-size weighted,client drift from server,max,0.3682332436243693,0.10784450264369755
+FedDyn data-size weighted,fraction selected clients,,0.20000000000000004,0.0
+FedDyn data-size weighted,nr gradient calls,avg,19200.0,0.0
+FedDyn data-size weighted,nr gradient calls,sum,1920000.0,0.0
+FedDyn data-size weighted,nr sent messages,avg,594.059405940594,0.0
+FedDyn data-size weighted,nr sent messages,sum,60000.0,0.0
+FedDyn data-size weighted,nr received messages,avg,594.059405940594,0.0
+FedDyn data-size weighted,nr received messages,sum,60000.0,0.0

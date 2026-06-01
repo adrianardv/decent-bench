@@ -1,0 +1,31 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedProx uniform,server accuracy,,0.7969027152408241,0.005848666141359593
+FedProx uniform,accuracy,avg,0.7300463910492563,0.0025492071614491296
+FedProx uniform,loss,avg,0.33074809675415356,0.02011243441912486
+FedProx uniform,client drift from server,min,0.34758039315541583,0.10262826601683817
+FedProx uniform,client drift from server,avg,0.6358517668644587,0.07462201957115344
+FedProx uniform,client drift from server,max,1.6120864152908325,1.662153468810581
+FedProx uniform,fraction selected clients,,0.09593999999999998,0.0007601804154328123
+FedProx uniform,nr gradient calls,avg,16569.6,238.18026378799732
+FedProx uniform,nr gradient calls,sum,1656960.0,23818.026378799696
+FedProx uniform,nr sent messages,avg,27.06559509655838,0.28850391964176225
+FedProx uniform,nr sent messages,sum,2733.625104752397,29.13889588381653
+FedProx uniform,nr received messages,avg,24.38042192192268,0.3407096654008015
+FedProx uniform,nr received messages,sum,2462.422614114191,34.411676205480035
+FedProx uniform,nr sent messages dropped,avg,2.685173174636572,0.10018010339458128
+FedProx uniform,nr sent messages dropped,sum,271.2024906382938,10.118190442852665
+FedProx data-size weighted,server accuracy,,0.8064538136171374,0.010286337302795379
+FedProx data-size weighted,accuracy,avg,0.7411945695183518,0.009946468939691533
+FedProx data-size weighted,loss,avg,0.3104851065638165,0.009737042143625918
+FedProx data-size weighted,client drift from server,min,0.3525392512480418,0.08664715965342557
+FedProx data-size weighted,client drift from server,avg,0.624174294869105,0.046774044981605534
+FedProx data-size weighted,client drift from server,max,1.10482919216156,0.23847862584342527
+FedProx data-size weighted,fraction selected clients,,0.0959111111111111,0.0005846574850304764
+FedProx data-size weighted,nr gradient calls,avg,16561.06666666667,161.26839373966868
+FedProx data-size weighted,nr gradient calls,sum,1656106.6666666667,16126.839373966912
+FedProx data-size weighted,nr sent messages,avg,27.05470390742822,0.2092221023083134
+FedProx data-size weighted,nr sent messages,sum,2732.5250946502497,21.131432333138946
+FedProx data-size weighted,nr received messages,avg,24.35038864280617,0.219361383150396
+FedProx data-size weighted,nr received messages,sum,2459.3892529234236,22.155499698189942
+FedProx data-size weighted,nr sent messages dropped,avg,2.704315264622919,0.06310753330923369
+FedProx data-size weighted,nr sent messages dropped,sum,273.1358417269148,6.373860864232654

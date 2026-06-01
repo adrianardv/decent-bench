@@ -1,0 +1,31 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedDyn uniform,server accuracy,,0.7756174102878974,0.003385223900188805
+FedDyn uniform,accuracy,avg,0.7497482603356529,0.014870241541111162
+FedDyn uniform,loss,avg,0.5479394942025344,0.11230698090397451
+FedDyn uniform,client drift from server,min,0.14003859212001166,0.05049478485268433
+FedDyn uniform,client drift from server,avg,0.5696392031510671,0.07788848312325708
+FedDyn uniform,client drift from server,max,2.045965870221456,0.8609119050138263
+FedDyn uniform,fraction selected clients,,0.09593999999999998,0.0007601804154328123
+FedDyn uniform,nr gradient calls,avg,8284.8,119.09013189399866
+FedDyn uniform,nr gradient calls,sum,828480.0,11909.013189399848
+FedDyn uniform,nr sent messages,avg,27.06559509655838,0.28850391964176225
+FedDyn uniform,nr sent messages,sum,2733.625104752397,29.13889588381653
+FedDyn uniform,nr received messages,avg,24.38042192192268,0.3407096654008015
+FedDyn uniform,nr received messages,sum,2462.422614114191,34.411676205480035
+FedDyn uniform,nr sent messages dropped,avg,2.685173174636572,0.10018010339458128
+FedDyn uniform,nr sent messages dropped,sum,271.2024906382938,10.118190442852665
+FedDyn data-size weighted,server accuracy,,0.778960294719607,0.025769397069008715
+FedDyn data-size weighted,accuracy,avg,0.7522670214217492,0.00565748780103581
+FedDyn data-size weighted,loss,avg,0.5897218230118354,0.0398998467214845
+FedDyn data-size weighted,client drift from server,min,0.1328627939025561,0.031116613348951466
+FedDyn data-size weighted,client drift from server,avg,0.5766013922542333,0.11393629691684737
+FedDyn data-size weighted,client drift from server,max,2.2154977321624756,0.2641035406510919
+FedDyn data-size weighted,fraction selected clients,,0.0959111111111111,0.0005846574850304764
+FedDyn data-size weighted,nr gradient calls,avg,8280.533333333335,80.63419686983434
+FedDyn data-size weighted,nr gradient calls,sum,828053.3333333334,8063.419686983456
+FedDyn data-size weighted,nr sent messages,avg,27.05470390742822,0.2092221023083134
+FedDyn data-size weighted,nr sent messages,sum,2732.5250946502497,21.131432333138946
+FedDyn data-size weighted,nr received messages,avg,24.35038864280617,0.219361383150396
+FedDyn data-size weighted,nr received messages,sum,2459.3892529234236,22.155499698189942
+FedDyn data-size weighted,nr sent messages dropped,avg,2.704315264622919,0.06310753330923369
+FedDyn data-size weighted,nr sent messages dropped,sum,273.1358417269148,6.373860864232654

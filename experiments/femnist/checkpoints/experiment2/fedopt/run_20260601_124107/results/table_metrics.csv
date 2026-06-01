@@ -1,0 +1,27 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedAdam uniform,server accuracy,,0.8286260062764361,0.02133141483911949
+FedAdam uniform,accuracy,avg,0.8020412061672807,0.0012388894365512604
+FedAdam uniform,loss,avg,0.04775057083150993,0.0017786203338619258
+FedAdam uniform,client drift from server,min,0.05970569575826327,0.02702529869507727
+FedAdam uniform,client drift from server,avg,0.16506862544765075,0.015526416903336698
+FedAdam uniform,client drift from server,max,0.46441736817359924,0.04480398925910306
+FedAdam uniform,fraction selected clients,,0.20000000000000004,0.0
+FedAdam uniform,nr gradient calls,avg,67200.0,0.0
+FedAdam uniform,nr gradient calls,sum,6720000.0,0.0
+FedAdam uniform,nr sent messages,avg,594.059405940594,0.0
+FedAdam uniform,nr sent messages,sum,60000.0,0.0
+FedAdam uniform,nr received messages,avg,594.059405940594,0.0
+FedAdam uniform,nr received messages,sum,60000.0,0.0
+FedAdam data-size weighted,server accuracy,,0.829512893982808,0.006609453592458903
+FedAdam data-size weighted,accuracy,avg,0.799755082548779,0.006488071060068656
+FedAdam data-size weighted,loss,avg,0.04440927017169694,0.0032930024610963587
+FedAdam data-size weighted,client drift from server,min,0.06987022360165913,0.012002323945272175
+FedAdam data-size weighted,client drift from server,avg,0.17375490417083106,0.012987746794930755
+FedAdam data-size weighted,client drift from server,max,0.40884459018707275,0.1454156078176238
+FedAdam data-size weighted,fraction selected clients,,0.20000000000000004,0.0
+FedAdam data-size weighted,nr gradient calls,avg,67200.0,0.0
+FedAdam data-size weighted,nr gradient calls,sum,6720000.0,0.0
+FedAdam data-size weighted,nr sent messages,avg,594.059405940594,0.0
+FedAdam data-size weighted,nr sent messages,sum,60000.0,0.0
+FedAdam data-size weighted,nr received messages,avg,594.059405940594,0.0
+FedAdam data-size weighted,nr received messages,sum,60000.0,0.0

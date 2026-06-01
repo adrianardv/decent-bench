@@ -1,0 +1,31 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedAvg uniform,server accuracy,,0.7951289398280802,0.005499397807017803
+FedAvg uniform,accuracy,avg,0.7299604311638695,0.008482205587881486
+FedAvg uniform,loss,avg,0.32607386766001584,0.04204662292093653
+FedAvg uniform,client drift from server,min,0.35348691542943317,0.10955294525480763
+FedAvg uniform,client drift from server,avg,0.6385736909508705,0.08060980959372177
+FedAvg uniform,client drift from server,max,1.5766354004542034,1.9060105000724317
+FedAvg uniform,fraction selected clients,,0.09593999999999998,0.0007601804154328123
+FedAvg uniform,nr gradient calls,avg,16569.6,238.18026378799732
+FedAvg uniform,nr gradient calls,sum,1656960.0,23818.026378799696
+FedAvg uniform,nr sent messages,avg,27.06559509655838,0.28850391964176225
+FedAvg uniform,nr sent messages,sum,2733.625104752397,29.13889588381653
+FedAvg uniform,nr received messages,avg,24.38042192192268,0.3407096654008015
+FedAvg uniform,nr received messages,sum,2462.422614114191,34.411676205480035
+FedAvg uniform,nr sent messages dropped,avg,2.685173174636572,0.10018010339458128
+FedAvg uniform,nr sent messages dropped,sum,271.2024906382938,10.118190442852665
+FedAvg data-size weighted,server accuracy,,0.8018147086914995,0.014606188397907505
+FedAvg data-size weighted,accuracy,avg,0.7389787146950471,0.014939656984105598
+FedAvg data-size weighted,loss,avg,0.32409045998007063,0.0445664143050728
+FedAvg data-size weighted,client drift from server,min,0.37141188979148865,0.08090589159737083
+FedAvg data-size weighted,client drift from server,avg,0.6346734591325124,0.04611771180563329
+FedAvg data-size weighted,client drift from server,max,1.1154979864756267,0.08228377582755564
+FedAvg data-size weighted,fraction selected clients,,0.0959111111111111,0.0005846574850304764
+FedAvg data-size weighted,nr gradient calls,avg,16561.06666666667,161.26839373966868
+FedAvg data-size weighted,nr gradient calls,sum,1656106.6666666667,16126.839373966912
+FedAvg data-size weighted,nr sent messages,avg,27.05470390742822,0.2092221023083134
+FedAvg data-size weighted,nr sent messages,sum,2732.5250946502497,21.131432333138946
+FedAvg data-size weighted,nr received messages,avg,24.35038864280617,0.219361383150396
+FedAvg data-size weighted,nr received messages,sum,2459.3892529234236,22.155499698189942
+FedAvg data-size weighted,nr sent messages dropped,avg,2.704315264622919,0.06310753330923369
+FedAvg data-size weighted,nr sent messages dropped,sum,273.1358417269148,6.373860864232654

@@ -1,0 +1,31 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedAdam uniform,server accuracy,,0.7842133988265793,0.04999429762255081
+FedAdam uniform,accuracy,avg,0.7918720152817573,0.004649702322436
+FedAdam uniform,loss,avg,0.07420114351281275,0.007983340984339143
+FedAdam uniform,client drift from server,min,9.851316134134928,0.18982750802119774
+FedAdam uniform,client drift from server,avg,9.85773146311442,0.18940010079854375
+FedAdam uniform,client drift from server,max,9.87757396697998,0.1967963502412715
+FedAdam uniform,fraction selected clients,,0.09593999999999998,0.0007601804154328123
+FedAdam uniform,nr gradient calls,avg,28996.8,416.8154616289903
+FedAdam uniform,nr gradient calls,sum,2899680.0,41681.54616289958
+FedAdam uniform,nr sent messages,avg,27.06559509655838,0.28850391964176225
+FedAdam uniform,nr sent messages,sum,2733.625104752397,29.13889588381653
+FedAdam uniform,nr received messages,avg,24.38042192192268,0.3407096654008015
+FedAdam uniform,nr received messages,sum,2462.422614114191,34.411676205480035
+FedAdam uniform,nr sent messages dropped,avg,2.685173174636572,0.10018010339458128
+FedAdam uniform,nr sent messages dropped,sum,271.2024906382938,10.118190442852665
+FedAdam data-size weighted,server accuracy,,0.8118433619866284,0.03080171933340714
+FedAdam data-size weighted,accuracy,avg,0.7927077363896847,0.003458407614470138
+FedAdam data-size weighted,loss,avg,0.07584975580840063,0.005744672250252589
+FedAdam data-size weighted,client drift from server,min,9.794926643371582,0.11543584005678831
+FedAdam data-size weighted,client drift from server,avg,9.800685097376507,0.11526660009247891
+FedAdam data-size weighted,client drift from server,max,9.822683970133463,0.11513041247482114
+FedAdam data-size weighted,fraction selected clients,,0.0959111111111111,0.0005846574850304764
+FedAdam data-size weighted,nr gradient calls,avg,28981.866666666665,282.2196890444211
+FedAdam data-size weighted,nr gradient calls,sum,2898186.6666666665,28221.968904442154
+FedAdam data-size weighted,nr sent messages,avg,27.05470390742822,0.2092221023083134
+FedAdam data-size weighted,nr sent messages,sum,2732.5250946502497,21.131432333138946
+FedAdam data-size weighted,nr received messages,avg,24.35038864280617,0.219361383150396
+FedAdam data-size weighted,nr received messages,sum,2459.3892529234236,22.155499698189942
+FedAdam data-size weighted,nr sent messages dropped,avg,2.704315264622919,0.06310753330923369
+FedAdam data-size weighted,nr sent messages dropped,sum,273.1358417269148,6.373860864232654

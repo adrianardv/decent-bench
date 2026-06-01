@@ -1,0 +1,27 @@
+algorithm,metric,statistic,mean,margin_of_error
+SCAFFOLD uniform,server accuracy,,0.8122526947741848,0.004324057344711307
+SCAFFOLD uniform,accuracy,avg,0.8026142720698594,0.004224168628007785
+SCAFFOLD uniform,loss,avg,0.5183190327386061,0.007130524611982936
+SCAFFOLD uniform,client drift from server,min,0.06106435010830561,0.024063355387027537
+SCAFFOLD uniform,client drift from server,avg,0.13535317237178485,0.006450966619260784
+SCAFFOLD uniform,client drift from server,max,0.4702599048614502,0.08147997404698315
+SCAFFOLD uniform,fraction selected clients,,0.20000000000000004,0.0
+SCAFFOLD uniform,nr gradient calls,avg,48000.0,0.0
+SCAFFOLD uniform,nr gradient calls,sum,4800000.0,0.0
+SCAFFOLD uniform,nr sent messages,avg,1188.118811881188,0.0
+SCAFFOLD uniform,nr sent messages,sum,120000.0,0.0
+SCAFFOLD uniform,nr received messages,avg,1188.118811881188,0.0
+SCAFFOLD uniform,nr received messages,sum,120000.0,0.0
+SCAFFOLD data-size weighted,server accuracy,,0.300996043116387,1.096944552536072
+SCAFFOLD data-size weighted,accuracy,avg,0.2926156365124846,1.060886573185381
+SCAFFOLD data-size weighted,loss,avg,,
+SCAFFOLD data-size weighted,client drift from server,min,,
+SCAFFOLD data-size weighted,client drift from server,avg,,
+SCAFFOLD data-size weighted,client drift from server,max,,
+SCAFFOLD data-size weighted,fraction selected clients,,0.20000000000000004,0.0
+SCAFFOLD data-size weighted,nr gradient calls,avg,48000.0,0.0
+SCAFFOLD data-size weighted,nr gradient calls,sum,4800000.0,0.0
+SCAFFOLD data-size weighted,nr sent messages,avg,1188.118811881188,0.0
+SCAFFOLD data-size weighted,nr sent messages,sum,120000.0,0.0
+SCAFFOLD data-size weighted,nr received messages,avg,1188.118811881188,0.0
+SCAFFOLD data-size weighted,nr received messages,sum,120000.0,0.0

@@ -1,0 +1,31 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedLT uniform,server accuracy,,0.1002865329512894,0.0375301767050394
+FedLT uniform,accuracy,avg,0.08121844726429255,0.01310541823781726
+FedLT uniform,loss,avg,3.4218213804562887,0.04288548140947501
+FedLT uniform,client drift from server,min,2.3700799147288003,0.017149339812553954
+FedLT uniform,client drift from server,avg,2.4922661177317305,0.017377346074994193
+FedLT uniform,client drift from server,max,2.5844488938649497,0.0264107181137474
+FedLT uniform,fraction selected clients,,0.09593999999999998,0.0007601804154328123
+FedLT uniform,nr gradient calls,avg,20712.0,297.72532973499256
+FedLT uniform,nr gradient calls,sum,2071200.0,29772.532973499503
+FedLT uniform,nr sent messages,avg,27.06559509655838,0.28850391964176225
+FedLT uniform,nr sent messages,sum,2733.625104752397,29.13889588381653
+FedLT uniform,nr received messages,avg,24.38042192192268,0.3407096654008015
+FedLT uniform,nr received messages,sum,2462.422614114191,34.411676205480035
+FedLT uniform,nr sent messages dropped,avg,2.685173174636572,0.10018010339458128
+FedLT uniform,nr sent messages dropped,sum,271.2024906382938,10.118190442852665
+FedLT data-size weighted,server accuracy,,0.18112975849365534,0.03231164969886602
+FedLT data-size weighted,accuracy,avg,0.135923727657252,0.038123056689542814
+FedLT data-size weighted,loss,avg,3.1557437268892925,0.24046677016325058
+FedLT data-size weighted,client drift from server,min,2.369962294896444,0.06325615378078497
+FedLT data-size weighted,client drift from server,avg,2.48959157148997,0.0683648266839132
+FedLT data-size weighted,client drift from server,max,2.586167017618815,0.02760340973511255
+FedLT data-size weighted,fraction selected clients,,0.0959111111111111,0.0005846574850304764
+FedLT data-size weighted,nr gradient calls,avg,20701.333333333332,201.58549217458858
+FedLT data-size weighted,nr gradient calls,sum,2070133.3333333333,20158.549217458814
+FedLT data-size weighted,nr sent messages,avg,27.05470390742822,0.2092221023083134
+FedLT data-size weighted,nr sent messages,sum,2732.5250946502497,21.131432333138946
+FedLT data-size weighted,nr received messages,avg,24.35038864280617,0.219361383150396
+FedLT data-size weighted,nr received messages,sum,2459.3892529234236,22.155499698189942
+FedLT data-size weighted,nr sent messages dropped,avg,2.704315264622919,0.06310753330923369
+FedLT data-size weighted,nr sent messages dropped,sum,273.1358417269148,6.373860864232654

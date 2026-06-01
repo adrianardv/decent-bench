@@ -1,0 +1,31 @@
+algorithm,metric,statistic,mean,margin_of_error
+SCAFFOLD uniform,server accuracy,,0.0452312730249693,0.0
+SCAFFOLD uniform,accuracy,avg,0.04481170691772412,0.00280692235288197
+SCAFFOLD uniform,loss,avg,3.682685891787211,0.013253530260124435
+SCAFFOLD uniform,client drift from server,min,7.201558589935303,0.0004479541015873778
+SCAFFOLD uniform,client drift from server,avg,7.201970192591349,0.0003655986029595937
+SCAFFOLD uniform,client drift from server,max,7.202747027079265,0.0007829014977067672
+SCAFFOLD uniform,fraction selected clients,,0.09593999999999998,0.0007601804154328123
+SCAFFOLD uniform,nr gradient calls,avg,20712.0,297.72532973499256
+SCAFFOLD uniform,nr gradient calls,sum,2071200.0,29772.532973499503
+SCAFFOLD uniform,nr sent messages,avg,54.130879490735175,0.577004527371983
+SCAFFOLD uniform,nr sent messages,sum,5467.218828564252,58.27745726456851
+SCAFFOLD uniform,nr received messages,avg,48.76056396619268,0.6814154195889444
+SCAFFOLD uniform,nr received messages,sum,4924.81696058546,68.8229573784829
+SCAFFOLD uniform,nr sent messages dropped,avg,5.37031552454181,0.2003590567609992
+SCAFFOLD uniform,nr sent messages dropped,sum,542.4018679787227,20.236264732861173
+SCAFFOLD data-size weighted,server accuracy,,0.044617273843634876,0.0
+SCAFFOLD data-size weighted,accuracy,avg,0.044316414244781006,0.0005169653949830058
+SCAFFOLD data-size weighted,loss,avg,3.6959337798754377,0.025600866709666548
+SCAFFOLD data-size weighted,client drift from server,min,7.202255090077718,0.0013028885743917584
+SCAFFOLD data-size weighted,client drift from server,avg,7.204711297353108,0.005448831583767522
+SCAFFOLD data-size weighted,client drift from server,max,7.224648793538411,0.046687989339151414
+SCAFFOLD data-size weighted,fraction selected clients,,0.0959111111111111,0.0005846574850304764
+SCAFFOLD data-size weighted,nr gradient calls,avg,20701.333333333332,201.58549217458858
+SCAFFOLD data-size weighted,nr gradient calls,sum,2070133.3333333333,20158.549217458814
+SCAFFOLD data-size weighted,nr sent messages,avg,54.1090972375014,0.41844180282914323
+SCAFFOLD data-size weighted,nr sent messages,sum,5465.018820987642,42.262622085743715
+SCAFFOLD data-size weighted,nr received messages,avg,48.70049775272983,0.4387202481185781
+SCAFFOLD data-size weighted,nr received messages,sum,4918.750273025713,44.31074505997731
+SCAFFOLD data-size weighted,nr sent messages dropped,avg,5.408599484770839,0.12621434216881955
+SCAFFOLD data-size weighted,nr sent messages dropped,sum,546.2685479618548,12.747648559051072
