@@ -340,6 +340,71 @@ For each algorithm run, the runner saves:
 - compressed `metric_computation.pkl.zst`;
 - `experiment2_metadata.json` with the selected clients, fixed setup, requested algorithm, and run status.
 
+### Experiment 2 Combined-Impairment Variant
+
+After the clean aggregation-weighting comparison, a second Experiment 2 variant was added to test whether the same
+uniform-vs-data-size-weighted aggregation question changes under communication impairments. This is still an
+aggregation-weighting experiment, not a replacement for Experiment 5: for each algorithm, the two aggregation variants
+are compared under one fixed impaired communication condition.
+
+The impaired condition is:
+
+- `UniformActivationRate(0.50)`;
+- `TopK(0.10)` compression;
+- `UniformDropRate(0.10)`;
+- no additive message noise.
+
+All other benchmark settings are kept aligned with the clean Experiment 2 setup:
+
+- FEMNIST CNN model;
+- `100` clients;
+- `UniformSelection(fraction_selected_clients=0.2)`;
+- `3` trials;
+- `1500` iterations for the main run;
+- state snapshots every `150` iterations;
+- checkpoint step `None`;
+- batch size `32`;
+- seed `20260524`;
+- tuned hyperparameters from `experiment0/selected_hyperparameters.json`.
+
+Outputs are saved under:
+
+```text
+experiments/femnist/checkpoints/experiment2/combined_uniform_topk_drops/<algorithm_key>/run_<timestamp>/
+```
+
+For this variant, the runner saves the same result artifacts as the clean Experiment 2 runner, plus
+`experiment2_combined_impairments_metadata.json`. FedLT was also rerun for `2500` and `5000` iterations as a diagnostic
+follow-up because its 1500-iteration impaired run was still in a very slow-transient regime.
+
+### Experiment 2 Observed Results
+
+In the clean aggregation-weighting runs, most algorithms showed only small differences between uniform and data-size
+weighted aggregation when using the same tuned hyperparameters. FedAvg and FedProx had slightly higher final server
+accuracy with data-size weighting, while FedDyn, FedLT, FedNova, and FedAdam were broadly similar between the two
+aggregation rules. Average client accuracy and loss were usually very close. Data-size weighting sometimes changed the
+client-drift metrics, but for most algorithms this did not correspond to a large change in predictive performance.
+
+SCAFFOLD was the clear exception in the clean runs. The uniform variant remained stable at about the expected clean
+baseline accuracy, while the data-size weighted variant collapsed in the saved run and in subsequent reruns. This result
+should be treated as a fixed-hyperparameter sensitivity of the current SCAFFOLD implementation/setting, not as evidence
+that SCAFFOLD could not be made to work with data-size weighting after retuning. The experiment intentionally keeps the
+hyperparameters fixed so that the aggregation rule is the variable being tested.
+
+Under the combined activation, compression, and drop condition, the main qualitative conclusion remained similar for
+FedAvg, FedProx, FedDyn, FedNova, and FedAdam: data-size weighting produced at most modest accuracy changes relative to
+uniform aggregation. FedNova and FedAdam kept reasonable accuracy but showed very large client-drift-from-server values,
+suggesting that under impaired communication the drift metric can grow substantially even when final predictive accuracy
+remains acceptable. FedLT behaved differently: it learned much more slowly under the combined impairment condition. The
+1500-iteration run was not enough for FedLT to reach the clean-regime accuracy range, and the 2500- and 5000-iteration
+follow-ups showed continuing improvement rather than convergence. In those longer FedLT runs, data-size weighting was
+somewhat ahead of uniform aggregation, but with high variability across trials.
+
+The saved combined-impaired SCAFFOLD run was poor for both aggregation variants, with very low final server accuracy and
+large drift. Together with the clean SCAFFOLD behavior, this suggests that SCAFFOLD is particularly sensitive to the
+exact interaction between aggregation, control-variate updates, partial participation, and communication impairments in
+this setup.
+
 ## Experiment 5 Design
 
 Communication impairment robustness.
