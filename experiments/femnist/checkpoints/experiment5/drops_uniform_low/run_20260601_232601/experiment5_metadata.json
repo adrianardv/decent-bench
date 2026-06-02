@@ -1,0 +1,313 @@
+{
+  "experiment": "experiment5_communication_impairments",
+  "title": "FEMNIST communication impairment robustness benchmark",
+  "purpose": "Evaluate the robustness of selected tuned federated algorithms under client availability, message compression, message-drop, and additive-noise impairments.",
+  "execution": "one planned condition per launch; all algorithms are run together in one benchmark() call",
+  "dataset": "FEMNIST",
+  "dataset_source": "flwrlabs/femnist",
+  "partition": "natural writer/client split",
+  "n_clients": 100,
+  "min_train_samples": 100,
+  "min_test_samples": 20,
+  "n_classes": 62,
+  "train_fraction": 0.8,
+  "n_train_samples": 19554,
+  "n_test_samples": 4886,
+  "n_trials": 3,
+  "iterations": 1500,
+  "state_snapshot_period": 150,
+  "checkpoint_step": null,
+  "batch_size": 32,
+  "seed": 20260524,
+  "device": "SupportedDevices.GPU",
+  "load_dataset": true,
+  "selected_hyperparameters_path": "experiments/femnist/experiment0/selected_hyperparameters.json",
+  "model": "CNN: conv 1->32, conv 32->64, dense 256, output 62 logits",
+  "loss": "torch.nn.CrossEntropyLoss",
+  "network": {
+    "participation": "partial",
+    "client_selection": "UniformSelection",
+    "selection_fraction": 0.2,
+    "clients_per_round_without_activation_impairment": 20,
+    "noise": "condition-specific",
+    "impairments_apply_bidirectionally": true
+  },
+  "requested_conditions": [
+    "drops_uniform_low"
+  ],
+  "condition_definitions": [
+    {
+      "key": "clean_baseline",
+      "label": "Clean baseline",
+      "impairment_label": "No impairments",
+      "parameters": {
+        "activation": "AlwaysActive",
+        "compression": "NoCompression",
+        "drops": "NoDrops"
+      }
+    },
+    {
+      "key": "activation_uniform_low",
+      "label": "Uniform activation, low rate",
+      "impairment_label": "Availability: Uniform p=0.30",
+      "parameters": {
+        "activation": "UniformActivationRate",
+        "activation_probability": 0.3
+      }
+    },
+    {
+      "key": "activation_uniform_high",
+      "label": "Uniform activation, high rate",
+      "impairment_label": "Availability: Uniform p=0.80",
+      "parameters": {
+        "activation": "UniformActivationRate",
+        "activation_probability": 0.8
+      }
+    },
+    {
+      "key": "activation_markov_high_availability",
+      "label": "Markov activation, high availability",
+      "impairment_label": "Availability: Markov 0.20/0.10",
+      "parameters": {
+        "activation": "MarkovChainActivation",
+        "inactive_to_active": 0.2,
+        "active_to_inactive": 0.1
+      }
+    },
+    {
+      "key": "activation_markov_low_availability",
+      "label": "Markov activation, low availability",
+      "impairment_label": "Availability: Markov 0.10/0.30",
+      "parameters": {
+        "activation": "MarkovChainActivation",
+        "inactive_to_active": 0.1,
+        "active_to_inactive": 0.3
+      }
+    },
+    {
+      "key": "compression_topk_low",
+      "label": "Top-k compression, low k",
+      "impairment_label": "Compression: Top-k 1%",
+      "parameters": {
+        "compression": "TopK",
+        "k": 0.01
+      }
+    },
+    {
+      "key": "compression_topk_high",
+      "label": "Top-k compression, high k",
+      "impairment_label": "Compression: Top-k 10%",
+      "parameters": {
+        "compression": "TopK",
+        "k": 0.1
+      }
+    },
+    {
+      "key": "compression_qsgd_low",
+      "label": "Stochastic quantization, low levels",
+      "impairment_label": "Compression: QSGD s=4",
+      "parameters": {
+        "compression": "StochasticQuantization",
+        "n_levels": 4
+      }
+    },
+    {
+      "key": "compression_qsgd_high",
+      "label": "Stochastic quantization, high levels",
+      "impairment_label": "Compression: QSGD s=16",
+      "parameters": {
+        "compression": "StochasticQuantization",
+        "n_levels": 16
+      }
+    },
+    {
+      "key": "drops_uniform_low",
+      "label": "Uniform message drops, low rate",
+      "impairment_label": "Drops: Uniform p=0.05",
+      "parameters": {
+        "drops": "UniformDropRate",
+        "drop_rate": 0.05
+      }
+    },
+    {
+      "key": "drops_uniform_high",
+      "label": "Uniform message drops, high rate",
+      "impairment_label": "Drops: Uniform p=0.50",
+      "parameters": {
+        "drops": "UniformDropRate",
+        "drop_rate": 0.5
+      }
+    },
+    {
+      "key": "noise_gaussian_low",
+      "label": "Gaussian noise, low",
+      "impairment_label": "Noise: Gaussian mean=0, std=0.001",
+      "parameters": {
+        "noise": "GaussianNoise",
+        "mean": 0.0,
+        "std": 0.001
+      }
+    },
+    {
+      "key": "noise_gaussian_high",
+      "label": "Gaussian noise, high",
+      "impairment_label": "Noise: Gaussian mean=0, std=0.01",
+      "parameters": {
+        "noise": "GaussianNoise",
+        "mean": 0.0,
+        "std": 0.01
+      }
+    },
+    {
+      "key": "combined_uniform_topk_drops",
+      "label": "Combined impairments",
+      "impairment_label": "Combination of impairments",
+      "parameters": {
+        "activation": "UniformActivationRate",
+        "activation_probability": 0.5,
+        "compression": "TopK",
+        "k": 0.1,
+        "drops": "UniformDropRate",
+        "drop_rate": 0.1,
+        "noise": "GaussianNoise",
+        "mean": 0.0,
+        "std": 0.001
+      }
+    }
+  ],
+  "requested_algorithms": [
+    "fedavg",
+    "fedprox",
+    "scaffold",
+    "fednova",
+    "fedopt",
+    "fedlt",
+    "feddyn"
+  ],
+  "algorithms": [
+    "fedavg",
+    "fedprox",
+    "scaffold",
+    "fednova",
+    "fedopt",
+    "fedlt",
+    "feddyn"
+  ],
+  "selected_writer_ids": [
+    "f0059_21",
+    "f0078_48",
+    "f0107_06",
+    "f0108_12",
+    "f0118_07",
+    "f0122_45",
+    "f0128_00",
+    "f0201_34",
+    "f0227_27",
+    "f0274_49",
+    "f0312_43",
+    "f0339_11",
+    "f0378_12",
+    "f0411_01",
+    "f0443_21",
+    "f0446_03",
+    "f0451_44",
+    "f0516_45",
+    "f0530_15",
+    "f0550_24",
+    "f0596_26",
+    "f0645_45",
+    "f0706_13",
+    "f0717_46",
+    "f0765_33",
+    "f0772_14",
+    "f0800_00",
+    "f0831_15",
+    "f0834_03",
+    "f0882_28",
+    "f0904_04",
+    "f0955_30",
+    "f0965_28",
+    "f0969_31",
+    "f0989_33",
+    "f1021_16",
+    "f1026_41",
+    "f1090_13",
+    "f1125_41",
+    "f1190_46",
+    "f1217_02",
+    "f1311_39",
+    "f1354_22",
+    "f1399_06",
+    "f1431_47",
+    "f1443_09",
+    "f1446_25",
+    "f1472_37",
+    "f1545_40",
+    "f1558_21",
+    "f1594_09",
+    "f1658_04",
+    "f1701_10",
+    "f1741_16",
+    "f1752_29",
+    "f1861_26",
+    "f1865_30",
+    "f1880_06",
+    "f1913_37",
+    "f1979_36",
+    "f1981_44",
+    "f1994_21",
+    "f2026_32",
+    "f2030_28",
+    "f2081_42",
+    "f2094_44",
+    "f2128_52",
+    "f2137_90",
+    "f2268_88",
+    "f2311_61",
+    "f2371_68",
+    "f2391_85",
+    "f2401_78",
+    "f2431_93",
+    "f2445_82",
+    "f2482_62",
+    "f2503_57",
+    "f2507_78",
+    "f2541_99",
+    "f2593_72",
+    "f3166_12",
+    "f3170_08",
+    "f3190_08",
+    "f3279_28",
+    "f3385_08",
+    "f3410_19",
+    "f3500_08",
+    "f3531_27",
+    "f3570_15",
+    "f3624_44",
+    "f3645_14",
+    "f3753_43",
+    "f3774_21",
+    "f3811_12",
+    "f3819_19",
+    "f3884_40",
+    "f3910_30",
+    "f3961_03",
+    "f4038_15",
+    "f4091_23"
+  ],
+  "statuses": [
+    {
+      "condition": "drops_uniform_low",
+      "status": "ok",
+      "algorithms": [
+        "FedAvg",
+        "FedProx",
+        "Scaffold",
+        "FedNova",
+        "FedAdam",
+        "FedLT",
+        "FedDyn"
+      ]
+    }
+  ]
+}
