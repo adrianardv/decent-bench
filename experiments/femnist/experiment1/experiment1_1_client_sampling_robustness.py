@@ -136,7 +136,7 @@ def build_plot_metrics() -> list[ml.Metric]:
 # -----------------------------------------------------------------------------
 
 
-def select_clients_for_seed(client_selection_seed: int, run_path: Path) -> pd.DataFrame:
+def select_clients_for_seed(client_selection_seed: int) -> pd.DataFrame:
     metadata = load_huggingface_metadata(Path("experiments/femnist/data/cache"), local_files_only=local_files_only)
     metadata = add_seeded_per_writer_train_test_split(
         metadata,
@@ -144,13 +144,16 @@ def select_clients_for_seed(client_selection_seed: int, run_path: Path) -> pd.Da
         seed=train_test_split_seed,
     )
     stats = client_stats(metadata)
-    selected = choose_candidate_clients(
+    return choose_candidate_clients(
         stats,
         candidate_clients=n_clients,
         min_train_samples=min_train_samples,
         min_test_samples=min_test_samples,
         seed=client_selection_seed,
     )
+
+
+def save_selected_client_artifacts(selected: pd.DataFrame, run_path: Path, *, client_selection_seed: int) -> None:
     selected.to_csv(run_path / "selected_clients_stats.csv", index=False)
     selected[["writer_id"]].to_csv(run_path / "selected_clients.csv", index=False)
     save_selected_client_class_distribution_plot(
@@ -158,7 +161,6 @@ def select_clients_for_seed(client_selection_seed: int, run_path: Path) -> pd.Da
         run_path / "selected_client_class_distributions.png",
         title=f"Class distribution for selected writers, client-selection seed {client_selection_seed}",
     )
-    return selected
 
 
 def save_selected_client_class_distribution_plot(selected: pd.DataFrame, path: Path, *, title: str) -> None:
@@ -384,12 +386,15 @@ def build_run_metadata(
 
 
 def run_seed(client_selection_seed: int) -> None:
-    run_path = output_root / f"seed_{client_selection_seed}" / f"run_{datetime.now():%Y%m%d_%H%M%S}"
-    run_path.mkdir(parents=True, exist_ok=True)
+    run_id = f"run_{datetime.now():%Y%m%d_%H%M%S}"
+    run_path = output_root / f"seed_{client_selection_seed}" / run_id
+    staging_dir = output_root / "_selected_client_manifests"
+    staging_dir.mkdir(parents=True, exist_ok=True)
     print(f"Writing {experiment_name} seed {client_selection_seed} results to: {run_path}")
 
-    selected = select_clients_for_seed(client_selection_seed, run_path)
-    selected_clients_path = run_path / "selected_clients.csv"
+    selected = select_clients_for_seed(client_selection_seed)
+    selected_clients_path = staging_dir / f"selected_clients_seed_{client_selection_seed}_{run_id}.csv"
+    selected[["writer_id"]].to_csv(selected_clients_path, index=False)
     selected_hyperparameters = load_selected_hyperparameters()
     problem, x0, selected_writer_ids, n_train_samples, n_test_samples = build_problem(
         client_selection_seed=client_selection_seed,
@@ -406,7 +411,6 @@ def run_seed(client_selection_seed: int) -> None:
         algorithms=algorithms,
         status="started",
     )
-    (run_path / "experiment1_1_metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 
     checkpoint_manager = CheckpointManager(
         checkpoint_dir=run_path,
@@ -435,6 +439,8 @@ def run_seed(client_selection_seed: int) -> None:
         checkpoint_manager=checkpoint_manager,
         log_level=logging.INFO,
     )
+    save_selected_client_artifacts(selected, run_path, client_selection_seed=client_selection_seed)
+    (run_path / "experiment1_1_metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 
     if compute_metrics:
         metric_result = benchmark.compute_metrics(
@@ -460,6 +466,7 @@ def run_seed(client_selection_seed: int) -> None:
 
     metadata["status"] = "complete"
     (run_path / "experiment1_1_metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+    selected_clients_path.unlink(missing_ok=True)
     print(f"{experiment_name} seed {client_selection_seed} complete: {checkpoint_manager.checkpoint_dir}")
 
 
