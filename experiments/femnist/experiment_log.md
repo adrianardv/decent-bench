@@ -562,14 +562,33 @@ Final server accuracy for the available runs:
 | `noise_gaussian_high` | `80.33%` | `81.01%` | `4.60%` | `5.70%` | `77.92%` | `36.88%` | `4.64%` |
 | `combined_uniform_topk_drops` | `79.98%` | `80.29%` | `4.62%` | `63.25%` | `63.58%` | `6.37%` | `4.62%` |
 
+The post-processing script was then used to compute percentage drops in final server accuracy relative to each
+algorithm's own clean-baseline value. Negative values mean the impaired run was slightly above the clean run; these
+small negative values are within normal run-to-run variation and should not be interpreted as an impairment improving
+the algorithm.
+
+| Condition | FedAvg | FedProx | Scaffold | FedNova | FedAdam | FedLT | FedDyn |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `activation_uniform_high` | `-1.9%` | `0.5%` | `0.0%` | `-0.3%` | `-0.4%` | `2.0%` | `0.0%` |
+| `activation_uniform_low` | `-0.9%` | `0.5%` | `1.2%` | `-0.2%` | `-1.2%` | `24.9%` | `-0.2%` |
+| `activation_markov_high_availability` | `-1.0%` | `0.8%` | `0.0%` | `0.1%` | `-1.3%` | `5.6%` | `0.4%` |
+| `activation_markov_low_availability` | `2.2%` | `0.7%` | `1.0%` | `1.3%` | `-0.3%` | `43.6%` | `1.2%` |
+| `compression_topk_high` | `4.6%` | `4.5%` | `94.5%` | `3.4%` | `7.8%` | `47.9%` | `7.0%` |
+| `compression_topk_low` | `94.6%` | `94.7%` | `94.5%` | `94.6%` | `94.5%` | `94.6%` | `94.5%` |
+| `drops_uniform_low` | `-1.7%` | `0.5%` | `94.3%` | `0.0%` | `-1.5%` | `0.7%` | `1.7%` |
+| `drops_uniform_high` | `-1.0%` | `1.0%` | `94.3%` | `3.5%` | `0.7%` | `28.8%` | `34.5%` |
+| `noise_gaussian_low` | `-0.3%` | `0.0%` | `94.3%` | `2.3%` | `-0.8%` | `0.7%` | `94.4%` |
+| `noise_gaussian_high` | `2.2%` | `3.3%` | `94.3%` | `93.1%` | `4.4%` | `54.2%` | `94.3%` |
+| `combined_uniform_topk_drops` | `2.6%` | `4.2%` | `94.3%` | `23.4%` | `22.0%` | `92.1%` | `94.4%` |
+
 The clean baseline reached about `80-84%` final server accuracy for all algorithms. FedLT had comparable server
 accuracy but lower average client accuracy than the other methods (`73.93%` versus roughly `79-82%`).
 
 Client availability impairments were the least damaging family. High uniform availability and high-availability
 Markov activation were almost indistinguishable from the clean baseline. Lower availability mainly affected FedLT:
-under `activation_uniform_low`, FedLT fell to `60.48%` final server accuracy, and under
-`activation_markov_low_availability` it fell further to `45.44%`. The other algorithms stayed close to their clean
-server-accuracy range under both low-availability conditions.
+under `activation_uniform_low`, FedLT fell to `60.48%` final server accuracy (`24.9%` drop), and under
+`activation_markov_low_availability` it fell further to `45.44%` (`43.6%` drop). The other algorithms stayed close to
+their clean server-accuracy range under both low-availability conditions, with drops of roughly `0-2%`.
 
 TopK compression was much more disruptive. The low-`k` TopK condition collapsed every algorithm to near-random FEMNIST
 accuracy, around `4.5%`. The higher-`k` TopK condition was survivable for FedAvg, FedProx, FedNova, FedAdam, and
@@ -577,16 +596,41 @@ FedDyn, but SCAFFOLD collapsed to `4.46%` and FedLT dropped to `41.95%`. This su
 setting is too severe for this FEMNIST setup, while the higher-`k` setting still exposes algorithm-specific sensitivity.
 
 Uniform message drops produced mixed behavior. FedAvg, FedProx, FedNova, and FedAdam were robust even with the high drop
-rate, remaining near `80-83%` server accuracy. SCAFFOLD collapsed under both low and high drop rates, and FedDyn became
-unstable under the high drop rate. FedLT remained near baseline for the low drop rate but degraded to `57.37%` under
-the high drop rate.
+rate, remaining near `80-83%` server accuracy and within about `0-4%` of their clean baselines. SCAFFOLD collapsed
+under both low and high drop rates (`94.3%` drop), and FedDyn degraded substantially under the high drop rate
+(`34.5%` drop). FedLT remained near baseline for the low drop rate but degraded to `57.37%` under the high drop rate
+(`28.8%` drop).
 
 Gaussian message noise was also algorithm-specific. With low Gaussian noise, FedAvg, FedProx, FedNova, FedAdam, and
-FedLT remained close to baseline, while SCAFFOLD and FedDyn collapsed. With high Gaussian noise, FedAvg, FedProx, and
-FedAdam remained the most robust; FedLT degraded substantially, and SCAFFOLD, FedNova, and FedDyn collapsed or nearly
-collapsed.
+FedLT remained close to baseline, while SCAFFOLD and FedDyn collapsed (`94.3-94.4%` drops). With high Gaussian noise,
+FedAvg, FedProx, and FedAdam remained the most robust, with only `2.2-4.4%` server-accuracy drops. FedLT degraded
+substantially (`54.2%` drop), and SCAFFOLD, FedNova, and FedDyn collapsed or nearly collapsed.
 
 The combined activation + TopK + drop + noise condition separated the algorithms sharply. FedAvg and FedProx remained
-around `80%` final server accuracy. FedNova and FedAdam degraded but still learned, ending around `63%`. SCAFFOLD,
-FedLT, and FedDyn collapsed to very low final server accuracy. This makes the combined condition useful as a stress test
-for robustness rather than as a mild communication perturbation.
+around `80%` final server accuracy, corresponding to only `2.6%` and `4.2%` drops. FedNova and FedAdam degraded but
+still learned, ending around `63%` (`23.4%` and `22.0%` drops). SCAFFOLD, FedLT, and FedDyn collapsed to very low final
+server accuracy, with drops above `92%`. This makes the combined condition useful as a stress test for robustness
+rather than as a mild communication perturbation.
+
+Overall, FedAvg and FedProx were the most robust algorithms in the Experiment 5 runs. They stayed close to the
+clean baseline under availability impairments, drops, Gaussian noise, and even the combined impairment condition. This
+does not mean they are always the best clean algorithms, but in this fixed FEMNIST setup their update rules appear less
+sensitive to the communication-layer perturbations tested here.
+
+SCAFFOLD showed the clearest fragility pattern. It was stable under availability-only impairments, but collapsed under
+TopK compression, uniform drops, Gaussian noise, and the combined condition. A plausible explanation is that SCAFFOLD's
+control-variate mechanism depends on receiving sufficiently faithful client updates and maintaining consistency between
+client-side and server-side correction terms. Message drops, sparsification, and additive noise can distort or remove
+the information used to update those correction terms. Once the control variates stop tracking the true drift reliably,
+the correction can become unhelpful or actively destabilizing rather than compensating for client heterogeneity.
+
+FedDyn also showed a strong sensitivity to additive noise and the combined condition. Like SCAFFOLD, FedDyn maintains
+algorithm-specific correction state rather than behaving like a simple averaged local-SGD method. The collapse under
+Gaussian noise suggests that this correction state may amplify corrupted update information in this implementation and
+configuration. FedNova and FedAdam were more robust than SCAFFOLD and FedDyn in many single-impairment conditions, but
+FedNova collapsed under high Gaussian noise and both degraded substantially under the combined condition.
+
+FedLT was mainly sensitive to reduced availability and aggressive compression. Its degradation under low-availability
+conditions suggests that the tuned FedLT configuration may need more consistent client participation to maintain its
+trajectory. This is different from SCAFFOLD and FedDyn: FedLT did not collapse under low Gaussian noise or low drop rate,
+but it deteriorated strongly when participation was low, TopK compression was applied, or all impairments were combined.
