@@ -291,6 +291,32 @@ metadata documenting the selected writer IDs and sample counts, `selected_client
 
 Execution is controlled through the `--seeds` argument.
 
+### Experiment 1.1 Observed Results
+
+Experiment 1.1 was run for the planned client-selection seeds `20260524`, `20260525`, `20260526`, and `20260537`, plus
+one additional seed, `2001`. The saved summary file is:
+
+```text
+experiments/femnist/checkpoints/experiment1_1_client_sampling_robustness/experiment1_1_client_sampling_summary.md
+```
+
+The client-selection seed changed the selected writer sets substantially. Each run selected `100` unique clients, but
+pairwise overlap between the planned thesis seeds was only `1` to `9` shared clients out of `100`. The fixed
+train/test split seed was correctly preserved as `20260524` in all runs, while the metadata recorded a different
+client-selection seed for each selected-client sample.
+
+Despite the low overlap between selected clients, the resulting datasets were broadly comparable. All five selected
+subsets covered all `62 / 62` FEMNIST classes. The median number of train samples per client stayed around `140-142`,
+and the mean number of classes per client stayed around `55`. Total train samples varied moderately, from `17,817` to
+`19,554`. The original seed `20260524` was slightly less digit-heavy (`45.7%` digit samples) and had somewhat more
+uppercase/lowercase samples than the other seeds, but the difference did not create a qualitatively different dataset.
+
+The clean-baseline algorithm behavior was stable across selected-client samples. FedAvg, FedProx, SCAFFOLD, FedNova,
+FedAdam, and FedDyn stayed in a similar final server-accuracy range across seeds. FedLT remained lower in average client
+accuracy than the other algorithms, which is consistent with the main clean-baseline behavior rather than an artifact of
+one particular selected-client sample. Therefore, the main Experiment 1 conclusions appear robust to this level of
+client-sampling variation.
+
 ## Experiment 2 Design
 
 Aggregation weighting sensitivity.
