@@ -533,3 +533,60 @@ condition, and writes:
 - `experiment5_metric_relative_changes.csv`: relative changes for all comparable final table metrics;
 - `experiment5_table_metrics.csv`: flattened source table metrics used for the comparison;
 - `experiment5_postprocess_metadata.json`: paths, requested conditions, and any missing condition results.
+
+### Experiment 5 Observed Results
+
+The available Experiment 5 checkpoint results are under:
+
+```text
+experiments/femnist/checkpoints/experiment5/
+```
+
+The local checkpoint folder contains results for clean baseline, activation impairments,
+TopK compression, uniform drops, Gaussian noise, and the combined impairment condition.
+
+Final server accuracy for the available runs:
+
+| Condition | FedAvg | FedProx | Scaffold | FedNova | FedAdam | FedLT | FedDyn |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `clean_baseline` | `82.15%` | `83.80%` | `81.50%` | `82.58%` | `81.48%` | `80.54%` | `82.11%` |
+| `activation_uniform_high` | `83.71%` | `83.38%` | `81.53%` | `82.86%` | `81.84%` | `78.90%` | `82.13%` |
+| `activation_uniform_low` | `82.86%` | `83.37%` | `80.52%` | `82.75%` | `82.45%` | `60.48%` | `82.26%` |
+| `activation_markov_high_availability` | `82.99%` | `83.15%` | `81.48%` | `82.50%` | `82.51%` | `76.05%` | `81.76%` |
+| `activation_markov_low_availability` | `80.35%` | `83.22%` | `80.69%` | `81.51%` | `81.69%` | `45.44%` | `81.15%` |
+| `compression_topk_high` | `78.39%` | `80.05%` | `4.46%` | `79.73%` | `75.09%` | `41.95%` | `76.32%` |
+| `compression_topk_low` | `4.46%` | `4.46%` | `4.46%` | `4.46%` | `4.46%` | `4.38%` | `4.52%` |
+| `drops_uniform_low` | `83.58%` | `83.39%` | `4.60%` | `82.62%` | `82.74%` | `79.98%` | `80.69%` |
+| `drops_uniform_high` | `82.98%` | `82.97%` | `4.60%` | `79.70%` | `80.92%` | `57.37%` | `53.75%` |
+| `noise_gaussian_low` | `82.41%` | `83.78%` | `4.60%` | `80.67%` | `82.13%` | `79.94%` | `4.56%` |
+| `noise_gaussian_high` | `80.33%` | `81.01%` | `4.60%` | `5.70%` | `77.92%` | `36.88%` | `4.64%` |
+| `combined_uniform_topk_drops` | `79.98%` | `80.29%` | `4.62%` | `63.25%` | `63.58%` | `6.37%` | `4.62%` |
+
+The clean baseline reached about `80-84%` final server accuracy for all algorithms. FedLT had comparable server
+accuracy but lower average client accuracy than the other methods (`73.93%` versus roughly `79-82%`).
+
+Client availability impairments were the least damaging family. High uniform availability and high-availability
+Markov activation were almost indistinguishable from the clean baseline. Lower availability mainly affected FedLT:
+under `activation_uniform_low`, FedLT fell to `60.48%` final server accuracy, and under
+`activation_markov_low_availability` it fell further to `45.44%`. The other algorithms stayed close to their clean
+server-accuracy range under both low-availability conditions.
+
+TopK compression was much more disruptive. The low-`k` TopK condition collapsed every algorithm to near-random FEMNIST
+accuracy, around `4.5%`. The higher-`k` TopK condition was survivable for FedAvg, FedProx, FedNova, FedAdam, and
+FedDyn, but SCAFFOLD collapsed to `4.46%` and FedLT dropped to `41.95%`. This suggests that the stricter sparsification
+setting is too severe for this FEMNIST setup, while the higher-`k` setting still exposes algorithm-specific sensitivity.
+
+Uniform message drops produced mixed behavior. FedAvg, FedProx, FedNova, and FedAdam were robust even with the high drop
+rate, remaining near `80-83%` server accuracy. SCAFFOLD collapsed under both low and high drop rates, and FedDyn became
+unstable under the high drop rate. FedLT remained near baseline for the low drop rate but degraded to `57.37%` under
+the high drop rate.
+
+Gaussian message noise was also algorithm-specific. With low Gaussian noise, FedAvg, FedProx, FedNova, FedAdam, and
+FedLT remained close to baseline, while SCAFFOLD and FedDyn collapsed. With high Gaussian noise, FedAvg, FedProx, and
+FedAdam remained the most robust; FedLT degraded substantially, and SCAFFOLD, FedNova, and FedDyn collapsed or nearly
+collapsed.
+
+The combined activation + TopK + drop + noise condition separated the algorithms sharply. FedAvg and FedProx remained
+around `80%` final server accuracy. FedNova and FedAdam degraded but still learned, ending around `63%`. SCAFFOLD,
+FedLT, and FedDyn collapsed to very low final server accuracy. This makes the combined condition useful as a stress test
+for robustness rather than as a mild communication perturbation.
