@@ -1,0 +1,27 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedNova uniform,server accuracy,,0.8752984718242599,0.012964905117405445
+FedNova uniform,accuracy,avg,0.8719657354345749,0.00484548740191737
+FedNova uniform,loss,avg,0.04820740741774595,0.0031697217322604956
+FedNova uniform,client drift from server,min,0.04570378611485163,0.003935946763475723
+FedNova uniform,client drift from server,avg,0.1608495806157589,0.024938364666363372
+FedNova uniform,client drift from server,max,0.3532290856043498,0.07325808607918566
+FedNova uniform,fraction selected clients,,0.20000000000000004,0.0
+FedNova uniform,nr gradient calls,avg,28800.0,0.0
+FedNova uniform,nr gradient calls,sum,2880000.0,0.0
+FedNova uniform,nr sent messages,avg,594.0597469221381,0.0
+FedNova uniform,nr sent messages,sum,60000.03443913595,0.0
+FedNova uniform,nr received messages,avg,594.0597469222096,0.0
+FedNova uniform,nr received messages,sum,60000.03443914317,0.0
+FedNova data-size weighted,server accuracy,,0.8853271251193888,0.00807324445990909
+FedNova data-size weighted,accuracy,avg,0.8744961795606495,0.004804787457087567
+FedNova data-size weighted,loss,avg,0.04606813527022799,0.003767389372573718
+FedNova data-size weighted,client drift from server,min,0.052109104891618095,0.021266457643734134
+FedNova data-size weighted,client drift from server,avg,0.15951280283431213,0.015057042663949277
+FedNova data-size weighted,client drift from server,max,0.38108839591344196,0.0689825826013824
+FedNova data-size weighted,fraction selected clients,,0.20000000000000004,0.0
+FedNova data-size weighted,nr gradient calls,avg,28800.0,0.0
+FedNova data-size weighted,nr gradient calls,sum,2880000.0,0.0
+FedNova data-size weighted,nr sent messages,avg,594.0597469221381,2.2737367544323206e-13
+FedNova data-size weighted,nr sent messages,sum,60000.03443913595,0.0
+FedNova data-size weighted,nr received messages,avg,594.0597469222096,0.0
+FedNova data-size weighted,nr received messages,sum,60000.03443914317,0.0
