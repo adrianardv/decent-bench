@@ -31,5 +31,5 @@
   "selected_classes_covered": 62,
   "selected_missing_classes": [],
   "selected_clients_path": "experiments\\femnist\\experiment6\\quantity_imbalance_extremes_selected_clients.csv",
-  "selected_client_dataset_size_plot": "experiments\\femnist\\experiment6\\quantity_imbalance_extremes_train_dataset_sizes.png"
+  "selected_client_dataset_size_plot": "experiments\\femnist\\experiment6\\quantity_imbalance_extremes_train_dataset_sizes_ids.png"
 }

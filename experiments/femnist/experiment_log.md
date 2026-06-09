@@ -672,8 +672,57 @@ Each run writes to:
 experiments/femnist/checkpoints/experiment6/<algorithm_key>/run_<timestamp>/
 ```
 
-After running several algorithms independently, the combined algorithm-by-aggregation table is produced with:
+The selected subset is deterministic, so these shared subset artifacts are saved once in
+`experiments/femnist/experiment6/`:
 
-```powershell
-.venv\Scripts\python.exe experiments/femnist/experiment6/experiment6_postprocess_server_accuracy_table.py
+- `quantity_imbalance_extremes_selected_clients.csv`;
+- `quantity_imbalance_extremes_train_dataset_sizes_ids.png`, with writer IDs on the x-axis and train dataset size on
+  the y-axis;
+- `quantity_imbalance_subset_summary.json`, including the train-size quantiles, imbalance ratio, and class coverage.
+
+For each algorithm, the runner saves:
+
+- run metadata that references the shared selected-client CSV and quantity-skew plot;
+- standard benchmark `results/` outputs, including server accuracy, average client accuracy, and client drift plots;
+- `server_accuracy_by_aggregation.{csv,md,tex}` inside `results/`;
+- compressed `metric_computation.pkl.zst`.
+
+### Experiment 6 Observed Results
+
+The available Experiment 6 checkpoint results are under:
+
+```text
+experiments/femnist/checkpoints/experiment6/
 ```
+
+Final server accuracy for the saved runs:
+
+| Algorithm | Uniform aggregation | Data-size weighted aggregation |
+| --- | ---: | ---: |
+| FedAvg | `87.97%` | `88.72%` |
+| FedProx | `88.06%` | `88.90%` |
+| SCAFFOLD | `86.31%` | `4.19%` |
+| FedNova | `87.53%` | `88.53%` |
+| FedAdam | `87.95%` | `88.25%` |
+| FedLT | `84.46%` | `84.78%` |
+| FedDyn | `87.84%` | `87.69%` |
+
+For most algorithms, increasing the selected-client quantity imbalance did not make uniform and data-size weighted
+aggregation diverge much. FedAvg, FedProx, FedNova, FedAdam, FedLT, and FedDyn differ by at most about one percentage
+point in final server accuracy. Data-size weighting is slightly higher for FedAvg, FedProx, FedNova, FedAdam, and
+FedLT, while FedDyn is essentially unchanged in the opposite direction. This supports the same broad pattern observed
+in clean Experiment 2: for these FEMNIST runs, the aggregation rule is usually not the dominant source of performance
+variation.
+
+SCAFFOLD remains the exception. The uniform variant reaches `86.31%`, but the data-size weighted variant collapses to
+`4.19%`. This is consistent with the earlier clean Experiment 2 behavior, where SCAFFOLD was unusually sensitive to
+data-size weighted aggregation.
+
+One plausible reason why data-size weighting does not clearly outperform uniform aggregation for the other algorithms is
+that even this deliberately extreme FEMNIST subset is not extremely quantity-skewed. The subset uses the largest
+contrast available under the Experiment 2 eligibility constraints, but the train sample counts still range only from
+`100` to `466` per client, a `4.66x` ratio. Because every selected writer has at least `100` train samples and `20`
+test samples, there are no tiny clients whose updates are overwhelmingly noisy relative to very large clients. The
+dataset also remains naturally statistically heterogeneous by writer, so label and handwriting heterogeneity may matter
+more than the moderate quantity skew. In this setting, data-size weighting changes the effective contribution of each
+client, but not enough to produce a large accuracy advantage for most algorithms.

@@ -150,7 +150,7 @@ def write_shared_selected_clients() -> tuple[Path, dict[str, Any]]:
 
     selected_clients_path = subset_artifact_dir / f"{subset_name}_selected_clients.csv"
     selected.to_csv(selected_clients_path, index=False)
-    dataset_size_plot_path = subset_artifact_dir / f"{subset_name}_train_dataset_sizes.png"
+    dataset_size_plot_path = subset_artifact_dir / f"{subset_name}_train_dataset_sizes_ids.png"
     save_selected_client_dataset_size_plot(selected, dataset_size_plot_path)
 
     label_totals = selected_label_totals(selected)
