@@ -655,7 +655,9 @@ All other benchmark parameters stay aligned with clean Experiment 2:
 - `AlwaysActive`, `NoCompression`, `NoDrops`, and `NoNoise`;
 - `3` trials, `1500` iterations, state snapshots every `150` iterations;
 - batch size `32`;
-- same seed `20260524`;
+- same seed `20260524` for the per-writer train/test split, model initialization, and benchmark RNG;
+- no random client-sampling seed is used for this subset: after eligibility filtering, clients are selected by sorting
+  writers by train sample count and taking the smallest and largest extremes;
 - same minimum eligibility thresholds: `min_train_samples=100` and `min_test_samples=20`.
 
 The runner is:
