@@ -634,3 +634,44 @@ FedLT was mainly sensitive to reduced availability and aggressive compression. I
 conditions suggests that the tuned FedLT configuration may need more consistent client participation to maintain its
 trajectory. This is different from SCAFFOLD and FedDyn: FedLT did not collapse under low Gaussian noise or low drop rate,
 but it deteriorated strongly when participation was low, TopK compression was applied, or all impairments were combined.
+
+## Experiment 6 Design
+
+High quantity-imbalance aggregation-weighting subset.
+
+Experiment 6 repeats the clean Experiment 2 uniform-vs-data-size weighted aggregation comparison, but changes only the
+selected FEMNIST writer subset. The goal is to make the aggregation-weighting question more sensitive to local dataset
+size imbalance while keeping the natural FEMNIST writer partitions and the same clean baseline setup.
+
+Important subset reminder: the subset keeps Experiment 2 settings but selects `100` clients as `50` smallest eligible
+writers plus `50` largest eligible writers by train sample count. In the metadata check, this gives train sizes from
+`100` to `466` samples per client, a `4.66x` train-size ratio, and covers all `62` FEMNIST classes.
+
+All other benchmark parameters stay aligned with clean Experiment 2:
+
+- FEMNIST CNN model;
+- tuned hyperparameters from `experiment0/selected_hyperparameters.json`;
+- `UniformSelection(fraction_selected_clients=0.2)`;
+- `AlwaysActive`, `NoCompression`, `NoDrops`, and `NoNoise`;
+- `3` trials, `1500` iterations, state snapshots every `150` iterations;
+- batch size `32`;
+- same seed `20260524`;
+- same minimum eligibility thresholds: `min_train_samples=100` and `min_test_samples=20`.
+
+The runner is:
+
+```text
+experiments/femnist/experiment6/experiment6_quantity_imbalance_aggregation_weighting.py
+```
+
+Each run writes to:
+
+```text
+experiments/femnist/checkpoints/experiment6/<algorithm_key>/run_<timestamp>/
+```
+
+After running several algorithms independently, the combined algorithm-by-aggregation table is produced with:
+
+```powershell
+.venv\Scripts\python.exe experiments/femnist/experiment6/experiment6_postprocess_server_accuracy_table.py
+```

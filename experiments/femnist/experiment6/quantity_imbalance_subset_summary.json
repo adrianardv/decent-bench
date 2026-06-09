@@ -1,0 +1,35 @@
+{
+  "subset_name": "quantity_imbalance_extremes",
+  "selection_rule": "50 eligible writers with the fewest train samples and 50 eligible writers with the most train samples",
+  "n_clients": 100,
+  "min_train_samples_threshold": 100,
+  "min_test_samples_threshold": 20,
+  "train_sample_quantiles": {
+    "0.0": 100.0,
+    "0.25": 103.0,
+    "0.5": 219.5,
+    "0.75": 340.0,
+    "1.0": 466.0
+  },
+  "test_sample_quantiles": {
+    "0.0": 25.0,
+    "0.25": 26.0,
+    "0.5": 55.0,
+    "0.75": 85.0,
+    "1.0": 117.0
+  },
+  "n_classes_per_client_quantiles": {
+    "0.0": 15.0,
+    "0.25": 46.0,
+    "0.5": 57.0,
+    "0.75": 60.0,
+    "1.0": 62.0
+  },
+  "train_sample_imbalance_ratio": 4.66,
+  "selected_total_train_samples": 22326,
+  "selected_total_test_samples": 5584,
+  "selected_classes_covered": 62,
+  "selected_missing_classes": [],
+  "selected_clients_path": "experiments\\femnist\\experiment6\\quantity_imbalance_extremes_selected_clients.csv",
+  "selected_client_dataset_size_plot": "experiments\\femnist\\experiment6\\quantity_imbalance_extremes_train_dataset_sizes.png"
+}
