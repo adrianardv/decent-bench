@@ -1,0 +1,3 @@
+| algorithm   | uniform   | data-size weighted   | uniform margin_of_error   | data-size weighted margin_of_error   |
+|:------------|:----------|:---------------------|:--------------------------|:-------------------------------------|
+| SCAFFOLD    | 86.31%    | 4.19%                | 0.59%                     | 0.00%                                |

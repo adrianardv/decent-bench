@@ -1,0 +1,3 @@
+| algorithm   | uniform   | data-size weighted   | uniform margin_of_error   | data-size weighted margin_of_error   |
+|:------------|:----------|:---------------------|:--------------------------|:-------------------------------------|
+| FedAvg      | 87.97%    | 88.72%               | 1.13%                     | 0.47%                                |

@@ -1,0 +1,27 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedAvg uniform,server accuracy,,0.8796561604584529,0.011280692078968424
+FedAvg uniform,accuracy,avg,0.8569508118433621,0.0027139273435787814
+FedAvg uniform,loss,avg,0.1136325389170088,0.017108820959231177
+FedAvg uniform,client drift from server,min,0.1244308849175771,0.04910640934567721
+FedAvg uniform,client drift from server,avg,0.3416096160312494,0.025547475376831275
+FedAvg uniform,client drift from server,max,0.7850558757781982,0.23690187034124988
+FedAvg uniform,fraction selected clients,,0.20000000000000004,0.0
+FedAvg uniform,nr gradient calls,avg,38400.0,0.0
+FedAvg uniform,nr gradient calls,sum,3840000.0,0.0
+FedAvg uniform,nr sent messages,avg,594.059405940594,0.0
+FedAvg uniform,nr sent messages,sum,60000.0,0.0
+FedAvg uniform,nr received messages,avg,594.059405940594,0.0
+FedAvg uniform,nr received messages,sum,60000.0,0.0
+FedAvg data-size weighted,server accuracy,,0.8872373447946513,0.004672869233642851
+FedAvg data-size weighted,accuracy,avg,0.856802769818529,0.003590565995467032
+FedAvg data-size weighted,loss,avg,0.1011764829675667,0.012229515770137159
+FedAvg data-size weighted,client drift from server,min,0.1748537222544352,0.06386466757719299
+FedAvg data-size weighted,client drift from server,avg,0.3860663506388664,0.025062585200429366
+FedAvg data-size weighted,client drift from server,max,1.125681757926941,0.21298975369666506
+FedAvg data-size weighted,fraction selected clients,,0.20000000000000004,0.0
+FedAvg data-size weighted,nr gradient calls,avg,38400.0,0.0
+FedAvg data-size weighted,nr gradient calls,sum,3840000.0,0.0
+FedAvg data-size weighted,nr sent messages,avg,594.059405940594,0.0
+FedAvg data-size weighted,nr sent messages,sum,60000.0,0.0
+FedAvg data-size weighted,nr received messages,avg,594.059405940594,0.0
+FedAvg data-size weighted,nr received messages,sum,60000.0,0.0
