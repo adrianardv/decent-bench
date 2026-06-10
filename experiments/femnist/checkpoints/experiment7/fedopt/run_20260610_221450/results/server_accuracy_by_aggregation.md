@@ -1,0 +1,3 @@
+| algorithm   | uniform   | data-size weighted   | uniform margin_of_error   | data-size weighted margin_of_error   |
+|:------------|:----------|:---------------------|:--------------------------|:-------------------------------------|
+| FedAdam     | 87.68%    | 88.11%               | 0.42%                     | 0.16%                                |

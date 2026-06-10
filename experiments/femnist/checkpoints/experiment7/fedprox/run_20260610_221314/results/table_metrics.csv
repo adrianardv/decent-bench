@@ -1,0 +1,27 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedProx uniform,server accuracy,,0.87332408691632,0.012258996537612976
+FedProx uniform,accuracy,avg,0.8484254672742884,0.003992720871486943
+FedProx uniform,loss,avg,0.12105546236290442,0.013983596185971559
+FedProx uniform,client drift from server,min,0.13610044121742249,0.02215308427509939
+FedProx uniform,client drift from server,avg,0.3535867405434449,0.039981044075894145
+FedProx uniform,client drift from server,max,1.0857534408569336,0.4165938498338805
+FedProx uniform,fraction selected clients,,0.20000000000000004,0.0
+FedProx uniform,nr gradient calls,avg,37671.45333333333,62.73941142431431
+FedProx uniform,nr gradient calls,sum,3767145.3333333335,6273.941142430995
+FedProx uniform,nr sent messages,avg,594.059405940594,0.0
+FedProx uniform,nr sent messages,sum,60000.0,0.0
+FedProx uniform,nr received messages,avg,594.059405940594,0.0
+FedProx uniform,nr received messages,sum,60000.0,0.0
+FedProx data-size weighted,server accuracy,,0.8870616207648108,0.005480916752068854
+FedProx data-size weighted,accuracy,avg,0.8499550888316492,0.004266269505068365
+FedProx data-size weighted,loss,avg,0.10203604140047295,0.023534590490792456
+FedProx data-size weighted,client drift from server,min,0.18416056533654532,0.01831327519830625
+FedProx data-size weighted,client drift from server,avg,0.41710286259651186,0.02447381307112545
+FedProx data-size weighted,client drift from server,max,1.280204435189565,0.6738649494863098
+FedProx data-size weighted,fraction selected clients,,0.20000000000000004,0.0
+FedProx data-size weighted,nr gradient calls,avg,37648.09333333333,60.07804413339909
+FedProx data-size weighted,nr gradient calls,sum,3764809.3333333335,6007.804413340054
+FedProx data-size weighted,nr sent messages,avg,594.059405940594,0.0
+FedProx data-size weighted,nr sent messages,sum,60000.0,0.0
+FedProx data-size weighted,nr received messages,avg,594.059405940594,0.0
+FedProx data-size weighted,nr received messages,sum,60000.0,0.0

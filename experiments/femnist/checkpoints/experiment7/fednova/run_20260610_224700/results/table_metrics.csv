@@ -1,0 +1,27 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedNova uniform,server accuracy,,0.8702859784690574,0.007725097243264645
+FedNova uniform,accuracy,avg,0.8651898817779538,0.007690800707683132
+FedNova uniform,loss,avg,0.04712983740015867,0.0015299842961369325
+FedNova uniform,client drift from server,min,0.04644696538647016,0.01072969254818873
+FedNova uniform,client drift from server,avg,0.1643339137112101,0.02055162107085981
+FedNova uniform,client drift from server,max,0.41579652825991315,0.21984038262555722
+FedNova uniform,fraction selected clients,,0.20000000000000004,0.0
+FedNova uniform,nr gradient calls,avg,28253.59,47.054558568233915
+FedNova uniform,nr gradient calls,sum,2825359.0,4705.455856823362
+FedNova uniform,nr sent messages,avg,594.0597469221381,0.0
+FedNova uniform,nr sent messages,sum,60000.03443913595,0.0
+FedNova uniform,nr received messages,avg,594.0597469222096,0.0
+FedNova uniform,nr received messages,sum,60000.03443914317,0.0
+FedNova data-size weighted,server accuracy,,0.8741826827818505,0.015819491662679153
+FedNova data-size weighted,accuracy,avg,0.8653100851991281,0.005065337493191491
+FedNova data-size weighted,loss,avg,0.04030981044013363,0.004542372894088403
+FedNova data-size weighted,client drift from server,min,0.05756832038362821,0.013344311255292667
+FedNova data-size weighted,client drift from server,avg,0.20467176444828508,0.014496573925536577
+FedNova data-size weighted,client drift from server,max,0.5303472379843394,0.20492186071964658
+FedNova data-size weighted,fraction selected clients,,0.20000000000000004,0.0
+FedNova data-size weighted,nr gradient calls,avg,28236.069999999996,45.0585331000475
+FedNova data-size weighted,nr gradient calls,sum,2823607.0,4505.853310004808
+FedNova data-size weighted,nr sent messages,avg,594.0597469221381,2.2737367544323206e-13
+FedNova data-size weighted,nr sent messages,sum,60000.03443913595,0.0
+FedNova data-size weighted,nr received messages,avg,594.0597469222096,0.0
+FedNova data-size weighted,nr received messages,sum,60000.03443914317,0.0

@@ -1,0 +1,27 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedLT uniform,server accuracy,,0.8326398520573278,0.00587213015818322
+FedLT uniform,accuracy,avg,0.7532917244567732,0.011036436513984338
+FedLT uniform,loss,avg,0.4532892536837608,0.02045643330498681
+FedLT uniform,client drift from server,min,2.3636281490325928,0.03378074966865707
+FedLT uniform,client drift from server,avg,2.473804817199707,0.024236783858952116
+FedLT uniform,client drift from server,max,2.6060953934987388,0.026770473607645062
+FedLT uniform,fraction selected clients,,0.20000000000000004,0.0
+FedLT uniform,nr gradient calls,avg,47089.31666666667,78.42426428038016
+FedLT uniform,nr gradient calls,sum,4708931.666666667,7842.426428038627
+FedLT uniform,nr sent messages,avg,594.059405940594,0.0
+FedLT uniform,nr sent messages,sum,60000.0,0.0
+FedLT uniform,nr received messages,avg,594.059405940594,0.0
+FedLT uniform,nr received messages,sum,60000.0,0.0
+FedLT data-size weighted,server accuracy,,0.8436034608017965,0.005027521130429591
+FedLT data-size weighted,accuracy,avg,0.7863767254474605,0.014142623365228202
+FedLT data-size weighted,loss,avg,0.5543816430370013,0.013749881117903984
+FedLT data-size weighted,client drift from server,min,2.28815229733785,0.08505106410171326
+FedLT data-size weighted,client drift from server,avg,2.416763598124186,0.008306568254736302
+FedLT data-size weighted,client drift from server,max,2.54144024848938,0.060289049778800674
+FedLT data-size weighted,fraction selected clients,,0.20000000000000004,0.0
+FedLT data-size weighted,nr gradient calls,avg,47060.11666666667,75.0975551667434
+FedLT data-size weighted,nr gradient calls,sum,4706011.666666667,7509.75551667437
+FedLT data-size weighted,nr sent messages,avg,594.059405940594,0.0
+FedLT data-size weighted,nr sent messages,sum,60000.0,0.0
+FedLT data-size weighted,nr received messages,avg,594.059405940594,0.0
+FedLT data-size weighted,nr received messages,sum,60000.0,0.0

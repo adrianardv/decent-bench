@@ -1,0 +1,3 @@
+| algorithm   | uniform   | data-size weighted   | uniform margin_of_error   | data-size weighted margin_of_error   |
+|:------------|:----------|:---------------------|:--------------------------|:-------------------------------------|
+| FedDyn      | 86.98%    | 87.27%               | 1.30%                     | 0.35%                                |
