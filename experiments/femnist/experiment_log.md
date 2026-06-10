@@ -786,3 +786,42 @@ The selected subset is deterministic, so these shared subset artifacts are saved
 For each algorithm, the runner saves standard benchmark `results/` outputs, `server_accuracy_by_aggregation.{csv,md,tex}`
 inside `results/`, compressed `metric_computation.pkl.zst`, and run metadata that references the shared selected-client
 CSV and quantity-skew plot.
+
+### Experiment 7 Observed Results
+
+The available Experiment 7 checkpoint results are under:
+
+```text
+experiments/femnist/checkpoints/experiment7/
+```
+
+Final server accuracy for the saved runs:
+
+| Algorithm | Uniform aggregation | Data-size weighted aggregation |
+| --- | ---: | ---: |
+| FedAvg | `87.43%` | `88.64%` |
+| FedProx | `87.33%` | `88.71%` |
+| SCAFFOLD | `3.17%` | `3.17%` |
+| FedNova | `87.03%` | `87.42%` |
+| FedAdam | `87.68%` | `88.11%` |
+| FedLT | `83.26%` | `84.36%` |
+| FedDyn | `86.98%` | `87.27%` |
+
+With the unbounded quantity-skew subset, data-size weighted aggregation is slightly better than uniform aggregation for
+FedAvg, FedProx, FedNova, FedAdam, FedLT, and FedDyn. The gains are small, ranging from about `0.30` percentage points
+for FedDyn to about `1.37` percentage points for FedProx. FedLT gains about `1.10` percentage points, and FedAvg gains
+about `1.21` percentage points. This is directionally consistent with the intuition that weighting clients by local
+sample count can help when some selected clients have very few samples, but the effect is still modest in final server
+accuracy.
+
+SCAFFOLD behaves differently from Experiment 6: in this unbounded subset it collapses under both aggregation variants,
+ending at `3.17%` server accuracy for uniform and data-size weighted aggregation. This suggests that the maximum-skew
+subset itself is difficult for this tuned SCAFFOLD configuration, not just the data-size weighted variant. The smallest
+selected writers have as few as `14` train samples and `4` test samples, so the combination of very small clients,
+partial participation, and SCAFFOLD's correction-state dynamics may be unstable.
+
+Overall, data-size weighting does improve Experiment 7 performance for most algorithms, but not dramatically. The
+stronger quantity skew makes the weighted variants consistently higher for the non-SCAFFOLD algorithms, unlike
+Experiment 6 where the differences were mostly negligible. However, the improvement remains around one percentage point
+or less for most methods, so the result is better described as a small advantage rather than a decisive performance
+change.
