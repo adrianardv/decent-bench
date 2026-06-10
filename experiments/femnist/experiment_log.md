@@ -726,3 +726,63 @@ test samples, there are no tiny clients whose updates are overwhelmingly noisy r
 dataset also remains naturally statistically heterogeneous by writer, so label and handwriting heterogeneity may matter
 more than the moderate quantity skew. In this setting, data-size weighting changes the effective contribution of each
 client, but not enough to produce a large accuracy advantage for most algorithms.
+
+## Experiment 7 Design
+
+Maximum quantity-imbalance aggregation-weighting subset.
+
+Experiment 7 repeats the clean uniform-vs-data-size weighted aggregation comparison from Experiment 6, but removes the
+Experiment 2/6 selection eligibility boundaries. Instead of requiring at least `100` train samples and `20` test
+samples, it selects directly from all FEMNIST writers after the deterministic per-writer train/test split.
+
+The selected subset contains:
+
+- `50` writers with the fewest train samples;
+- `50` writers with the most train samples;
+- no `min_train_samples` or `min_test_samples` selection filter.
+
+The metadata check for this subset gives train sizes from `14` to `466` samples per client, a `33.29x` train-size
+ratio, total local sample counts from `18` to `583`, and coverage of all `62` FEMNIST classes. This is the stronger
+quantity-skew version of Experiment 6.
+
+All other benchmark parameters remain aligned with Experiment 6 and clean Experiment 2:
+
+- FEMNIST CNN model;
+- tuned hyperparameters from `experiment0/selected_hyperparameters.json`;
+- `UniformSelection(fraction_selected_clients=0.2)`;
+- `AlwaysActive`, `NoCompression`, `NoDrops`, and `NoNoise`;
+- `3` trials, `1500` iterations, state snapshots every `150` iterations;
+- batch size `32`;
+- same seed `20260524` for the per-writer train/test split, model initialization, and benchmark RNG.
+
+The runner is:
+
+```text
+experiments/femnist/experiment7/experiment7_unbounded_quantity_imbalance_aggregation_weighting.py
+```
+
+It accepts the same one-algorithm flags as Experiment 6, for example:
+
+```powershell
+.venv\Scripts\python.exe experiments/femnist/experiment7/experiment7_unbounded_quantity_imbalance_aggregation_weighting.py --fedavg
+.venv\Scripts\python.exe experiments/femnist/experiment7/experiment7_unbounded_quantity_imbalance_aggregation_weighting.py --fedprox
+```
+
+Each run writes to:
+
+```text
+experiments/femnist/checkpoints/experiment7/<algorithm_key>/run_<timestamp>/
+```
+
+The selected subset is deterministic, so these shared subset artifacts are saved once in
+`experiments/femnist/experiment7/`:
+
+- `unbounded_quantity_imbalance_extremes_selected_clients.csv`;
+- `unbounded_quantity_imbalance_extremes_train_dataset_sizes_ids.png`, with writer IDs on the x-axis and train dataset
+  size on the y-axis;
+- `unbounded_quantity_imbalance_subset_summary.json`, including train, test, and total sample quantiles, imbalance
+  ratios, and class coverage.
+
+For each algorithm, the runner saves standard benchmark `results/` outputs, `server_accuracy_by_aggregation.{csv,md,tex}`
+inside `results/`, compressed `metric_computation.pkl.zst`, and run metadata that references the shared selected-client
+CSV and quantity-skew plot.
