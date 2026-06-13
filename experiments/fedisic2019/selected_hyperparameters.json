@@ -1,0 +1,118 @@
+{
+  "experiment": "Fed-ISIC2019 initial selected hyperparameters",
+  "selection_status": "reference_initialization_pending_full_experiment0_tuning",
+  "purpose": "Clean-baseline starting hyperparameters for Fed-ISIC2019 runs before the full experiment0 tuning sweep is executed.",
+  "selection_notes": {
+    "metric": "Primary tuning metric is server balanced accuracy; validation loss is the tie-breaker.",
+    "tuning_trials": 1,
+    "tuning_iterations": 1000,
+    "future_main_experiment_trials": "Use 3 trials by default after hyperparameters are selected; consider 5 only if compute budget allows.",
+    "client_participation": "Full participation over the six natural Fed-ISIC2019 centers.",
+    "communication": "No drops, no noise, no compression.",
+    "source_values": "FLamby-style values are used where available; otherwise FEMNIST selected values seed the first Fed-ISIC2019 search.",
+    "fednova_variant_selection": "Experiment 0 tries momentum only, server momentum only, prox only, both momentums, and both momentums plus prox; keep the best-performing variant.",
+    "fedlt_variant_selection": "Experiment 0 tries local solvers gd, nesterov, and adam; keep the best-performing solver.",
+    "fedopt_family_selection": "Experiment 0 tries FedAdam, FedYogi, and FedAdagrad; keep the best-performing FedOpt family member."
+  },
+  "algorithms": {
+    "fedavg": {
+      "algorithm_name": "FedAvg",
+      "hyperparameters": {
+        "step_size": 0.01,
+        "num_local_epochs": 2
+      }
+    },
+    "fedprox": {
+      "algorithm_name": "FedProx",
+      "hyperparameters": {
+        "step_size": 0.01,
+        "num_local_epochs": 2,
+        "mu": 0.001
+      }
+    },
+    "scaffold": {
+      "algorithm_name": "SCAFFOLD",
+      "hyperparameters": {
+        "step_size": 0.01,
+        "num_local_epochs": 2,
+        "server_step_size": 1.0
+      }
+    },
+    "fednova": {
+      "algorithm_name": "FedNova",
+      "hyperparameters": {
+        "step_size": 0.015780201353739066,
+        "num_local_epochs": 3,
+        "use_momentum": true,
+        "use_server_momentum": true,
+        "use_prox": false,
+        "beta": 0.5,
+        "gamma": 0.9
+      }
+    },
+    "fedadam": {
+      "algorithm_name": "FedAdam",
+      "hyperparameters": {
+        "step_size": 0.01,
+        "num_local_epochs": 2,
+        "server_step_size": 0.0031622777,
+        "beta_1": 0.9,
+        "beta_2": 0.9,
+        "tau": 0.001
+      }
+    },
+    "fedadagrad": {
+      "algorithm_name": "FedAdagrad",
+      "hyperparameters": {
+        "step_size": 0.01,
+        "num_local_epochs": 2,
+        "server_step_size": 0.0316227766,
+        "beta_1": 0.0,
+        "tau": 0.001
+      }
+    },
+    "fedyogi": {
+      "algorithm_name": "FedYogi",
+      "hyperparameters": {
+        "step_size": 0.01,
+        "num_local_epochs": 2,
+        "server_step_size": 0.0031622777,
+        "beta_1": 0.9,
+        "beta_2": 0.9,
+        "tau": 0.001
+      }
+    },
+    "fedlt": {
+      "algorithm_name": "FedLT",
+      "hyperparameters": {
+        "step_size": 0.0015,
+        "num_local_epochs": 5,
+        "rho": 1.0,
+        "local_solver": "adam",
+        "solver_args": {
+          "beta1": 0.5,
+          "beta2": 0.999,
+          "epsilon": 1e-8
+        }
+      }
+    },
+    "feddyn": {
+      "algorithm_name": "FedDyn",
+      "hyperparameters": {
+        "step_size": 0.02760842017693185,
+        "num_local_epochs": 2,
+        "alpha": 1.0
+      }
+    },
+    "fedpd": {
+      "algorithm_name": "FedPD",
+      "participation": "full",
+      "hyperparameters": {
+        "step_size": 0.03,
+        "num_local_epochs": 5,
+        "eta": 0.3,
+        "skip_probability": 0.2
+      }
+    }
+  }
+}

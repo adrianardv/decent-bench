@@ -1,7 +1,10 @@
 import numpy as np
 import pytest
+from sklearn.metrics import balanced_accuracy_score
 
 from decent_bench.benchmark import MetricResult
+from decent_bench.metrics import metric_library as ml
+from decent_bench.metrics import metric_utils
 from decent_bench.metrics._metric import Metric
 
 
@@ -21,6 +24,26 @@ class _MetricStub(Metric):
 
     def get_data_from_trial(self, agents, problem, iteration):  # noqa: D102
         return [0.0]
+
+
+class _CostStub:
+    def __init__(self, predictions: list[int]) -> None:
+        self.predictions = predictions
+
+    def predict(self, x: object, data: list[object]) -> list[int]:  # noqa: ARG002
+        return self.predictions
+
+
+class _AgentViewStub:
+    def __init__(self, *, is_server: bool, predictions: list[int]) -> None:
+        self.is_server = is_server
+        self.cost = _CostStub(predictions)
+        self.x_history = {-1: np.array([0.0])}
+
+
+class _ProblemStub:
+    def __init__(self, labels: list[int]) -> None:
+        self.test_data = [(np.array([index]), label) for index, label in enumerate(labels)]
 
 
 def test_metric_result_to_dataframe_converts_table_and_plot_results() -> None:
@@ -104,3 +127,28 @@ def test_metric_result_to_dataframe_handles_missing_table_or_plot_results() -> N
     assert plot_only_table_df is None
     assert list(table_only_df.columns) == ["algorithm", "metric", "statistic", "mean", "margin_of_error"]
     assert list(plot_only_df.columns) == ["algorithm", "metric", "x", "y_mean", "y_min", "y_max"]
+
+
+def test_balanced_accuracy_uses_per_class_recall() -> None:
+    metric_utils._clear_caches()
+    labels = [0, 0, 1, 1, 2, 2]
+    predictions = [0, 1, 1, 1, 2, 0]
+    problem = _ProblemStub(labels)
+    agent = _AgentViewStub(is_server=False, predictions=predictions)
+
+    result = ml.BalancedAccuracy().get_data_from_trial([agent], problem, -1)
+
+    assert result == [balanced_accuracy_score(labels, predictions)]
+
+
+def test_server_balanced_accuracy_uses_server_state_predictions() -> None:
+    metric_utils._clear_caches()
+    labels = [0, 0, 1, 1, 2, 2]
+    predictions = [0, 1, 1, 1, 2, 0]
+    problem = _ProblemStub(labels)
+    server = _AgentViewStub(is_server=True, predictions=[])
+    client = _AgentViewStub(is_server=False, predictions=predictions)
+
+    result = ml.ServerBalancedAccuracy().get_data_from_trial([server, client], problem, -1)
+
+    assert result == (balanced_accuracy_score(labels, predictions),)

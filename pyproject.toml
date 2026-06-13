@@ -30,6 +30,8 @@ Issues = "https://github.com/team-decent/decent-bench/issues"
 
 [project.optional-dependencies]
 dev = [
+  "albumentations",
+  "datasets",
   "hatch",
   "mypy",
   "pytest",

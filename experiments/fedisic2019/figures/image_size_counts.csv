@@ -1,0 +1,14 @@
+split,width,height,samples
+test,224,224,2483
+test,298,224,2003
+test,337,224,129
+test,334,224,30
+test,336,224,4
+test,237,224,1
+train,224,224,9930
+train,298,224,8012
+train,337,224,547
+train,334,224,95
+train,336,224,11
+train,320,224,1
+train,317,224,1

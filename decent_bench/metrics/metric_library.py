@@ -433,6 +433,56 @@ class Accuracy(Metric):
         return utils._accuracy(agent_views, problem, iteration)  # noqa: SLF001
 
 
+class BalancedAccuracy(Metric):
+    r"""
+    Balanced accuracy of the agents'/clients' predictions.
+
+    Table:
+        Balanced accuracy of the agents'/clients' final x.
+
+    Plot:
+        Balanced accuracy (y-axis) per iteration (x-axis).
+
+        Balanced accuracy is calculated as the mean recall obtained on each class.
+        This makes it more informative than plain accuracy for imbalanced classification datasets.
+
+    Only available for :class:`~decent_bench.costs.EmpiricalRiskCost` and integer targets.
+
+    Note:
+        Available only when:
+
+        - ``problem.test_data`` is provided,
+        - all agent costs are :class:`~decent_bench.costs.EmpiricalRiskCost`,
+        - target labels are integer-valued.
+
+    """
+
+    description: str = "balanced accuracy"
+    can_diverge: bool = False
+
+    def is_available(  # noqa: D102
+        self,
+        problem: "BenchmarkProblem",
+    ) -> tuple[bool, str | None]:
+        if getattr(problem, "test_data", None) is None:
+            return False, "requires problem.test_data"
+        if not all(isinstance(a.cost, EmpiricalRiskCost) for a in problem.network.agents()):
+            return False, "balanced accuracy only applies if all agents have EmpiricalRiskCost"
+        _, test_y = utils._split_dataset(problem.test_data)  # type: ignore[arg-type]  # noqa: SLF001
+        if test_y.dtype.kind not in {"i", "u"}:
+            return False, f"balanced accuracy only applies for integer targets, dtype {test_y.dtype} found"
+        return True, None
+
+    def get_data_from_trial(  # noqa: D102
+        self,
+        agents: Sequence[AgentMetricsView],
+        problem: "BenchmarkProblem",
+        iteration: int,
+    ) -> list[float]:
+        agent_views = utils._non_server_views(tuple(agents))  # noqa: SLF001
+        return utils._balanced_accuracy(agent_views, problem, iteration)  # noqa: SLF001
+
+
 class MSE(Metric):
     r"""
     Mean squared error of the agents'/clients' predictions.
@@ -837,6 +887,61 @@ class ServerAccuracy(Metric):
         return [(i, self.get_data_from_trial(agents, problem, i)[0]) for i in utils.all_sorted_iterations([server])]
 
 
+class ServerBalancedAccuracy(Metric):
+    r"""
+    Balanced accuracy of the server model's predictions.
+
+    Table:
+        Balanced accuracy of the final server x.
+
+    Plot:
+        Server balanced accuracy (y-axis) per iteration (x-axis).
+
+    Note:
+        Available only for :class:`~decent_bench.networks.FedNetwork` with ``problem.test_data``, empirical-risk
+        client costs, and integer-valued targets.
+
+    """
+
+    description: str = "server balanced accuracy"
+    can_diverge: bool = False
+
+    def is_available(  # noqa: D102
+        self,
+        problem: "BenchmarkProblem",
+    ) -> tuple[bool, str | None]:
+        available, reason = _requires_fednetwork(problem, self.description)
+        if not available:
+            return False, reason
+        if getattr(problem, "test_data", None) is None:
+            return False, "requires problem.test_data"
+        if not all(isinstance(a.cost, EmpiricalRiskCost) for a in problem.network.agents()):
+            return False, "server balanced accuracy only applies if all clients have EmpiricalRiskCost"
+        _, test_y = utils._split_dataset(problem.test_data)  # type: ignore[arg-type]  # noqa: SLF001
+        if test_y.dtype.kind not in {"i", "u"}:
+            return False, f"server balanced accuracy only applies for integer targets, dtype {test_y.dtype} found"
+        return True, None
+
+    def get_data_from_trial(  # noqa: D102
+        self,
+        agents: Sequence[AgentMetricsView],
+        problem: "BenchmarkProblem",
+        iteration: int,
+    ) -> tuple[float]:
+        server = utils._server_view(tuple(agents))  # noqa: SLF001
+        cost = _server_metric_cost(agents, self.description)
+        return (utils._balanced_accuracy_at_x(cost, server.x_history[iteration], problem),)  # noqa: SLF001
+
+    def get_plot_data(
+        self,
+        agents: Sequence[AgentMetricsView],
+        problem: "BenchmarkProblem",
+    ) -> list[tuple[float, float]]:
+        """Extract server balanced accuracy trajectory."""
+        server = utils._server_view(tuple(agents))  # noqa: SLF001
+        return [(i, self.get_data_from_trial(agents, problem, i)[0]) for i in utils.all_sorted_iterations([server])]
+
+
 _BASE_TABLE_METRICS: list[Metric] = [
     Regret(),
     GradientNorm(),
@@ -881,11 +986,13 @@ _REGRESSION_TABLE_METRICS: list[Metric] = [
 
 _CLASSIFICATION_TABLE_METRICS: list[Metric] = [
     Accuracy([min, np.average, max], fmt=".2%", x_log=False, y_log=False),
+    BalancedAccuracy([min, np.average, max], fmt=".2%", x_log=False, y_log=False),
     Precision([min, np.average, max], fmt=".2%", x_log=False, y_log=False),
     Recall([min, np.average, max], fmt=".2%", x_log=False, y_log=False),
 ]
 """
 - :class:`Accuracy` - :func:`min`, :func:`~numpy.average`, :func:`max` with percentage format
+- :class:`BalancedAccuracy` - :func:`min`, :func:`~numpy.average`, :func:`max` with percentage format
 - :class:`Precision` - :func:`min`, :func:`~numpy.average`, :func:`max` with percentage format
 - :class:`Recall` - :func:`min`, :func:`~numpy.average`, :func:`max` with percentage format
 
@@ -921,6 +1028,7 @@ _REGRESSION_PLOT_METRICS: list[Metric] = _REGRESSION_TABLE_METRICS
 _CLASSIFICATION_PLOT_METRICS: list[Metric] = _CLASSIFICATION_TABLE_METRICS
 """
 - :class:`Accuracy` (linear)
+- :class:`BalancedAccuracy` (linear)
 - :class:`Precision` (linear)
 - :class:`Recall` (linear)
 
@@ -967,18 +1075,22 @@ _FEDERATED_REGRESSION_PLOT_METRICS: list[Metric] = [
 
 _FEDERATED_CLASSIFICATION_TABLE_METRICS: list[Metric] = [
     ServerAccuracy(fmt=".2%", x_log=False, y_log=False),
+    ServerBalancedAccuracy(fmt=".2%", x_log=False, y_log=False),
 ]
 """
 - :class:`ServerAccuracy` - single value with percentage format
+- :class:`ServerBalancedAccuracy` - single value with percentage format
 
 :meta hide-value:
 """
 
 _FEDERATED_CLASSIFICATION_PLOT_METRICS: list[Metric] = [
     ServerAccuracy([], fmt=".2%", x_log=False, y_log=False),
+    ServerBalancedAccuracy([], fmt=".2%", x_log=False, y_log=False),
 ]
 """
 - :class:`ServerAccuracy` (linear)
+- :class:`ServerBalancedAccuracy` (linear)
 
 :meta hide-value:
 """

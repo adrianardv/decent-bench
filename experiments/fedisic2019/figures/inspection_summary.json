@@ -1,0 +1,197 @@
+{
+  "dataset": "Fed-ISIC2019",
+  "source": "flwrlabs/fed-isic2019",
+  "n_rows": 23247,
+  "n_train": 18597,
+  "n_test": 4650,
+  "n_centers": 6,
+  "n_classes": 8,
+  "image_size_unique_count": 13,
+  "image_min_width": 224,
+  "image_min_height": 224,
+  "image_min_short_edge": 224,
+  "image_max_short_edge": 224,
+  "images_safe_for_200_crop": true,
+  "class_counts": [
+    {
+      "label": 0,
+      "class_name": "MEL",
+      "total": 4185,
+      "train": 3332,
+      "test": 853
+    },
+    {
+      "label": 1,
+      "class_name": "NV",
+      "total": 11326,
+      "train": 9084,
+      "test": 2242
+    },
+    {
+      "label": 2,
+      "class_name": "BCC",
+      "total": 3323,
+      "train": 2649,
+      "test": 674
+    },
+    {
+      "label": 3,
+      "class_name": "AK",
+      "total": 867,
+      "train": 712,
+      "test": 155
+    },
+    {
+      "label": 4,
+      "class_name": "BKL",
+      "total": 2426,
+      "train": 1950,
+      "test": 476
+    },
+    {
+      "label": 5,
+      "class_name": "DF",
+      "total": 239,
+      "train": 184,
+      "test": 55
+    },
+    {
+      "label": 6,
+      "class_name": "VASC",
+      "total": 253,
+      "train": 201,
+      "test": 52
+    },
+    {
+      "label": 7,
+      "class_name": "SCC",
+      "total": 628,
+      "train": 485,
+      "test": 143
+    }
+  ],
+  "center_counts": [
+    {
+      "center": 0,
+      "center_name": "BCN",
+      "total": 12413,
+      "train": 9930,
+      "test": 2483
+    },
+    {
+      "center": 1,
+      "center_name": "HAM_vidir_molemax",
+      "total": 3954,
+      "train": 3163,
+      "test": 791
+    },
+    {
+      "center": 2,
+      "center_name": "HAM_vidir_modern",
+      "total": 3363,
+      "train": 2691,
+      "test": 672
+    },
+    {
+      "center": 3,
+      "center_name": "HAM_rosendahl",
+      "total": 2259,
+      "train": 1807,
+      "test": 452
+    },
+    {
+      "center": 4,
+      "center_name": "MSK",
+      "total": 819,
+      "train": 655,
+      "test": 164
+    },
+    {
+      "center": 5,
+      "center_name": "HAM_vienna_dias",
+      "total": 439,
+      "train": 351,
+      "test": 88
+    }
+  ],
+  "top_image_sizes": [
+    {
+      "split": "test",
+      "width": 224,
+      "height": 224,
+      "samples": 2483
+    },
+    {
+      "split": "test",
+      "width": 298,
+      "height": 224,
+      "samples": 2003
+    },
+    {
+      "split": "test",
+      "width": 337,
+      "height": 224,
+      "samples": 129
+    },
+    {
+      "split": "test",
+      "width": 334,
+      "height": 224,
+      "samples": 30
+    },
+    {
+      "split": "test",
+      "width": 336,
+      "height": 224,
+      "samples": 4
+    },
+    {
+      "split": "test",
+      "width": 237,
+      "height": 224,
+      "samples": 1
+    },
+    {
+      "split": "train",
+      "width": 224,
+      "height": 224,
+      "samples": 9930
+    },
+    {
+      "split": "train",
+      "width": 298,
+      "height": 224,
+      "samples": 8012
+    },
+    {
+      "split": "train",
+      "width": 337,
+      "height": 224,
+      "samples": 547
+    },
+    {
+      "split": "train",
+      "width": 334,
+      "height": 224,
+      "samples": 95
+    },
+    {
+      "split": "train",
+      "width": 336,
+      "height": 224,
+      "samples": 11
+    },
+    {
+      "split": "train",
+      "width": 320,
+      "height": 224,
+      "samples": 1
+    },
+    {
+      "split": "train",
+      "width": 317,
+      "height": 224,
+      "samples": 1
+    }
+  ]
+}

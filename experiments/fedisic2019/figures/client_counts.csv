@@ -1,0 +1,7 @@
+center,center_name,total,train,test
+0,BCN,12413,9930,2483
+1,HAM_vidir_molemax,3954,3163,791
+2,HAM_vidir_modern,3363,2691,672
+3,HAM_rosendahl,2259,1807,452
+4,MSK,819,655,164
+5,HAM_vienna_dias,439,351,88
