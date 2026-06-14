@@ -37,6 +37,17 @@ The six client/site IDs follow the FLamby center order. The source provenance be
 | 4 | `MSK` | 819 | MSK Dataset, used through the ISIC challenge sources and cited by FLamby as `(c) Anonymous`. |
 | 5 | `HAM_vienna_dias` | 439 | HAM10000 Dataset subset from the ViDIR Group, Department of Dermatology, Medical University of Vienna; Vienna DIAS acquisition source. |
 
+## Non-IID Characterization
+
+Fed-ISIC2019 is a cross-silo dataset with natural center-based partitions, so the client data is non-IID in several ways:
+
+- Quantity skew: the number of samples per client is very different. In the official train split, `BCN` has 9,930 samples while `HAM_vienna_dias` has 351 samples, a largest/smallest ratio of about `28.3x`. This is large for a six-client cross-silo setup and is the reason Experiment 2 compares uniform aggregation with data-size weighted aggregation.
+- Label distribution skew: class proportions differ strongly across clients. For example, `HAM_vidir_molemax` is dominated by `NV` with 3,720 of 3,954 total samples, while several classes have zero or near-zero samples in some centers. `MSK` has no `BCC`, `AK`, `DF`, `VASC`, or `SCC` samples in the inspected full split. This means client updates can be biased toward different lesion-type mixtures.
+- Global class imbalance: the dataset itself is imbalanced. Across the full inspected split, `NV` has 11,326 samples while `DF` has 239 samples, about `47.4x` more. In the train split, `NV` has 9,084 samples while `DF` has 184 samples, about `49.4x` more. This motivates balanced accuracy for evaluation and weighted focal loss for training.
+- Feature/site skew: each client corresponds to a data source or acquisition site. Differences in hospitals, acquisition devices, acquisition protocols, patient populations, and image characteristics can create covariate shift across clients, even when labels overlap.
+
+Overall, Fed-ISIC2019 should be treated as strongly non-IID. The largest directly measured skews are the client quantity skew (`28.3x` train largest/smallest center ratio) and the class imbalance (`49.4x` train largest/smallest class ratio). The center-by-class distribution plot in `experiments/fedisic2019/figures/client_class_distribution.png` visualizes the label skew.
+
 ## References And Citation
 
 - FLamby Fed-ISIC2019 code and README: https://github.com/owkin/FLamby/tree/main/flamby/datasets/fed_isic2019
