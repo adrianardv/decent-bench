@@ -207,6 +207,28 @@ Full tuning writes run-specific best files under:
 
 - `experiments/fedisic2019/checkpoints/experiment0/<algorithm>/<run>/exp0_best_hyperparameters.json`
 
+## Experiment 0 Retuning
+
+Added `experiments/fedisic2019/experiment0/experiment0_retune.py`.
+
+This is a compact follow-up to `experiment0` for algorithms whose final validation curves were suspicious or likely
+under-tuned after the first full run:
+
+- FedDyn: first run selected a very low learning rate/alpha and the final curve stayed nearly flat until a late jump.
+- FedProx: first run selected a high learning rate/proximal coefficient and the final balanced accuracy curve jumped
+  late rather than improving smoothly.
+- FedLT: first run selected a low `rho` and low learning rate; retuning compares that current best against more
+  standard `rho` values around `0.01`, `0.1`, and `1.0`.
+
+The retuning script uses the same dataset split, model, weighted focal loss, metrics, clean communication assumptions,
+and final-curve evaluation as `experiment0`, but replaces broad random/grid search with fixed candidate lists of at
+most six candidates per algorithm. FedProx and FedLT include their current best `experiment0` candidate so the retune
+can directly compare new candidates against the previous selection.
+
+Retuning writes run-specific best files under:
+
+- `experiments/fedisic2019/checkpoints/experiment0/<algorithm>/<run>/exp0_retune_best_hyperparameters.json`
+
 ## Inspection Figures
 
 The inspection command writes the following paths:
@@ -255,6 +277,14 @@ Run all configured algorithms by repeating `--algorithm` for:
 
 ```text
 fedavg, fedprox, scaffold, fednova, fedopt, fedlt, feddyn, fedpd
+```
+
+Retune the selected experiment0 algorithms:
+
+```powershell
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment0\experiment0_retune.py --algorithm feddyn
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment0\experiment0_retune.py --algorithm fedprox
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment0\experiment0_retune.py --algorithm fedlt
 ```
 
 Use offline pretrained behavior only if torchvision weights are already cached; otherwise add `--no-pretrained`.
