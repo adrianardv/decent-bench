@@ -73,7 +73,7 @@ from experiments.fedisic2019.src import FedISICDatasetHandler, WeightedFocalLoss
 seed = 20260524
 n_trials = 3
 iterations = 2500
-state_snapshot_period = 200
+state_snapshot_period = 250
 progress_step = 200
 checkpoint_step = None
 batch_size = 64
@@ -601,7 +601,12 @@ def run_condition(*, condition: Condition, run_path: Path, requested_algorithms:
             del metric_result
         if "result" in locals():
             del result
-        del algorithms, problem, x0
+        if "algorithms" in locals():
+            del algorithms
+        if "problem" in locals():
+            del problem
+        if "x0" in locals():
+            del x0
         clear_cuda_cache()
 
 

@@ -229,6 +229,54 @@ Retuning writes run-specific best files under:
 
 - `experiments/fedisic2019/checkpoints/experiment0/<algorithm>/<run>/exp0_retune_best_hyperparameters.json`
 
+## Experiment 2
+
+Added `experiments/fedisic2019/experiment2/experiment2_aggregation_weighting.py`.
+
+Purpose: compare uniform client aggregation against data-size weighted aggregation for each tuned Fed-ISIC2019
+algorithm under a clean cross-silo baseline. Fed-ISIC2019 has substantially stronger quantity skew than the FEMNIST
+subsets used in earlier experiments, so weighting by client sample count may have a larger effect.
+
+Configuration:
+
+- condition: clean baseline;
+- official Fed-ISIC2019 train split for training;
+- official Fed-ISIC2019 test split for evaluation;
+- clients: all six natural centers;
+- client activation: `AlwaysActive`;
+- client selection scheme: `None`, so all active clients participate;
+- communication: `NoDrops`, `NoNoise`, `NoCompression`;
+- iterations: 2500;
+- trials: 3;
+- state snapshot period: 250;
+- selected hyperparameters: `experiments/fedisic2019/selected_hyperparameters.json`;
+- table metrics: default `decent-bench` metrics after availability filtering;
+- plot metrics: default `decent-bench` plot metrics after availability filtering;
+- plots are saved individually.
+
+Aggregation variants:
+
+- uniform aggregation: each received client upload has equal aggregation weight;
+- data-size weighted aggregation: each received client upload is weighted by its local training sample count.
+
+Quantity skew in the official Fed-ISIC2019 train split:
+
+| Center | Train samples |
+| --- | ---: |
+| BCN | 9930 |
+| HAM_vidir_molemax | 3163 |
+| HAM_vidir_modern | 2691 |
+| HAM_rosendahl | 1807 |
+| MSK | 655 |
+| HAM_vienna_dias | 351 |
+
+The largest train center (`BCN`) has about `28.3x` more samples than the smallest train center
+(`HAM_vienna_dias`).
+
+Experiment 2 writes results under:
+
+- `experiments/fedisic2019/checkpoints/experiment2/<algorithm>/<run>/`
+
 ## Experiment 5
 
 Added `experiments/fedisic2019/experiment5/experiment5_communication_impairments.py`.
@@ -241,7 +289,7 @@ Configuration:
 
 - iterations: 2500;
 - trials: 3;
-- state snapshot period: 200;
+- state snapshot period: 250;
 - batch size: 64;
 - model/loss/data preprocessing: same as Experiment 0;
 - selected hyperparameters: `experiments/fedisic2019/selected_hyperparameters.json`;
@@ -313,6 +361,19 @@ Run Experiment 5 one condition at a time:
 .\.venv\Scripts\python.exe experiments\fedisic2019\experiment5\experiment5_communication_impairments.py --condition drops
 .\.venv\Scripts\python.exe experiments\fedisic2019\experiment5\experiment5_communication_impairments.py --condition noise
 .\.venv\Scripts\python.exe experiments\fedisic2019\experiment5\experiment5_communication_impairments.py --condition combination
+```
+
+Run Experiment 2 one algorithm at a time:
+
+```powershell
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment2\experiment2_aggregation_weighting.py --algorithm fedavg
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment2\experiment2_aggregation_weighting.py --algorithm fedprox
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment2\experiment2_aggregation_weighting.py --algorithm scaffold
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment2\experiment2_aggregation_weighting.py --algorithm fednova
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment2\experiment2_aggregation_weighting.py --algorithm fedopt
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment2\experiment2_aggregation_weighting.py --algorithm fedlt
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment2\experiment2_aggregation_weighting.py --algorithm feddyn
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment2\experiment2_aggregation_weighting.py --algorithm fedpd
 ```
 
 Use offline pretrained behavior only if torchvision weights are already cached; otherwise add `--no-pretrained`.
