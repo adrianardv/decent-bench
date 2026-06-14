@@ -229,6 +229,50 @@ Retuning writes run-specific best files under:
 
 - `experiments/fedisic2019/checkpoints/experiment0/<algorithm>/<run>/exp0_retune_best_hyperparameters.json`
 
+## Experiment 5
+
+Added `experiments/fedisic2019/experiment5/experiment5_communication_impairments.py`.
+
+Purpose: evaluate robustness of the tuned Fed-ISIC2019 algorithms under cross-silo communication and availability
+impairments. This experiment uses the official Fed-ISIC2019 train split for training and the official test split for
+evaluation.
+
+Configuration:
+
+- iterations: 2500;
+- trials: 3;
+- state snapshot period: 200;
+- batch size: 64;
+- model/loss/data preprocessing: same as Experiment 0;
+- selected hyperparameters: `experiments/fedisic2019/selected_hyperparameters.json`;
+- client selection scheme: `None`, so all active clients participate;
+- table metrics: default `decent-bench` metrics after availability filtering;
+- plot metrics: default `decent-bench` plot metrics after availability filtering;
+- plots are saved individually, plus condition-annotated versions under `annotated_plots`.
+
+Conditions:
+
+- `clean_baseline`: always active, full participation, no noise, no compression, no drops.
+- `availability`: `UniformActivationRate(0.80)`.
+- `compression`: `TopK(0.10)`.
+- `drops`: `UniformDropRate(0.20)`.
+- `noise`: `GaussianNoise(mean=0.0, std=0.001)`.
+- `combination`: `UniformActivationRate(0.80)`, `TopK(0.10)`, `UniformDropRate(0.20)`, and
+  `GaussianNoise(mean=0.0, std=0.001)`.
+
+Cross-silo assumption: in cross-silo settings like Fed-ISIC2019, the default tendency is full participation because
+there are few institutional clients and coordination is more controlled than in cross-device FL. Therefore this
+experiment does not apply any explicit client selection scheme; if clients are active, they participate.
+
+Availability assumption: in cross-silo FL, clients are generally assumed to be available and stable. Nevertheless,
+temporary unavailability can occur due to maintenance windows, system failures, connectivity incidents, or local
+operational constraints. For that reason, this experiment tests availability as an impairment, but uses a high
+availability probability (`0.80`) because high availability is normally expected in cross-silo deployments.
+
+Experiment 5 writes results under:
+
+- `experiments/fedisic2019/checkpoints/experiment5/<condition>/<run>/`
+
 ## Inspection Figures
 
 The inspection command writes the following paths:
@@ -247,13 +291,6 @@ It also writes:
 - `image_size_counts.csv`
 - `inspection_summary.json`
 
-## Commands
-
-Install/update experiment dependencies:
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-```
 
 Inspect and generate figures:
 
@@ -267,24 +304,15 @@ Offline inspection using an existing Hugging Face cache:
 .\.venv\Scripts\python.exe experiments\fedisic2019\inspect_fedisic2019.py --local-files-only
 ```
 
-Full-style FedAvg tuning:
+Run Experiment 5 one condition at a time:
 
 ```powershell
-.\.venv\Scripts\python.exe experiments\fedisic2019\experiment0\experiment0.py --algorithm fedavg --iterations 1000 --final-iterations 1500 --n-trials 1 --n-random-candidates 8 --max-grid-candidates 18
-```
-
-Run all configured algorithms by repeating `--algorithm` for:
-
-```text
-fedavg, fedprox, scaffold, fednova, fedopt, fedlt, feddyn, fedpd
-```
-
-Retune the selected experiment0 algorithms:
-
-```powershell
-.\.venv\Scripts\python.exe experiments\fedisic2019\experiment0\experiment0_retune.py --algorithm feddyn
-.\.venv\Scripts\python.exe experiments\fedisic2019\experiment0\experiment0_retune.py --algorithm fedprox
-.\.venv\Scripts\python.exe experiments\fedisic2019\experiment0\experiment0_retune.py --algorithm fedlt
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment5\experiment5_communication_impairments.py --condition clean_baseline
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment5\experiment5_communication_impairments.py --condition availability
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment5\experiment5_communication_impairments.py --condition compression
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment5\experiment5_communication_impairments.py --condition drops
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment5\experiment5_communication_impairments.py --condition noise
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment5\experiment5_communication_impairments.py --condition combination
 ```
 
 Use offline pretrained behavior only if torchvision weights are already cached; otherwise add `--no-pretrained`.
