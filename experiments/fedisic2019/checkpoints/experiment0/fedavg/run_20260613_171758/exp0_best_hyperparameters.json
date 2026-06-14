@@ -1,0 +1,36 @@
+{
+  "metadata": {
+    "experiment": "experiment0",
+    "dataset": "Fed-ISIC2019",
+    "dataset_source": "flwrlabs/fed-isic2019",
+    "partition": "natural FLamby/Flower center split",
+    "n_clients": 6,
+    "validation_fraction_from_train": 0.2,
+    "n_trials": 1,
+    "iterations": 1000,
+    "batch_size": 64,
+    "seed": 20260524,
+    "selection_metric": "server balanced accuracy",
+    "tie_break_metric": "loss",
+    "client_participation": "full",
+    "communication": "no drops, no noise, no compression",
+    "model": "efficientnet_b0",
+    "pretrained": true,
+    "class_weight_mode": "flamby",
+    "search_strategy": "reference candidates plus random coarse search followed by focused grid search"
+  },
+  "best_hyperparameters": {
+    "algorithm_name": "FedAvg",
+    "variant": "grid_lr_0p02_e4",
+    "search_stage": "grid",
+    "hyperparameters": {
+      "step_size": 0.02,
+      "num_local_epochs": 4
+    },
+    "server_balanced_accuracy_mean": 0.7174902437898579,
+    "server_balanced_accuracy_margin_of_error": 0.0,
+    "server_accuracy_mean": 0.7087926862059694,
+    "validation_loss_mean": 0.25117767837967364,
+    "validation_loss_margin_of_error": 0.0
+  }
+}

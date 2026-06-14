@@ -1,0 +1,15 @@
+{
+  "final_iterations": 1500,
+  "state_snapshot_period": 150,
+  "n_trials": 1,
+  "best_candidate": {
+    "algorithm_name": "Scaffold",
+    "variant": "grid_lr_0p02_e5_server_0p875",
+    "search_stage": "grid",
+    "hyperparameters": {
+      "step_size": 0.02,
+      "num_local_epochs": 5,
+      "server_step_size": 0.875
+    }
+  }
+}

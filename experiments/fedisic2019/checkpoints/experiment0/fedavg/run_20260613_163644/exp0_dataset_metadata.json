@@ -1,0 +1,47 @@
+{
+  "center_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "center_names": {
+    "0": "BCN",
+    "1": "HAM_vidir_molemax",
+    "2": "HAM_vidir_modern",
+    "3": "HAM_rosendahl",
+    "4": "MSK",
+    "5": "HAM_vienna_dias"
+  },
+  "class_names": [
+    "MEL",
+    "NV",
+    "BCC",
+    "AK",
+    "BKL",
+    "DF",
+    "VASC",
+    "SCC"
+  ],
+  "n_classes": 8,
+  "n_train_samples_after_validation_split": 14878,
+  "n_validation_samples": 3719,
+  "max_samples_per_client": null,
+  "run_config": {
+    "algorithm": "fedavg",
+    "iterations": 50,
+    "final_iterations": 50,
+    "n_trials": 1,
+    "n_random_candidates": 1,
+    "max_grid_candidates": 1,
+    "run_final": true,
+    "batch_size": 64,
+    "device": "gpu",
+    "model": "efficientnet_b0",
+    "pretrained": true,
+    "class_weight_mode": "flamby",
+    "client_participation": "full"
+  }
+}

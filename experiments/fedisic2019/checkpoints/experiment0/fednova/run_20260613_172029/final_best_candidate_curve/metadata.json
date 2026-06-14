@@ -1,0 +1,16 @@
+{
+  "final_iterations": 1500,
+  "state_snapshot_period": 150,
+  "n_trials": 1,
+  "best_candidate": {
+    "algorithm_name": "FedNova",
+    "variant": "grid_lr_0p00731_e3",
+    "search_stage": "grid",
+    "hyperparameters": {
+      "use_server_momentum": true,
+      "gamma": 0.5,
+      "step_size": 0.007313389878312145,
+      "num_local_epochs": 3
+    }
+  }
+}
