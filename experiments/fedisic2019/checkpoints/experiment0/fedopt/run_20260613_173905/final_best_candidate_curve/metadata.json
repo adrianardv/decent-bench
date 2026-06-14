@@ -1,0 +1,19 @@
+{
+  "final_iterations": 1500,
+  "state_snapshot_period": 150,
+  "n_trials": 1,
+  "best_candidate": {
+    "algorithm_name": "FedAdam",
+    "variant": "random_02",
+    "search_stage": "random",
+    "hyperparameters": {
+      "step_size": 0.008554469418165058,
+      "num_local_epochs": 4,
+      "server_step_size": 0.0071790218875614565,
+      "beta_1": 0.9,
+      "tau": 0.001,
+      "beta_2": 0.9
+    },
+    "selected_algorithm": "FedAdam"
+  }
+}
