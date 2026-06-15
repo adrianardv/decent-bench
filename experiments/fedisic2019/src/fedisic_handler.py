@@ -18,6 +18,7 @@ from .transforms import IMAGE_SIZE, build_test_transform, build_train_transform,
 
 
 SplitName = Literal["train", "test"]
+SampleStrategy = Literal["head", "stratified"]
 ISIC_CLASS_NAMES = ["MEL", "NV", "BCC", "AK", "BKL", "DF", "VASC", "SCC"]
 CENTER_NAMES = {
     0: "BCN",
@@ -57,15 +58,30 @@ class FedISICDatasetHandler(DatasetHandler):
         centers: Sequence[int] | None = None,
         image_size: int = IMAGE_SIZE,
         max_samples_per_client: int | None = None,
+        sample_fraction_per_client: float | None = None,
+        min_samples_per_client: int | None = None,
+        sample_strategy: SampleStrategy = "head",
+        seed: int = 20260524,
         local_files_only: bool = False,
     ) -> None:
-        _validate_init_args(split, image_size, max_samples_per_client)
+        _validate_init_args(
+            split,
+            image_size,
+            max_samples_per_client,
+            sample_fraction_per_client,
+            min_samples_per_client,
+            sample_strategy,
+        )
         self.split = split
         self.dataset_name = dataset_name
         self.cache_dir = Path(cache_dir) if cache_dir is not None else None
         self.requested_centers = list(centers) if centers is not None else None
         self.image_size = image_size
         self.max_samples_per_client = max_samples_per_client
+        self.sample_fraction_per_client = sample_fraction_per_client
+        self.min_samples_per_client = min_samples_per_client
+        self.sample_strategy = sample_strategy
+        self.seed = int(seed)
         self.local_files_only = local_files_only
 
         self._partitions: list[FedISICPartition] | None = None
@@ -165,8 +181,20 @@ class FedISICDatasetHandler(DatasetHandler):
 
     def _build_center_partition(self, center_id: int, *, transform: Any) -> "FedISICPartition":
         rows = self.metadata[self.metadata[self.center_column] == center_id].sort_values("row_index")
-        if self.max_samples_per_client is not None:
-            rows = rows.head(self.max_samples_per_client)
+        target_samples = _target_samples_for_partition(
+            n_available=len(rows),
+            max_samples_per_client=self.max_samples_per_client,
+            sample_fraction_per_client=self.sample_fraction_per_client,
+            min_samples_per_client=self.min_samples_per_client,
+        )
+        if target_samples is not None:
+            rows = _sample_rows_for_partition(
+                rows,
+                label_column=self.label_column,
+                max_samples=target_samples,
+                strategy=self.sample_strategy,
+                seed=self.seed + (100_000 if self.split == "test" else 0) + int(center_id) * 1009,
+            )
         return FedISICPartition(
             hf_dataset=self.hf_dataset,
             row_indices=[int(row_index) for row_index in rows["row_index"].to_list()],
@@ -252,13 +280,122 @@ class FedISICPooledDataset(Sequence[Datapoint]):
         return self.partitions[partition_index][index - previous_length]
 
 
-def _validate_init_args(split: SplitName, image_size: int, max_samples_per_client: int | None) -> None:
+def _validate_init_args(
+    split: SplitName,
+    image_size: int,
+    max_samples_per_client: int | None,
+    sample_fraction_per_client: float | None,
+    min_samples_per_client: int | None,
+    sample_strategy: SampleStrategy,
+) -> None:
     if split not in ("train", "test"):
         raise ValueError(f"split must be 'train' or 'test', got {split!r}")
     if image_size <= 0:
         raise ValueError(f"image_size must be positive, got {image_size}")
     if max_samples_per_client is not None and max_samples_per_client <= 0:
         raise ValueError(f"max_samples_per_client must be positive, got {max_samples_per_client}")
+    if sample_fraction_per_client is not None and not 0 < sample_fraction_per_client <= 1:
+        raise ValueError(f"sample_fraction_per_client must be in (0, 1], got {sample_fraction_per_client}")
+    if min_samples_per_client is not None and min_samples_per_client <= 0:
+        raise ValueError(f"min_samples_per_client must be positive, got {min_samples_per_client}")
+    if max_samples_per_client is not None and sample_fraction_per_client is not None:
+        raise ValueError("max_samples_per_client and sample_fraction_per_client cannot both be set")
+    if sample_strategy not in ("head", "stratified"):
+        raise ValueError(f"sample_strategy must be 'head' or 'stratified', got {sample_strategy!r}")
+
+
+def _target_samples_for_partition(
+    *,
+    n_available: int,
+    max_samples_per_client: int | None,
+    sample_fraction_per_client: float | None,
+    min_samples_per_client: int | None,
+) -> int | None:
+    if max_samples_per_client is not None:
+        return min(max_samples_per_client, n_available)
+    if sample_fraction_per_client is None and min_samples_per_client is None:
+        return None
+
+    target = n_available if sample_fraction_per_client is None else int(np.ceil(n_available * sample_fraction_per_client))
+    if min_samples_per_client is not None:
+        target = max(target, min_samples_per_client)
+    return min(target, n_available)
+
+
+def _sample_rows_for_partition(
+    rows: pd.DataFrame,
+    *,
+    label_column: str,
+    max_samples: int,
+    strategy: SampleStrategy,
+    seed: int,
+) -> pd.DataFrame:
+    if len(rows) <= max_samples:
+        return rows.sort_values("row_index")
+    if strategy == "head":
+        return rows.head(max_samples)
+    return _stratified_sample_rows(rows, label_column=label_column, max_samples=max_samples, seed=seed)
+
+
+def _stratified_sample_rows(
+    rows: pd.DataFrame,
+    *,
+    label_column: str,
+    max_samples: int,
+    seed: int,
+) -> pd.DataFrame:
+    """Return a deterministic per-class proportional sample from one center."""
+    counts = rows[label_column].value_counts().sort_index()
+    if counts.empty:
+        return rows.head(0)
+
+    quotas = pd.Series(0, index=counts.index, dtype=int)
+    if max_samples >= len(counts):
+        quotas += 1
+        remaining = max_samples - int(quotas.sum())
+    else:
+        remaining = max_samples
+
+    raw = counts / counts.sum() * remaining
+    additions = np.floor(raw).astype(int).clip(upper=counts - quotas)
+    quotas += additions
+
+    while int(quotas.sum()) < max_samples:
+        capacity = counts - quotas
+        available = capacity[capacity > 0]
+        if available.empty:
+            break
+        remainders = (raw - np.floor(raw)).reindex(available.index).fillna(0.0)
+        next_label = sorted(
+            available.index,
+            key=lambda label: (float(remainders.loc[label]), int(available.loc[label]), -int(label)),
+            reverse=True,
+        )[0]
+        quotas.loc[next_label] += 1
+
+    while int(quotas.sum()) > max_samples:
+        removable = quotas[quotas > 1]
+        if removable.empty:
+            removable = quotas[quotas > 0]
+        next_label = sorted(
+            removable.index,
+            key=lambda label: (float(quotas.loc[label]), -float(counts.loc[label]), -int(label)),
+            reverse=True,
+        )[0]
+        quotas.loc[next_label] -= 1
+
+    rng = np.random.default_rng(seed)
+    sampled_frames = []
+    for label, quota in quotas.items():
+        if int(quota) <= 0:
+            continue
+        class_rows = rows[rows[label_column] == label]
+        selected_positions = rng.choice(len(class_rows), size=int(quota), replace=False)
+        sampled_frames.append(class_rows.iloc[np.sort(selected_positions)])
+
+    if not sampled_frames:
+        return rows.head(0)
+    return pd.concat(sampled_frames, ignore_index=False).sort_values("row_index")
 
 
 def _first_existing_column(columns: Sequence[str], candidates: Sequence[str]) -> str:

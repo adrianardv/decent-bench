@@ -80,6 +80,26 @@ What is done by this repository:
 - cast to `float32`;
 - return integer labels as `torch.long`.
 
+Albumentations is the image preprocessing and augmentation library used by the Flower/Hugging Face Fed-ISIC2019
+recipe. The handler uses it because it provides the same computer-vision transforms used in the dataset-card example,
+works directly on NumPy image arrays, and cleanly separates stochastic training augmentation from deterministic
+evaluation preprocessing.
+
+Why augmentation is useful here: Fed-ISIC2019 contains medical skin-lesion images from several acquisition centers.
+The relevant class signal should be robust to nuisance variation such as lesion position in the crop, camera angle,
+scale, local brightness/contrast, and small occlusions or artifacts. Random train-time augmentation exposes the model
+to these variations and helps reduce overfitting to center-specific or image-specific artifacts. Evaluation is kept
+deterministic so reported metrics are stable and comparable across algorithms.
+
+The preprocessing also converts the dataset into the format expected by PyTorch classification models:
+
+- images are converted to RGB arrays; grayscale inputs would be expanded to three channels and RGBA inputs would drop
+  the alpha channel;
+- Albumentations receives images as `H x W x C` NumPy arrays;
+- after augmentation, images are transposed to PyTorch's `C x H x W` layout;
+- images are cast to `float32`;
+- labels are returned as integer class indices compatible with `torch.nn` classification losses.
+
 What is assumed about the source:
 
 - the source dataset is derived from FLamby and stores RGB images whose shorter edge is 224 px in the local copy inspected on 2026-06-13;
@@ -109,11 +129,35 @@ Training transform:
 - `Normalize`
 - transpose to `C x H x W` and cast to `float32`
 
+Training transform purpose:
+
+- `RandomScale(0.07)`: randomly zooms the image slightly in or out, making the model less sensitive to lesion scale.
+- `Rotate(50)`: rotates images up to a wide angle range, which is appropriate because lesion diagnosis should not
+  depend on camera orientation.
+- `RandomBrightnessContrast(0.15, 0.1)`: perturbs illumination and contrast, helping robustness to acquisition and
+  lighting differences across centers.
+- `Flip(p=0.5)`: randomly mirrors images; lesion class should generally be invariant to horizontal or vertical
+  orientation.
+- `Affine(shear=0.1)`: applies a small geometric shear, adding mild viewpoint/geometry variation.
+- `RandomCrop(200, 200)`: extracts a fixed-size crop for batching while adding random spatial variation during
+  training.
+- `CoarseDropout`: masks small square regions, encouraging the model not to rely too strongly on a tiny image artifact
+  or local patch.
+- `Normalize`: converts pixel intensities to normalized floating-point values using Albumentations defaults, matching
+  the Flower/Hugging Face recipe and improving optimizer behavior.
+
 Evaluation/ test transform:
 
 - `CenterCrop(200, 200)`
 - `Normalize`
 - transpose to `C x H x W` and cast to `float32`
+
+Evaluation transform purpose:
+
+- `CenterCrop(200, 200)`: creates the same fixed spatial size as training without adding randomness.
+- `Normalize`: applies the same normalization convention used for training.
+- no random scale, rotation, brightness/contrast, flip, affine, random crop, or dropout is applied during evaluation,
+  because validation/test metrics should measure the model on a stable deterministic version of each image.
 
 Deviation from a pure Hugging Face/Flower pipeline: the dataset card demonstrates `with_transform(...)` on Flower partitions. `decent-bench` empirical-risk costs consume sequence-like datasets instead, so the Fed-ISIC partitions are lazy sequence objects that apply the same transform recipe on item access. If `PyTorchCost(load_dataset=True)` is enabled, those transformed tensors are materialized; the default experiment0 setting keeps `load_dataset=False` to avoid loading many GB of image tensors into memory. Since the algorithm repeatedly indexes the same lazy sequence, stochastic training augmentations are resampled when the partition is accessed rather than precomputed by the handler.
 
@@ -375,6 +419,135 @@ Experiment 5 writes results under:
 
 - `experiments/fedisic2019/checkpoints/experiment5/<condition>/<run>/`
 
+## Reduced-Budget Pilot Experiments
+
+Added:
+
+- `experiments/fedisic2019/experiment5/experiment5_reduced_pilot.py`
+- `experiments/fedisic2019/experiment2/experiment2_reduced_pilot.py`
+
+Purpose: provide diagnostic results when the full-data Experiment 2 and Experiment 5 runs are too
+slow to finish. These reduced pilots are useful for presentations and sanity checks, but they should be labelled as
+reduced-budget pilot results, not as the final full Fed-ISIC2019 benchmark.
+
+Shared reduced dataset configuration:
+
+- official Fed-ISIC2019 train split sampled for training;
+- official Fed-ISIC2019 test split sampled for evaluation;
+- per-center sampling rate: `10%` of each center/split, rounded up with `ceil`;
+- minimum requested samples per center/split: `100`;
+- if a center/split has fewer than `100` samples available, all available samples are kept;
+- sampling: deterministic stratified sampling within each center by class, using seed `20260524`;
+- model: same ImageNet-pretrained EfficientNet-B0 with an 8-class classifier head;
+- loss: same FLamby-weighted focal loss;
+- batch size: `64`;
+- iterations: `1000`;
+- trials: `2`;
+- state snapshot period: `200`.
+
+The reduced dataset intentionally preserves quantity skew across centers.The current policy
+keeps roughly `10%` of large centers and uses the `100`-sample minimum only for smaller center/split combinations.
+With the current official split this gives `1961` training samples and `737` test samples.
+
+Reduced subset selection rule:
+
+- sampling is applied separately to the official train split and the official test split, so the official train/test
+  semantics are preserved;
+- within each split, sampling is done independently for each center/site;
+- for each center/split, the requested sample count is `ceil(0.10 * n_center_split_samples)`;
+- if that requested count is below `100`, the requested count is raised to `100`;
+- if fewer than the requested number are available, all available samples are kept;
+- samples are drawn without replacement using deterministic stratified sampling by class;
+- the stratified sampler allocates class quotas approximately proportional to the center's original class
+  distribution in that split, while preserving at least one example of each present class when the cap allows it;
+- seed: `20260524`.
+
+The comparison below uses train and test combined unless the table explicitly separates them.
+
+Total sample count:
+
+| Dataset | Train | Test | Total |
+|:---|---:|---:|---:|
+| Original full dataset | 18597 | 4650 | 23247 |
+| Reduced pilot subset | 1961 | 737 | 2698 |
+
+Samples per center:
+
+| Center | Original samples | Reduced samples | Retained % |
+|:---|---:|---:|---:|
+| BCN | 12413 | 1242 | 10.0% |
+| HAM_vidir_molemax | 3954 | 417 | 10.5% |
+| HAM_vidir_modern | 3363 | 370 | 11.0% |
+| HAM_rosendahl | 2259 | 281 | 12.4% |
+| MSK | 819 | 200 | 24.4% |
+| HAM_vienna_dias | 439 | 188 | 42.8% |
+
+Samples and total-dataset percentage per class:
+
+| Class | Original samples | Reduced samples | Original total % | Reduced total % |
+|:---|---:|---:|---:|---:|
+| MEL | 4185 | 484 | 18.00% | 17.94% |
+| NV | 11326 | 1332 | 48.72% | 49.37% |
+| BCC | 3323 | 342 | 14.29% | 12.68% |
+| AK | 867 | 99 | 3.73% | 3.67% |
+| BKL | 2426 | 299 | 10.44% | 11.08% |
+| DF | 239 | 38 | 1.03% | 1.41% |
+| VASC | 253 | 32 | 1.09% | 1.19% |
+| SCC | 628 | 72 | 2.70% | 2.67% |
+
+Percentage of each class inside each center, shown as `original -> reduced`:
+
+| Center | MEL | NV | BCC | AK | BKL | DF | VASC | SCC |
+|:---|:---|:---|:---|:---|:---|:---|:---|:---|
+| BCN | 23.0% -> 22.9% | 33.9% -> 33.5% | 22.6% -> 22.4% | 5.9% -> 6.0% | 9.2% -> 9.5% | 1.0% -> 1.0% | 0.9% -> 1.0% | 3.5% -> 3.8% |
+| HAM_vidir_molemax | 0.6% -> 1.4% | 94.1% -> 91.8% | 0.1% -> 0.2% | 0.0% -> 0.0% | 3.1% -> 3.4% | 0.8% -> 1.4% | 1.4% -> 1.7% | 0.0% -> 0.0% |
+| HAM_vidir_modern | 20.2% -> 19.7% | 54.5% -> 52.7% | 6.3% -> 6.2% | 0.6% -> 2.2% | 14.1% -> 13.8% | 1.5% -> 2.2% | 2.4% -> 2.7% | 0.3% -> 0.5% |
+| HAM_rosendahl | 15.1% -> 14.6% | 35.5% -> 33.8% | 13.1% -> 13.5% | 4.8% -> 6.0% | 21.7% -> 20.3% | 1.3% -> 3.2% | 0.1% -> 0.4% | 8.2% -> 8.2% |
+| MSK | 26.3% -> 27.5% | 50.7% -> 46.0% | 0.0% -> 0.0% | 0.0% -> 0.0% | 23.1% -> 26.5% | 0.0% -> 0.0% | 0.0% -> 0.0% | 0.0% -> 0.0% |
+| HAM_vienna_dias | 15.3% -> 13.3% | 79.7% -> 80.3% | 1.1% -> 1.1% | 0.0% -> 0.0% | 2.3% -> 3.2% | 0.9% -> 1.1% | 0.7% -> 1.1% | 0.0% -> 0.0% |
+
+Reduced-pilot inspection outputs generated under `experiments/fedisic2019/figures/reduced_pilot/`:
+
+- `reduced_dataset_class_distribution.png`
+- `reduced_dataset_client_class_distribution.png`
+- `reduced_dataset_class_counts.csv`
+- `reduced_dataset_center_class_counts.csv`
+- `reduced_dataset_metadata.csv`
+
+Each reduced run writes a class distribution plot and CSVs under its run directory:
+
+- `reduced_dataset/reduced_dataset_class_distribution.png`
+- `reduced_dataset/reduced_dataset_class_counts.csv`
+- `reduced_dataset/reduced_dataset_center_class_counts.csv`
+- `reduced_dataset/reduced_dataset_metadata.csv`
+
+Reduced Experiment 5 configuration:
+
+- conditions: `clean_baseline` and `combination`;
+- algorithms: FedAvg, FedLT, FedAdam through the final selected `fedopt` entry, FedPD, and SCAFFOLD;
+- clean baseline: always active, full participation, no noise, no compression, no drops;
+- combination: `UniformActivationRate(0.80)`, `TopK(0.10)`, `UniformDropRate(0.20)`, and
+  `GaussianNoise(mean=0.0, std=0.001)`;
+- table metrics: default `decent-bench` metrics;
+- plot metrics: default `decent-bench` plot metrics;
+- condition-annotated plots are saved under `annotated_plots`.
+
+Reduced Experiment 5 writes results under:
+
+- `experiments/fedisic2019/checkpoints/experiment5_reduced_pilot/<condition>/<run>/`
+
+Reduced Experiment 2 configuration:
+
+- algorithm: FedAvg only;
+- variants: uniform aggregation versus data-size weighted aggregation;
+- condition: clean baseline with all clients active and full participation;
+- table metrics: default `decent-bench` metrics;
+- plot metrics: default `decent-bench` plot metrics.
+
+Reduced Experiment 2 writes results under:
+
+- `experiments/fedisic2019/checkpoints/experiment2_reduced_pilot/fedavg/<run>/`
+
 ## Inspection Figures
 
 The inspection command writes the following paths:
@@ -430,6 +603,14 @@ Run Experiment 2 one algorithm at a time:
 .\.venv\Scripts\python.exe experiments\fedisic2019\experiment2\experiment2_aggregation_weighting.py --algorithm fedpd
 ```
 
+Run the reduced-budget pilot experiments:
+
+```powershell
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment5\experiment5_reduced_pilot.py --condition clean_baseline
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment5\experiment5_reduced_pilot.py --condition combination
+.\.venv\Scripts\python.exe experiments\fedisic2019\experiment2\experiment2_reduced_pilot.py
+```
+
 Use offline pretrained behavior only if torchvision weights are already cached; otherwise add `--no-pretrained`.
 
 ## Known Limitations
@@ -438,3 +619,5 @@ Use offline pretrained behavior only if torchvision weights are already cached; 
 - The Hugging Face dataset must be available locally or downloadable from the current environment.
 - The initial `selected_hyperparameters.json` is a reference starting point; empirical per-algorithm selections require running `experiment0`.
 - The benchmark uses full client participation because Fed-ISIC2019 has only six centers and the first baseline should isolate algorithm behavior from client availability and communication impairments.
+- Reduced-budget pilot results use capped stratified train/test subsets and should not be presented as the final
+  full-data benchmark.
