@@ -33,7 +33,7 @@ from decent_bench.utils.checkpoint_manager import CheckpointManager
 from decent_bench.utils.pytorch_utils import ArgmaxActivation
 from decent_bench.utils.types import Datapoint, SupportedDevices
 from experiments.fedisic2019.experiment5 import experiment5_communication_impairments as full_exp5
-from experiments.fedisic2019.src import WeightedFocalLoss, build_model, build_reduced_handlers, write_reduced_distribution_outputs
+from experiments.fedisic2019.src import WeightedFocalLoss, build_model, build_reduced_handlers
 
 
 seed = 20260524
@@ -57,6 +57,13 @@ experiment_group = "experiment5_reduced_pilot"
 experiment_name = "experiment5_reduced_pilot"
 checkpoint_root = Path("experiments/fedisic2019/checkpoints") / experiment_group
 metric_result_filename = "metric_computation.pkl.zst"
+shared_reduced_dataset_outputs = {
+    "metadata_csv": "experiments/fedisic2019/figures/reduced_pilot/reduced_dataset_metadata.csv",
+    "class_counts_csv": "experiments/fedisic2019/figures/reduced_pilot/reduced_dataset_class_counts.csv",
+    "center_class_counts_csv": "experiments/fedisic2019/figures/reduced_pilot/reduced_dataset_center_class_counts.csv",
+    "class_distribution_plot": "experiments/fedisic2019/figures/reduced_pilot/reduced_dataset_class_distribution.png",
+    "client_class_distribution_plot": "experiments/fedisic2019/figures/reduced_pilot/reduced_dataset_client_class_distribution.png",
+}
 
 condition_keys = ("clean_baseline", "combination")
 algorithm_order = ("fedavg", "fedlt", "fedopt", "fedpd", "scaffold")
@@ -68,8 +75,6 @@ def condition_lookup() -> dict[str, full_exp5.Condition]:
 
 def build_reduced_problem(
     condition: full_exp5.Condition,
-    *,
-    run_path: Path,
 ) -> tuple[benchmark.BenchmarkProblem, Any, dict[str, Any]]:
     iop.set_seed(seed)
     train_dataset, test_dataset = build_reduced_handlers(
@@ -83,13 +88,6 @@ def build_reduced_problem(
     test_data = test_dataset.get_datapoints()
     num_classes = full_exp5.infer_num_classes(train_partitions)
     alpha = full_exp5.build_alpha(train_partitions, num_classes)
-
-    reduced_outputs = write_reduced_distribution_outputs(
-        output_dir=run_path / "reduced_dataset",
-        train_dataset=train_dataset,
-        test_dataset=test_dataset,
-        title_suffix=f"{experiment_name}, {condition.key}",
-    )
 
     costs = [
         PyTorchCost(
@@ -137,7 +135,7 @@ def build_reduced_problem(
             ),
             "seed": seed,
         },
-        "reduced_dataset_outputs": reduced_outputs,
+        "reduced_dataset_outputs": shared_reduced_dataset_outputs,
     }
     return problem, x0, metadata
 
@@ -181,13 +179,13 @@ def write_metadata(
             "full-data Experiment 5 is too expensive to finish under the deadline."
         ),
         "important_limitations": (
-            "This is a reduced-budget pilot using stratified capped train/test subsets. It is not a replacement "
+            "This is a reduced-budget pilot using stratified proportional train/test subsets. It is not a replacement "
             "for the full Fed-ISIC2019 benchmark."
         ),
         "dataset": "Fed-ISIC2019",
         "dataset_source": "flwrlabs/fed-isic2019",
-        "partition": "natural FLamby/Flower center split, then stratified capped sampling within each center",
-        "evaluation_split": "stratified capped sample from the official Fed-ISIC2019 test split",
+        "partition": "natural FLamby/Flower center split, then stratified proportional sampling within each center",
+        "evaluation_split": "stratified proportional sample from the official Fed-ISIC2019 test split",
         "n_clients": len(dataset_metadata["center_ids"]),
         "n_classes": dataset_metadata["n_classes"],
         "class_names": dataset_metadata["class_names"],
@@ -244,7 +242,7 @@ def write_metadata(
 def run_condition(*, condition: full_exp5.Condition, run_path: Path, requested_algorithms: Sequence[str]) -> None:
     selected_hyperparameters = full_exp5.load_selected_hyperparameters()
     print(f"Running reduced pilot condition={condition.key}; results: {run_path}")
-    problem, x0, dataset_metadata = build_reduced_problem(condition, run_path=run_path)
+    problem, x0, dataset_metadata = build_reduced_problem(condition)
     algorithms = build_algorithms(x0, selected_hyperparameters, requested_algorithms)
     checkpoint_manager = CheckpointManager(
         checkpoint_dir=run_path,

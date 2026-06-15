@@ -514,12 +514,9 @@ Reduced-pilot inspection outputs generated under `experiments/fedisic2019/figure
 - `reduced_dataset_center_class_counts.csv`
 - `reduced_dataset_metadata.csv`
 
-Each reduced run writes a class distribution plot and CSVs under its run directory:
-
-- `reduced_dataset/reduced_dataset_class_distribution.png`
-- `reduced_dataset/reduced_dataset_class_counts.csv`
-- `reduced_dataset/reduced_dataset_center_class_counts.csv`
-- `reduced_dataset/reduced_dataset_metadata.csv`
+Reduced run metadata points to the shared inspection outputs above. The experiment scripts do not regenerate the
+reduced-dataset figures inside every checkpoint directory, because the reduced subset is deterministic and the shared
+figures already document it.
 
 Reduced Experiment 5 configuration:
 

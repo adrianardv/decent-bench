@@ -60,16 +60,16 @@ def write_metadata(
         "title": "Fed-ISIC2019 reduced-budget aggregation weighting pilot",
         "purpose": (
             "Quickly compare FedAvg uniform aggregation against data-size weighted aggregation on a stratified "
-            "capped Fed-ISIC2019 subset."
+            "proportional Fed-ISIC2019 subset."
         ),
         "important_limitations": (
-            "This is a reduced-budget pilot using stratified capped train/test subsets. It is not a replacement "
+            "This is a reduced-budget pilot using stratified proportional train/test subsets. It is not a replacement "
             "for the full-data Experiment 2."
         ),
         "dataset": "Fed-ISIC2019",
         "dataset_source": "flwrlabs/fed-isic2019",
-        "partition": "natural FLamby/Flower center split, then stratified capped sampling within each center",
-        "evaluation_split": "stratified capped sample from the official Fed-ISIC2019 test split",
+        "partition": "natural FLamby/Flower center split, then stratified proportional sampling within each center",
+        "evaluation_split": "stratified proportional sample from the official Fed-ISIC2019 test split",
         "n_clients": len(dataset_metadata["center_ids"]),
         "n_classes": dataset_metadata["n_classes"],
         "class_names": dataset_metadata["class_names"],
@@ -115,7 +115,7 @@ def run_fedavg_pair(*, run_path: Path) -> None:
     selected_hyperparameters = full_exp5.load_selected_hyperparameters()
     clean_condition = full_exp5.condition_lookup()["clean_baseline"]
     print(f"Running reduced pilot FedAvg aggregation pair; results: {run_path}")
-    problem, x0, dataset_metadata = reduced_exp5.build_reduced_problem(clean_condition, run_path=run_path)
+    problem, x0, dataset_metadata = reduced_exp5.build_reduced_problem(clean_condition)
     algorithms = build_fedavg_variants(x0, selected_hyperparameters)
     checkpoint_manager = CheckpointManager(
         checkpoint_dir=run_path,
