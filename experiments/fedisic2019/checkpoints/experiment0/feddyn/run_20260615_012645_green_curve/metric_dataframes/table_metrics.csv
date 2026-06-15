@@ -1,0 +1,6 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedDyn green candidate,server balanced accuracy,,0.4823305537143401,0.0
+FedDyn green candidate,balanced accuracy,avg,0.3663599613520187,0.0
+FedDyn green candidate,server accuracy,,0.42350094111320247,0.0
+FedDyn green candidate,accuracy,avg,0.4327328134803263,0.0
+FedDyn green candidate,loss,avg,2.2643126375141462,0.0

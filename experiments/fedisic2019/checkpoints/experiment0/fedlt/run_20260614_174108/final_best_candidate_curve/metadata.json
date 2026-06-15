@@ -1,0 +1,22 @@
+{
+  "final_iterations": 1500,
+  "state_snapshot_period": 150,
+  "n_trials": 1,
+  "best_candidate": {
+    "algorithm_name": "FedLT",
+    "variant": "adam_lr_0p0015_e4_rho_0p1",
+    "search_stage": "retune",
+    "hyperparameters": {
+      "step_size": 0.0015,
+      "num_local_epochs": 4,
+      "rho": 0.1,
+      "local_solver": "adam",
+      "solver_args": {
+        "beta1": 0.5,
+        "beta2": 0.999,
+        "epsilon": 1e-08
+      }
+    },
+    "selected_solver": "adam"
+  }
+}

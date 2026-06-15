@@ -1,0 +1,33 @@
+{
+  "candidate": {
+    "algorithm_name": "FedLT",
+    "variant": "middle_lr_0p0008_e3_rho_0p05",
+    "search_stage": "diagnostic",
+    "hyperparameters": {
+      "step_size": 0.0008,
+      "num_local_epochs": 3,
+      "rho": 0.05,
+      "local_solver": "adam",
+      "solver_args": {
+        "beta1": 0.5,
+        "beta2": 0.999,
+        "epsilon": 1e-08
+      }
+    },
+    "selected_solver": "adam"
+  },
+  "metrics": {
+    "server balanced accuracy": {
+      "mean": 0.6903185011019599,
+      "margin_of_error": 0.0
+    },
+    "server accuracy": {
+      "mean": 0.7122882495294434,
+      "margin_of_error": 0.0
+    },
+    "loss_avg": {
+      "mean": 0.35483961471865305,
+      "margin_of_error": 0.0
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "center_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "center_names": {
+    "0": "BCN",
+    "1": "HAM_vidir_molemax",
+    "2": "HAM_vidir_modern",
+    "3": "HAM_rosendahl",
+    "4": "MSK",
+    "5": "HAM_vienna_dias"
+  },
+  "class_names": [
+    "MEL",
+    "NV",
+    "BCC",
+    "AK",
+    "BKL",
+    "DF",
+    "VASC",
+    "SCC"
+  ],
+  "n_classes": 8,
+  "n_train_samples_after_validation_split": 14878,
+  "n_validation_samples": 3719,
+  "max_samples_per_client": null,
+  "experiment": "fedlt_middle_candidate_curve",
+  "purpose": "Quickly compare an intermediate FedLT candidate against the previous smooth best and the faster retuned candidate before selecting final FedLT hyperparameters.",
+  "iterations": 1500,
+  "n_trials": 1,
+  "state_snapshot_period": 150,
+  "batch_size": 64,
+  "device": "gpu",
+  "model": "efficientnet_b0",
+  "pretrained": true,
+  "class_weight_mode": "flamby",
+  "client_participation": "full",
+  "communication": "no drops, no noise, no compression",
+  "candidate": {
+    "algorithm_name": "FedLT",
+    "variant": "middle_lr_0p0008_e3_rho_0p05",
+    "search_stage": "diagnostic",
+    "hyperparameters": {
+      "step_size": 0.0008,
+      "num_local_epochs": 3,
+      "rho": 0.05,
+      "local_solver": "adam",
+      "solver_args": {
+        "beta1": 0.5,
+        "beta2": 0.999,
+        "epsilon": 1e-08
+      }
+    },
+    "selected_solver": "adam"
+  }
+}

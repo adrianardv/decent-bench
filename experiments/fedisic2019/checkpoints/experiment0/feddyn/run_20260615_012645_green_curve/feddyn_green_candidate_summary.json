@@ -1,0 +1,26 @@
+{
+  "candidate": {
+    "algorithm_name": "FedDyn",
+    "variant": "green_lr_0p016_e3_alpha_0p33",
+    "search_stage": "diagnostic",
+    "hyperparameters": {
+      "step_size": 0.016013056680630116,
+      "num_local_epochs": 3,
+      "alpha": 0.33075447277711245
+    }
+  },
+  "metrics": {
+    "server balanced accuracy": {
+      "mean": 0.4823305537143401,
+      "margin_of_error": 0.0
+    },
+    "server accuracy": {
+      "mean": 0.42350094111320247,
+      "margin_of_error": 0.0
+    },
+    "loss_avg": {
+      "mean": 2.2643126375141462,
+      "margin_of_error": 0.0
+    }
+  }
+}

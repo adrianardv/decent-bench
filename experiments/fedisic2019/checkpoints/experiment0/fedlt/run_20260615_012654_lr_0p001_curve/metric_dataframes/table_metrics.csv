@@ -1,0 +1,6 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedLT lr 0.001 candidate,server balanced accuracy,,0.6787135749554358,0.0
+FedLT lr 0.001 candidate,balanced accuracy,avg,0.5253990711748076,0.0
+FedLT lr 0.001 candidate,server accuracy,,0.7130949179887066,0.0
+FedLT lr 0.001 candidate,accuracy,avg,0.6398225329389622,0.0
+FedLT lr 0.001 candidate,loss,avg,0.44029482744003173,0.0

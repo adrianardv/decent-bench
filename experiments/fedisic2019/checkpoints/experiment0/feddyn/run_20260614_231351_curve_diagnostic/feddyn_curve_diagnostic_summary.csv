@@ -1,0 +1,4 @@
+algorithm_name,variant,candidate_id,server_balanced_accuracy_mean,server_balanced_accuracy_margin_of_error,server_accuracy_mean,validation_loss_mean,validation_loss_margin_of_error,step_size,num_local_epochs,alpha
+FedDyn lr_0p001_e4_alpha_0p01,lr_0p001_e4_alpha_0p01,retune_FedDyn_FedDyn_lr_0p001_e4_alpha_0p01,0.5212578646553772,0.0,0.47727883839741864,2.4062001867283027,0.0,0.001,4,0.01
+FedDyn lr_0p002_e4_alpha_0p01,lr_0p002_e4_alpha_0p01,retune_FedDyn_FedDyn_lr_0p002_e4_alpha_0p01,0.5048172326047595,0.0,0.48857219682710407,2.634842452802703,0.0,0.002,4,0.01
+FedDyn lr_0p016_e3_alpha_0p33,lr_0p016_e3_alpha_0p33,retune_FedDyn_FedDyn_lr_0p016_e3_alpha_0p33,0.4270764852950668,0.0,0.35036300080666843,3.5584472678880363,0.0,0.016013056680630116,3,0.33075447277711245

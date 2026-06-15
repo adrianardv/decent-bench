@@ -1,0 +1,54 @@
+{
+  "center_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "center_names": {
+    "0": "BCN",
+    "1": "HAM_vidir_molemax",
+    "2": "HAM_vidir_modern",
+    "3": "HAM_rosendahl",
+    "4": "MSK",
+    "5": "HAM_vienna_dias"
+  },
+  "class_names": [
+    "MEL",
+    "NV",
+    "BCC",
+    "AK",
+    "BKL",
+    "DF",
+    "VASC",
+    "SCC"
+  ],
+  "n_classes": 8,
+  "n_train_samples_after_validation_split": 14878,
+  "n_validation_samples": 3719,
+  "max_samples_per_client": null,
+  "experiment": "feddyn_green_candidate_curve",
+  "purpose": "Run the selected green FedDyn diagnostic candidate for 1000 iterations.",
+  "iterations": 1000,
+  "n_trials": 1,
+  "state_snapshot_period": 100,
+  "batch_size": 64,
+  "device": "gpu",
+  "model": "efficientnet_b0",
+  "pretrained": true,
+  "class_weight_mode": "flamby",
+  "client_participation": "full",
+  "communication": "no drops, no noise, no compression",
+  "candidate": {
+    "algorithm_name": "FedDyn",
+    "variant": "green_lr_0p016_e3_alpha_0p33",
+    "search_stage": "diagnostic",
+    "hyperparameters": {
+      "step_size": 0.016013056680630116,
+      "num_local_epochs": 3,
+      "alpha": 0.33075447277711245
+    }
+  }
+}

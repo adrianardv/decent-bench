@@ -1,0 +1,148 @@
+{
+  "center_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "center_names": {
+    "0": "BCN",
+    "1": "HAM_vidir_molemax",
+    "2": "HAM_vidir_modern",
+    "3": "HAM_rosendahl",
+    "4": "MSK",
+    "5": "HAM_vienna_dias"
+  },
+  "class_names": [
+    "MEL",
+    "NV",
+    "BCC",
+    "AK",
+    "BKL",
+    "DF",
+    "VASC",
+    "SCC"
+  ],
+  "n_classes": 8,
+  "n_train_samples_after_validation_split": 14878,
+  "n_validation_samples": 3719,
+  "max_samples_per_client": null,
+  "run_config": {
+    "algorithm": "fedlt",
+    "iterations": 1000,
+    "final_iterations": 1500,
+    "n_trials": 1,
+    "run_final": true,
+    "batch_size": 64,
+    "device": "gpu",
+    "model": "efficientnet_b0",
+    "pretrained": true,
+    "class_weight_mode": "flamby",
+    "client_participation": "full",
+    "retune_candidate_count": 6
+  },
+  "retune_candidates": [
+    {
+      "algorithm_name": "FedLT",
+      "variant": "current_best_adam_low_rho",
+      "search_stage": "retune",
+      "hyperparameters": {
+        "step_size": 0.0003897772307362001,
+        "num_local_epochs": 2,
+        "rho": 0.015837567625216948,
+        "local_solver": "adam",
+        "solver_args": {
+          "beta1": 0.5,
+          "beta2": 0.999,
+          "epsilon": 1e-08
+        }
+      },
+      "selected_solver": "adam"
+    },
+    {
+      "algorithm_name": "FedLT",
+      "variant": "adam_lr_0p0015_e5_rho_1",
+      "search_stage": "retune",
+      "hyperparameters": {
+        "step_size": 0.0015,
+        "num_local_epochs": 5,
+        "rho": 1.0,
+        "local_solver": "adam",
+        "solver_args": {
+          "beta1": 0.5,
+          "beta2": 0.999,
+          "epsilon": 1e-08
+        }
+      },
+      "selected_solver": "adam"
+    },
+    {
+      "algorithm_name": "FedLT",
+      "variant": "adam_lr_0p003_e5_rho_1",
+      "search_stage": "retune",
+      "hyperparameters": {
+        "step_size": 0.003,
+        "num_local_epochs": 5,
+        "rho": 1.0,
+        "local_solver": "adam",
+        "solver_args": {
+          "beta1": 0.5,
+          "beta2": 0.999,
+          "epsilon": 1e-08
+        }
+      },
+      "selected_solver": "adam"
+    },
+    {
+      "algorithm_name": "FedLT",
+      "variant": "adam_lr_0p0015_e4_rho_0p1",
+      "search_stage": "retune",
+      "hyperparameters": {
+        "step_size": 0.0015,
+        "num_local_epochs": 4,
+        "rho": 0.1,
+        "local_solver": "adam",
+        "solver_args": {
+          "beta1": 0.5,
+          "beta2": 0.999,
+          "epsilon": 1e-08
+        }
+      },
+      "selected_solver": "adam"
+    },
+    {
+      "algorithm_name": "FedLT",
+      "variant": "adam_lr_0p0015_e4_rho_0p01",
+      "search_stage": "retune",
+      "hyperparameters": {
+        "step_size": 0.0015,
+        "num_local_epochs": 4,
+        "rho": 0.01,
+        "local_solver": "adam",
+        "solver_args": {
+          "beta1": 0.5,
+          "beta2": 0.999,
+          "epsilon": 1e-08
+        }
+      },
+      "selected_solver": "adam"
+    },
+    {
+      "algorithm_name": "FedLT",
+      "variant": "nesterov_lr_0p0015_e4_rho_0p5",
+      "search_stage": "retune",
+      "hyperparameters": {
+        "step_size": 0.0015,
+        "num_local_epochs": 4,
+        "rho": 0.5,
+        "local_solver": "nesterov",
+        "solver_args": {
+          "momentum": 0.9
+        }
+      },
+      "selected_solver": "nesterov"
+    }
+  ]
+}

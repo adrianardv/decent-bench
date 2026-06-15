@@ -1,0 +1,16 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedDyn lr_0p001_e4_alpha_0p01,server balanced accuracy,,0.5212578646553772,0.0
+FedDyn lr_0p001_e4_alpha_0p01,balanced accuracy,avg,0.4072112729992339,0.0
+FedDyn lr_0p001_e4_alpha_0p01,server accuracy,,0.47727883839741864,0.0
+FedDyn lr_0p001_e4_alpha_0p01,accuracy,avg,0.44174061127543246,0.0
+FedDyn lr_0p001_e4_alpha_0p01,loss,avg,2.4062001867283027,0.0
+FedDyn lr_0p002_e4_alpha_0p01,server balanced accuracy,,0.5048172326047595,0.0
+FedDyn lr_0p002_e4_alpha_0p01,balanced accuracy,avg,0.4007712878187619,0.0
+FedDyn lr_0p002_e4_alpha_0p01,server accuracy,,0.48857219682710407,0.0
+FedDyn lr_0p002_e4_alpha_0p01,accuracy,avg,0.44716321591825764,0.0
+FedDyn lr_0p002_e4_alpha_0p01,loss,avg,2.634842452802703,0.0
+FedDyn lr_0p016_e3_alpha_0p33,server balanced accuracy,,0.4270764852950668,0.0
+FedDyn lr_0p016_e3_alpha_0p33,balanced accuracy,avg,0.3461670841359242,0.0
+FedDyn lr_0p016_e3_alpha_0p33,server accuracy,,0.35036300080666843,0.0
+FedDyn lr_0p016_e3_alpha_0p33,accuracy,avg,0.38966568073854985,0.0
+FedDyn lr_0p016_e3_alpha_0p33,loss,avg,3.5584472678880363,0.0

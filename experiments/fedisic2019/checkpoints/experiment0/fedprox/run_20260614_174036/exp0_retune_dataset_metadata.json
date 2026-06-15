@@ -1,0 +1,108 @@
+{
+  "center_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "center_names": {
+    "0": "BCN",
+    "1": "HAM_vidir_molemax",
+    "2": "HAM_vidir_modern",
+    "3": "HAM_rosendahl",
+    "4": "MSK",
+    "5": "HAM_vienna_dias"
+  },
+  "class_names": [
+    "MEL",
+    "NV",
+    "BCC",
+    "AK",
+    "BKL",
+    "DF",
+    "VASC",
+    "SCC"
+  ],
+  "n_classes": 8,
+  "n_train_samples_after_validation_split": 14878,
+  "n_validation_samples": 3719,
+  "max_samples_per_client": null,
+  "run_config": {
+    "algorithm": "fedprox",
+    "iterations": 1000,
+    "final_iterations": 1500,
+    "n_trials": 1,
+    "run_final": true,
+    "batch_size": 64,
+    "device": "gpu",
+    "model": "efficientnet_b0",
+    "pretrained": true,
+    "class_weight_mode": "flamby",
+    "client_participation": "full",
+    "retune_candidate_count": 6
+  },
+  "retune_candidates": [
+    {
+      "algorithm_name": "FedProx",
+      "variant": "current_best_high_lr_mu",
+      "search_stage": "retune",
+      "hyperparameters": {
+        "step_size": 0.03202611336126023,
+        "num_local_epochs": 4,
+        "mu": 0.03804421124041356
+      }
+    },
+    {
+      "algorithm_name": "FedProx",
+      "variant": "top_alt_lr_0p016_e4_mu_0p0095",
+      "search_stage": "retune",
+      "hyperparameters": {
+        "step_size": 0.016013056680630116,
+        "num_local_epochs": 4,
+        "mu": 0.00951105281010339
+      }
+    },
+    {
+      "algorithm_name": "FedProx",
+      "variant": "flamby_lr_0p01_e4_mu_0p001",
+      "search_stage": "retune",
+      "hyperparameters": {
+        "step_size": 0.01,
+        "num_local_epochs": 4,
+        "mu": 0.001
+      }
+    },
+    {
+      "algorithm_name": "FedProx",
+      "variant": "flamby_lr_0p01_e2_mu_0p001",
+      "search_stage": "retune",
+      "hyperparameters": {
+        "step_size": 0.01,
+        "num_local_epochs": 2,
+        "mu": 0.001
+      }
+    },
+    {
+      "algorithm_name": "FedProx",
+      "variant": "lr_0p02_e3_mu_0p005",
+      "search_stage": "retune",
+      "hyperparameters": {
+        "step_size": 0.02,
+        "num_local_epochs": 3,
+        "mu": 0.005
+      }
+    },
+    {
+      "algorithm_name": "FedProx",
+      "variant": "lr_0p02_e4_mu_0p001",
+      "search_stage": "retune",
+      "hyperparameters": {
+        "step_size": 0.02,
+        "num_local_epochs": 4,
+        "mu": 0.001
+      }
+    }
+  ]
+}
