@@ -218,6 +218,49 @@ Full tuning writes run-specific best files under:
 
 - `experiments/fedisic2019/checkpoints/experiment0/<algorithm>/<run>/exp0_best_hyperparameters.json`
 
+## Experiment 0 Tuning Results
+
+The finalized selected hyperparameters are stored in:
+
+- `experiments/fedisic2019/selected_hyperparameters.json`
+
+Selection criterion:
+
+- primary metric: validation `server balanced accuracy`;
+- tie-breaker: validation loss;
+- tuning trials: `1`;
+- tuning split: `80%` of the official train split for tuning train and `20%` for validation;
+- clean baseline: full participation, always active clients, no drops, no noise, no compression.
+
+Final selected values:
+
+| Algorithm | Selected variant | Hyperparameters |
+| --- | --- | --- |
+| FedAvg | FedAvg | `step_size=0.02`, `num_local_epochs=4` |
+| FedProx | FedProx | `step_size=0.016013056680630116`, `num_local_epochs=4`, `mu=0.00951105281010339` |
+| SCAFFOLD | SCAFFOLD | `step_size=0.02`, `num_local_epochs=5`, `server_step_size=0.875` |
+| FedNova | server momentum only | `step_size=0.007313389878312145`, `num_local_epochs=3`, `use_momentum=false`, `use_server_momentum=true`, `use_prox=false`, `gamma=0.5` |
+| FedOpt family | FedAdam | `step_size=0.008554469418165058`, `num_local_epochs=4`, `server_step_size=0.0071790218875614565`, `beta_1=0.9`, `beta_2=0.9`, `tau=0.001` |
+| FedLT | Adam local solver | `step_size=0.0008`, `num_local_epochs=3`, `rho=0.05`, `local_solver="adam"`, `solver_args={"beta1": 0.5, "beta2": 0.999, "epsilon": 1e-8}` |
+| FedDyn | FedDyn green diagnostic candidate | `step_size=0.016013056680630116`, `num_local_epochs=3`, `alpha=0.33075447277711245` |
+| FedPD | FedPD full participation | `step_size=0.03`, `num_local_epochs=5`, `eta=0.3`, `skip_probability=0.2` |
+
+Additional tuning decisions:
+
+- FedOpt is represented by one final `fedopt` entry selecting `FedAdam`; the earlier separate `fedadam`, `fedyogi`,
+  and `fedadagrad` reference entries were removed from the final selected file.
+- FedLT was refined after the first tuning run. The original conservative candidate was smooth but slow, the retuned
+  faster candidate had stronger final performance but less stable early dynamics, and the final selected intermediate
+  candidate (`step_size=0.0008`, `num_local_epochs=3`, `rho=0.05`) gave the best compromise between balanced accuracy,
+  loss, and curve stability.
+- FedDyn remained under-tuned under the available tuning budget. The first tuning run selected a very low
+  learning-rate/alpha candidate whose curve stayed nearly flat until a late jump. A later diagnostic compared the
+  better-looking alternatives, and the selected green candidate was the most plausible because it improved earlier and
+  reduced loss more consistently. However, even the 1000-iteration green-candidate diagnostic still showed a long flat
+  phase, unstable server accuracy, and only late improvement in server balanced accuracy. FedDyn results should
+  therefore be interpreted cautiously as a likely under-tuned/sensitive baseline rather than as a fully optimized
+  FedDyn configuration.
+
 ## Experiment 0 Retuning
 
 Added `experiments/fedisic2019/experiment0/experiment0_retune.py`.
