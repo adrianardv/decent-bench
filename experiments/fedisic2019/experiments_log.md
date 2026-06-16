@@ -545,6 +545,154 @@ Reduced Experiment 2 writes results under:
 
 - `experiments/fedisic2019/checkpoints/experiment2_reduced_pilot/fedavg/<run>/`
 
+## Results Obtained So Far
+
+Result labels used below:
+
+- Thesis relevant: suitable for the thesis only if clearly labelled with its scope and limitations.
+- Diagnostic only: useful for engineering decisions, sanity checks, or explaining limitations, but not suitable as a
+  headline thesis result.
+- Not thesis relevant: should not be included as an experimental result in the thesis.
+
+### Reduced Experiment 5: Clean Baseline vs Combined Impairments
+
+Thesis relevance: thesis relevant as a reduced-budget pilot result. These results can support the presentation/thesis
+claim that the Fed-ISIC2019 setup trains under clean communication and that combined communication impairments degrade
+or destabilize several methods. They must not be presented as the final full-data Fed-ISIC2019 benchmark, because they
+use the reduced stratified subset, `1000` iterations, and `2` trials.
+
+Result paths:
+
+- clean baseline:
+  `experiments/fedisic2019/checkpoints/experiment5_reduced_pilot/clean_baseline/run_20260615_154644/`
+- combined impairments:
+  `experiments/fedisic2019/checkpoints/experiment5_reduced_pilot/combination/run_20260615_154716/`
+
+Reference metric: server balanced accuracy.
+
+Clean baseline final server metrics:
+
+| Algorithm | Server balanced accuracy | Server accuracy |
+| --- | ---: | ---: |
+| FedAvg | 49.35% +/- 3.90% | 64.25% +/- 6.03% |
+| FedLT | 50.16% +/- 6.55% | 64.38% +/- 12.93% |
+| FedAdam | 50.76% +/- 16.48% | 64.72% +/- 3.45% |
+| FedPD | 47.00% +/- 1.81% | 60.92% +/- 1.72% |
+| SCAFFOLD | 50.43% +/- 8.61% | 64.11% +/- 4.31% |
+
+Combined impairment final server metrics:
+
+| Algorithm | Server balanced accuracy | Server accuracy |
+| --- | ---: | ---: |
+| FedAvg | 43.57% +/- 10.42% | 53.39% +/- 31.89% |
+| FedLT | 10.98% +/- 1.73% | 24.76% +/- 204.30% |
+| FedAdam | 12.47% +/- 0.43% | 49.93% +/- 1.72% |
+| FedPD | 30.06% +/- 44.68% | 40.30% +/- 60.34% |
+| SCAFFOLD | 11.64% +/- 0.01% | 18.05% +/- 37.93% |
+
+Interpretation:
+
+- Under the reduced clean baseline, all five tested algorithms train successfully and end in a narrow server balanced
+  accuracy band of roughly `47%` to `51%`.
+- Under the combined impairment condition, FedAvg is the most stable of the tested algorithms in this reduced pilot.
+- FedPD has non-trivial balanced accuracy under the combined condition, but its uncertainty is very large, so it should
+  not be interpreted as reliably better than the others from this pilot alone.
+- FedLT, FedAdam, and SCAFFOLD collapse close to chance-level balanced accuracy under the combined condition.
+- SCAFFOLD is stable in the clean reduced pilot but unstable under the combined impairment condition. The combined-run
+  plots show very large client drift, so this is likely an impairment-interaction issue rather than a general
+  implementation failure of SCAFFOLD.
+- The loss plots under the combined condition are not a reliable ranking signal. Some methods show extreme loss values
+  or degenerate-looking loss curves under impairment, while balanced accuracy remains the main reference metric for
+  Fed-ISIC2019.
+
+Recommended use:
+- Include the clean-vs-combined reduced pilot only as a reduced-budget robustness pilot.
+- State explicitly that it is preliminary and uses a smaller stratified subset for computational feasibility.
+- Use server balanced accuracy plots as the main visual evidence.
+
+### Reduced Experiment 2: Aggregation Weighting Pilot
+
+Relevance: diagnostic only. This run is useful as a sanity check for uniform versus data-size weighted
+aggregation on the reduced FedAvg pilot, but it should not be used as a thesis conclusion because it evaluates only one
+algorithm and has high uncertainty.
+
+Result path:
+
+- `experiments/fedisic2019/checkpoints/experiment2_reduced_pilot/fedavg/run_20260615_154731/`
+
+Final server metrics:
+
+| Variant | Server balanced accuracy | Server accuracy |
+| --- | ---: | ---: |
+| FedAvg uniform | 50.72% +/- 19.97% | 63.98% +/- 0.86% |
+| FedAvg data-size weighted | 47.49% +/- 13.01% | 62.21% +/- 23.27% |
+
+Interpretation:
+
+- The reduced pilot does not show a clear advantage for data-size weighted aggregation.
+- The uncertainty is large, especially for server balanced accuracy.
+- Because the run is reduced-budget and FedAvg-only, it should not be used as evidence that aggregation weighting does
+  or does not matter on Fed-ISIC2019.
+
+### Full Experiment 2: FedAvg Aggregation Weighting
+
+This result should not be included in the thesis as an experimental conclusion.
+It is a useful internal sanity check that the full-data FedAvg Experiment 2 run completed and that metrics can be
+recovered from checkpoints, but it evaluates only FedAvg and does not show a meaningful difference between aggregation
+variants.
+
+Result path:
+
+- `experiments/fedisic2019/checkpoints/experiment2/fedavg/run_20260615_131734/`
+
+Final server metrics:
+
+| Variant | Server balanced accuracy | Server accuracy |
+| --- | ---: | ---: |
+| FedAvg uniform | 74.98% +/- 0.78% | 79.68% +/- 1.02% |
+| FedAvg data-size weighted | 74.78% +/- 4.71% | 79.95% +/- 3.90% |
+
+Interpretation:
+
+- Uniform and data-size weighted aggregation are essentially tied for FedAvg in this full-data run.
+- The data-size weighted variant has a much larger margin of error for server balanced accuracy.
+- Since this is only FedAvg and not the complete Experiment 2 algorithm set, it should not be used for the thesis
+  comparison of aggregation weighting.
+
+### Experiment 0 Diagnostic Curves
+
+Thesis relevance: diagnostic only, except for the selected hyperparameters and the FedDyn limitation note. The
+diagnostic curves explain why the final selected hyperparameters were chosen and why FedDyn should be interpreted
+cautiously.
+
+FedLT diagnostics:
+
+| Candidate | Server balanced accuracy | Server accuracy | Average loss |
+| --- | ---: | ---: | ---: |
+| `step_size=0.0008`, `num_local_epochs=3`, `rho=0.05` | 69.03% | 71.23% | 0.3548 |
+| `step_size=0.001`, `num_local_epochs=3`, `rho=0.05` | 67.87% | 71.31% | 0.4403 |
+
+Interpretation: the `0.0008` FedLT candidate was kept because it gave slightly higher server balanced accuracy and a
+lower loss than the otherwise similar `0.001` candidate. The result remains a tuning diagnostic rather than a thesis
+benchmark result.
+
+FedDyn diagnostics:
+
+| Candidate | Server balanced accuracy | Server accuracy | Average loss |
+| --- | ---: | ---: | ---: |
+| `step_size=0.001`, `num_local_epochs=4`, `alpha=0.01` | 52.13% | 47.73% | 2.4062 |
+| `step_size=0.002`, `num_local_epochs=4`, `alpha=0.01` | 50.48% | 48.86% | 2.6348 |
+| `step_size=0.016013056680630116`, `num_local_epochs=3`, `alpha=0.33075447277711245` | 42.71% | 35.04% | 3.5584 |
+| green 1000-iteration diagnostic with the final selected parameters | 48.23% | 42.35% | 2.2643 |
+
+Interpretation: FedDyn remains under-tuned. The green candidate was kept as the most plausible selected option because
+its curve improved earlier and its loss decreased more consistently, but its final behavior is still not competitive or
+fully satisfactory. FedDyn should be described as an under-tuned or sensitive baseline in any thesis discussion.
+
+### Results Not Yet Documented
+
+Full Experiment 5 condition results.
+
 ## Inspection Figures
 
 The inspection command writes the following paths:
