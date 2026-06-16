@@ -1,0 +1,270 @@
+{
+  "experiment": "experiment5_communication_impairments",
+  "title": "Fed-ISIC2019 communication impairment robustness benchmark",
+  "purpose": "Evaluate robustness of tuned Fed-ISIC2019 federated algorithms under cross-silo availability, compression, message-drop, additive-noise, and combined impairments.",
+  "execution": "one condition per launch; all configured algorithms are run together in one benchmark() call",
+  "dataset": "Fed-ISIC2019",
+  "dataset_source": "flwrlabs/fed-isic2019",
+  "partition": "natural FLamby/Flower center split",
+  "evaluation_split": "official Fed-ISIC2019 test split",
+  "n_clients": 6,
+  "n_classes": 8,
+  "class_names": [
+    "MEL",
+    "NV",
+    "BCC",
+    "AK",
+    "BKL",
+    "DF",
+    "VASC",
+    "SCC"
+  ],
+  "center_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "center_names": {
+    "0": "BCN",
+    "1": "HAM_vidir_molemax",
+    "2": "HAM_vidir_modern",
+    "3": "HAM_rosendahl",
+    "4": "MSK",
+    "5": "HAM_vienna_dias"
+  },
+  "n_train_samples": 18597,
+  "n_test_samples": 4650,
+  "n_trials": 3,
+  "iterations": 2500,
+  "state_snapshot_period": 250,
+  "checkpoint_step": null,
+  "batch_size": 64,
+  "seed": 20260524,
+  "device": "gpu",
+  "load_dataset": false,
+  "selected_hyperparameters_path": "experiments/fedisic2019/selected_hyperparameters.json",
+  "selected_hyperparameters": {
+    "experiment": "Fed-ISIC2019 selected hyperparameters",
+    "selection_status": "finalized_after_experiment0_tuning_and_diagnostics",
+    "purpose": "Clean-baseline selected hyperparameters for Fed-ISIC2019 Experiment 2 and Experiment 5 runs.",
+    "selection_notes": {
+      "metric": "Primary tuning metric is server balanced accuracy; validation loss is the tie-breaker.",
+      "tuning_trials": 1,
+      "tuning_iterations": 1000,
+      "final_curve_iterations": 1500,
+      "future_main_experiment_trials": "Use 3 trials by default after hyperparameters are selected; consider 5 only if compute budget allows.",
+      "client_participation": "Full participation over the six natural Fed-ISIC2019 centers.",
+      "communication": "No drops, no noise, no compression.",
+      "fednova_variant_selection": "Selected server momentum only: use_momentum=false, use_server_momentum=true, use_prox=false.",
+      "fedlt_variant_selection": "Selected Adam local solver with an intermediate learning rate/rho candidate after comparing previous best, retune best, middle, and lr=0.001 diagnostic curves.",
+      "fedopt_family_selection": "Selected FedAdam over FedYogi and FedAdagrad.",
+      "feddyn_note": "FedDyn remained hard to tune under the available budget; the selected green diagnostic candidate is the most plausible tested option but should be interpreted cautiously."
+    },
+    "algorithms": {
+      "fedavg": {
+        "algorithm_name": "FedAvg",
+        "hyperparameters": {
+          "step_size": 0.02,
+          "num_local_epochs": 4
+        }
+      },
+      "fedprox": {
+        "algorithm_name": "FedProx",
+        "hyperparameters": {
+          "step_size": 0.016013056680630116,
+          "num_local_epochs": 4,
+          "mu": 0.00951105281010339
+        }
+      },
+      "scaffold": {
+        "algorithm_name": "SCAFFOLD",
+        "hyperparameters": {
+          "step_size": 0.02,
+          "num_local_epochs": 5,
+          "server_step_size": 0.875
+        }
+      },
+      "fednova": {
+        "algorithm_name": "FedNova",
+        "hyperparameters": {
+          "step_size": 0.007313389878312145,
+          "num_local_epochs": 3,
+          "use_momentum": false,
+          "use_server_momentum": true,
+          "use_prox": false,
+          "gamma": 0.5
+        }
+      },
+      "fedopt": {
+        "algorithm_name": "FedAdam",
+        "selected_algorithm": "FedAdam",
+        "hyperparameters": {
+          "step_size": 0.008554469418165058,
+          "num_local_epochs": 4,
+          "server_step_size": 0.0071790218875614565,
+          "beta_1": 0.9,
+          "beta_2": 0.9,
+          "tau": 0.001
+        }
+      },
+      "fedlt": {
+        "algorithm_name": "FedLT",
+        "selected_solver": "adam",
+        "hyperparameters": {
+          "step_size": 0.0008,
+          "num_local_epochs": 3,
+          "rho": 0.05,
+          "local_solver": "adam",
+          "solver_args": {
+            "beta1": 0.5,
+            "beta2": 0.999,
+            "epsilon": 1e-08
+          }
+        }
+      },
+      "feddyn": {
+        "algorithm_name": "FedDyn",
+        "hyperparameters": {
+          "step_size": 0.016013056680630116,
+          "num_local_epochs": 3,
+          "alpha": 0.33075447277711245
+        }
+      },
+      "fedpd": {
+        "algorithm_name": "FedPD",
+        "participation": "full",
+        "hyperparameters": {
+          "step_size": 0.03,
+          "num_local_epochs": 5,
+          "eta": 0.3,
+          "skip_probability": 0.2
+        }
+      }
+    }
+  },
+  "model": "efficientnet_b0",
+  "pretrained": true,
+  "loss": "WeightedFocalLoss(gamma=2.0, alpha=FLamby Fed-ISIC2019 weights by default)",
+  "class_weight_mode": "flamby",
+  "network": {
+    "participation": "full participation over active clients",
+    "client_selection": null,
+    "cross_silo_rationale": "Cross-silo FL usually defaults to full participation because the number of institutions is small and coordination is more controlled than in cross-device FL.",
+    "availability_rationale": "Cross-silo clients are generally assumed to be available and stable, but temporary unavailability can still happen due to maintenance windows, system failures, or connectivity incidents. This experiment therefore tests a high availability rate, UniformActivationRate(0.80).",
+    "noise": "condition-specific",
+    "compression": "condition-specific",
+    "drops": "condition-specific",
+    "impairments_apply_bidirectionally": true
+  },
+  "condition": {
+    "key": "combination",
+    "label": "Combination",
+    "impairment_label": "UniformActivationRate(0.80) + TopK(0.10) + UniformDropRate(0.20) + GaussianNoise(0, 0.001)",
+    "parameters": {
+      "activation": "UniformActivationRate",
+      "activation_probability": 0.8,
+      "compression": "TopK",
+      "k": 0.1,
+      "drops": "UniformDropRate",
+      "drop_rate": 0.2,
+      "noise": "GaussianNoise",
+      "mean": 0.0,
+      "std": 0.001
+    }
+  },
+  "condition_definitions": [
+    {
+      "key": "clean_baseline",
+      "label": "Clean baseline",
+      "impairment_label": "AlwaysActive + full participation + no noise/compression/drops",
+      "parameters": {
+        "activation": "AlwaysActive",
+        "client_selection": null,
+        "compression": "NoCompression",
+        "drops": "NoDrops",
+        "noise": "NoNoise"
+      }
+    },
+    {
+      "key": "availability",
+      "label": "Availability",
+      "impairment_label": "Availability: UniformActivationRate(0.80)",
+      "parameters": {
+        "activation": "UniformActivationRate",
+        "activation_probability": 0.8
+      }
+    },
+    {
+      "key": "compression",
+      "label": "Compression",
+      "impairment_label": "Compression: TopK(0.10)",
+      "parameters": {
+        "compression": "TopK",
+        "k": 0.1
+      }
+    },
+    {
+      "key": "drops",
+      "label": "Drops",
+      "impairment_label": "Drops: UniformDropRate(0.20)",
+      "parameters": {
+        "drops": "UniformDropRate",
+        "drop_rate": 0.2
+      }
+    },
+    {
+      "key": "noise",
+      "label": "Noise",
+      "impairment_label": "Noise: GaussianNoise(mean=0.0, std=0.001)",
+      "parameters": {
+        "noise": "GaussianNoise",
+        "mean": 0.0,
+        "std": 0.001
+      }
+    },
+    {
+      "key": "combination",
+      "label": "Combination",
+      "impairment_label": "UniformActivationRate(0.80) + TopK(0.10) + UniformDropRate(0.20) + GaussianNoise(0, 0.001)",
+      "parameters": {
+        "activation": "UniformActivationRate",
+        "activation_probability": 0.8,
+        "compression": "TopK",
+        "k": 0.1,
+        "drops": "UniformDropRate",
+        "drop_rate": 0.2,
+        "noise": "GaussianNoise",
+        "mean": 0.0,
+        "std": 0.001
+      }
+    }
+  ],
+  "requested_algorithms": [
+    "fedavg",
+    "fedprox",
+    "scaffold",
+    "fednova",
+    "fedopt",
+    "fedlt",
+    "feddyn",
+    "fedpd"
+  ],
+  "status": {
+    "condition": "combination",
+    "status": "failed",
+    "algorithms": [
+      "FedAvg",
+      "FedProx",
+      "Scaffold",
+      "FedNova",
+      "FedAdam",
+      "FedLT",
+      "FedDyn",
+      "FedPD"
+    ],
+    "error": "OutOfMemoryError('CUDA out of memory. Tried to allocate 14.00 MiB. GPU 0 has a total capacity of 178.35 GiB of which 7.75 MiB is free. Process 1470674 has 42.18 GiB memory in use. Including non-PyTorch memory, this process has 85.60 GiB memory in use. Process 1474177 has 50.52 GiB memory in use. Of the allocated memory 73.90 GiB is allocated by PyTorch, and 10.84 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)')"
+  }
+}

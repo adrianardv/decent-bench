@@ -1,0 +1,17 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedAvg,server accuracy,,0.5499641577060932,0.06700686274866596
+FedAvg,server balanced accuracy,,0.5576576139661747,0.18522273578121928
+FedProx,server accuracy,,0.6051612903225806,0.006672445177473896
+FedProx,server balanced accuracy,,0.597926235066161,0.07783766765700662
+Scaffold,server accuracy,,0.18344086021505376,0.0
+Scaffold,server balanced accuracy,,0.125,0.0
+FedNova,server accuracy,,0.3984946236559139,0.23121496988022486
+FedNova,server balanced accuracy,,0.12548434927455462,0.0037449737169786557
+FedAdam,server accuracy,,0.4821505376344086,0.0
+FedAdam,server balanced accuracy,,0.125,0.0
+FedLT,server accuracy,,0.1575627240143369,0.11134463336484272
+FedLT,server balanced accuracy,,0.12541636731642827,0.0017914839706085622
+FedDyn,server accuracy,,0.06881720430107527,0.20680095393860204
+FedDyn,server balanced accuracy,,0.11807059410536931,0.013613282560857101
+FedPD,server accuracy,,0.4751971326164875,0.11807943343314342
+FedPD,server balanced accuracy,,0.4941223003866386,0.010326877987047678
