@@ -1,0 +1,29 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedAvg uniform,accuracy,min,0.616989247311828,0.040059613677511985
+FedAvg uniform,accuracy,avg,0.7073476702508961,0.022818028490233844
+FedAvg uniform,accuracy,max,0.7891039426523297,0.006972243365799824
+FedAvg uniform,balanced accuracy,min,0.47554251848221235,0.04122418741498979
+FedAvg uniform,balanced accuracy,avg,0.6193859900229833,0.01576533267607494
+FedAvg uniform,balanced accuracy,max,0.7417965946741739,0.01585607859135607
+FedAvg uniform,precision,min,0.616989247311828,0.040059613677511985
+FedAvg uniform,precision,avg,0.7073476702508961,0.022818028490233844
+FedAvg uniform,precision,max,0.7891039426523297,0.006972243365799824
+FedAvg uniform,recall,min,0.616989247311828,0.040059613677511985
+FedAvg uniform,recall,avg,0.7073476702508961,0.022818028490233844
+FedAvg uniform,recall,max,0.7891039426523297,0.006972243365799824
+FedAvg uniform,server accuracy,,0.7967741935483871,0.010192328365405734
+FedAvg uniform,server balanced accuracy,,0.749826966017119,0.007821034978537034
+FedAvg data-size weighted,accuracy,min,0.6649462365591398,0.04118372072062437
+FedAvg data-size weighted,accuracy,avg,0.7252568697729989,0.012384281005004882
+FedAvg data-size weighted,accuracy,max,0.7962007168458781,0.05239836973918088
+FedAvg data-size weighted,balanced accuracy,min,0.5658914910626665,0.042631732129386424
+FedAvg data-size weighted,balanced accuracy,avg,0.6542164102832254,0.009964123250973511
+FedAvg data-size weighted,balanced accuracy,max,0.7418197335219435,0.05918977261148106
+FedAvg data-size weighted,precision,min,0.6649462365591398,0.04118372072062437
+FedAvg data-size weighted,precision,avg,0.7252568697729989,0.012384281005004882
+FedAvg data-size weighted,precision,max,0.7962007168458781,0.05239836973918088
+FedAvg data-size weighted,recall,min,0.6649462365591398,0.04118372072062437
+FedAvg data-size weighted,recall,avg,0.7252568697729989,0.012384281005004882
+FedAvg data-size weighted,recall,max,0.7962007168458781,0.05239836973918088
+FedAvg data-size weighted,server accuracy,,0.7994982078853047,0.038955578502882005
+FedAvg data-size weighted,server balanced accuracy,,0.7478247042949578,0.04706199595362215
