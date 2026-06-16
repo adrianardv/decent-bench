@@ -1,0 +1,238 @@
+{
+  "experiment": "experiment5_reduced_pilot",
+  "title": "Fed-ISIC2019 reduced-budget communication impairment pilot",
+  "purpose": "Produce time-bounded diagnostic results for clean and combined communication conditions when the full-data Experiment 5 is too expensive to finish under the deadline.",
+  "important_limitations": "This is a reduced-budget pilot using stratified proportional train/test subsets. It is not a replacement for the full Fed-ISIC2019 benchmark.",
+  "dataset": "Fed-ISIC2019",
+  "dataset_source": "flwrlabs/fed-isic2019",
+  "partition": "natural FLamby/Flower center split, then stratified proportional sampling within each center",
+  "evaluation_split": "stratified proportional sample from the official Fed-ISIC2019 test split",
+  "n_clients": 6,
+  "n_classes": 8,
+  "class_names": [
+    "MEL",
+    "NV",
+    "BCC",
+    "AK",
+    "BKL",
+    "DF",
+    "VASC",
+    "SCC"
+  ],
+  "center_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "center_names": {
+    "0": "BCN",
+    "1": "HAM_vidir_molemax",
+    "2": "HAM_vidir_modern",
+    "3": "HAM_rosendahl",
+    "4": "MSK",
+    "5": "HAM_vienna_dias"
+  },
+  "n_train_samples": 1961,
+  "n_test_samples": 737,
+  "sampling": {
+    "sample_fraction_per_center": 0.1,
+    "min_samples_per_center": 100,
+    "strategy": "For each official split and center, select ceil(10% of that split-center size), with a minimum of 100 samples when available, using deterministic stratified sampling by class.",
+    "seed": 20260524
+  },
+  "reduced_dataset_outputs": {
+    "metadata_csv": "experiments/fedisic2019/figures/reduced_pilot/reduced_dataset_metadata.csv",
+    "class_counts_csv": "experiments/fedisic2019/figures/reduced_pilot/reduced_dataset_class_counts.csv",
+    "center_class_counts_csv": "experiments/fedisic2019/figures/reduced_pilot/reduced_dataset_center_class_counts.csv",
+    "class_distribution_plot": "experiments/fedisic2019/figures/reduced_pilot/reduced_dataset_class_distribution.png",
+    "client_class_distribution_plot": "experiments/fedisic2019/figures/reduced_pilot/reduced_dataset_client_class_distribution.png"
+  },
+  "n_trials": 2,
+  "iterations": 1000,
+  "state_snapshot_period": 200,
+  "checkpoint_step": null,
+  "batch_size": 64,
+  "seed": 20260524,
+  "device": "gpu",
+  "load_dataset": false,
+  "selected_hyperparameters_path": "experiments/fedisic2019/selected_hyperparameters.json",
+  "selected_hyperparameters": {
+    "experiment": "Fed-ISIC2019 selected hyperparameters",
+    "selection_status": "finalized_after_experiment0_tuning_and_diagnostics",
+    "purpose": "Clean-baseline selected hyperparameters for Fed-ISIC2019 Experiment 2 and Experiment 5 runs.",
+    "selection_notes": {
+      "metric": "Primary tuning metric is server balanced accuracy; validation loss is the tie-breaker.",
+      "tuning_trials": 1,
+      "tuning_iterations": 1000,
+      "final_curve_iterations": 1500,
+      "future_main_experiment_trials": "Use 3 trials by default after hyperparameters are selected; consider 5 only if compute budget allows.",
+      "client_participation": "Full participation over the six natural Fed-ISIC2019 centers.",
+      "communication": "No drops, no noise, no compression.",
+      "fednova_variant_selection": "Selected server momentum only: use_momentum=false, use_server_momentum=true, use_prox=false.",
+      "fedlt_variant_selection": "Selected Adam local solver with an intermediate learning rate/rho candidate after comparing previous best, retune best, middle, and lr=0.001 diagnostic curves.",
+      "fedopt_family_selection": "Selected FedAdam over FedYogi and FedAdagrad.",
+      "feddyn_note": "FedDyn remained hard to tune under the available budget; the selected green diagnostic candidate is the most plausible tested option but should be interpreted cautiously."
+    },
+    "algorithms": {
+      "fedavg": {
+        "algorithm_name": "FedAvg",
+        "hyperparameters": {
+          "step_size": 0.02,
+          "num_local_epochs": 4
+        }
+      },
+      "fedprox": {
+        "algorithm_name": "FedProx",
+        "hyperparameters": {
+          "step_size": 0.016013056680630116,
+          "num_local_epochs": 4,
+          "mu": 0.00951105281010339
+        }
+      },
+      "scaffold": {
+        "algorithm_name": "SCAFFOLD",
+        "hyperparameters": {
+          "step_size": 0.02,
+          "num_local_epochs": 5,
+          "server_step_size": 0.875
+        }
+      },
+      "fednova": {
+        "algorithm_name": "FedNova",
+        "hyperparameters": {
+          "step_size": 0.007313389878312145,
+          "num_local_epochs": 3,
+          "use_momentum": false,
+          "use_server_momentum": true,
+          "use_prox": false,
+          "gamma": 0.5
+        }
+      },
+      "fedopt": {
+        "algorithm_name": "FedAdam",
+        "selected_algorithm": "FedAdam",
+        "hyperparameters": {
+          "step_size": 0.008554469418165058,
+          "num_local_epochs": 4,
+          "server_step_size": 0.0071790218875614565,
+          "beta_1": 0.9,
+          "beta_2": 0.9,
+          "tau": 0.001
+        }
+      },
+      "fedlt": {
+        "algorithm_name": "FedLT",
+        "selected_solver": "adam",
+        "hyperparameters": {
+          "step_size": 0.0008,
+          "num_local_epochs": 3,
+          "rho": 0.05,
+          "local_solver": "adam",
+          "solver_args": {
+            "beta1": 0.5,
+            "beta2": 0.999,
+            "epsilon": 1e-08
+          }
+        }
+      },
+      "feddyn": {
+        "algorithm_name": "FedDyn",
+        "hyperparameters": {
+          "step_size": 0.016013056680630116,
+          "num_local_epochs": 3,
+          "alpha": 0.33075447277711245
+        }
+      },
+      "fedpd": {
+        "algorithm_name": "FedPD",
+        "participation": "full",
+        "hyperparameters": {
+          "step_size": 0.03,
+          "num_local_epochs": 5,
+          "eta": 0.3,
+          "skip_probability": 0.2
+        }
+      }
+    }
+  },
+  "model": "efficientnet_b0",
+  "pretrained": true,
+  "loss": "WeightedFocalLoss(gamma=2.0, alpha=FLamby Fed-ISIC2019 weights by default)",
+  "class_weight_mode": "flamby",
+  "network": {
+    "participation": "full participation over active clients",
+    "client_selection": null,
+    "noise": "condition-specific",
+    "compression": "condition-specific",
+    "drops": "condition-specific",
+    "impairments_apply_bidirectionally": true
+  },
+  "condition": {
+    "key": "combination",
+    "label": "Combination",
+    "impairment_label": "UniformActivationRate(0.80) + TopK(0.10) + UniformDropRate(0.20) + GaussianNoise(0, 0.001)",
+    "parameters": {
+      "activation": "UniformActivationRate",
+      "activation_probability": 0.8,
+      "compression": "TopK",
+      "k": 0.1,
+      "drops": "UniformDropRate",
+      "drop_rate": 0.2,
+      "noise": "GaussianNoise",
+      "mean": 0.0,
+      "std": 0.001
+    }
+  },
+  "condition_definitions": [
+    {
+      "key": "clean_baseline",
+      "label": "Clean baseline",
+      "impairment_label": "AlwaysActive + full participation + no noise/compression/drops",
+      "parameters": {
+        "activation": "AlwaysActive",
+        "client_selection": null,
+        "compression": "NoCompression",
+        "drops": "NoDrops",
+        "noise": "NoNoise"
+      }
+    },
+    {
+      "key": "combination",
+      "label": "Combination",
+      "impairment_label": "UniformActivationRate(0.80) + TopK(0.10) + UniformDropRate(0.20) + GaussianNoise(0, 0.001)",
+      "parameters": {
+        "activation": "UniformActivationRate",
+        "activation_probability": 0.8,
+        "compression": "TopK",
+        "k": 0.1,
+        "drops": "UniformDropRate",
+        "drop_rate": 0.2,
+        "noise": "GaussianNoise",
+        "mean": 0.0,
+        "std": 0.001
+      }
+    }
+  ],
+  "requested_algorithms": [
+    "fedavg",
+    "fedlt",
+    "fedopt",
+    "fedpd",
+    "scaffold"
+  ],
+  "algorithm_note": "`fedopt` resolves to the selected FedOpt-family winner, currently FedAdam.",
+  "status": {
+    "condition": "combination",
+    "status": "ok",
+    "algorithms": [
+      "FedAvg",
+      "FedLT",
+      "FedAdam",
+      "FedPD",
+      "Scaffold"
+    ]
+  }
+}

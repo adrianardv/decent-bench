@@ -1,0 +1,226 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedAvg,gradient norm,,0.2580129876732826,0.16934385877476965
+FedAvg,consensus error,min,0.10121148079633713,0.5648259216656621
+FedAvg,consensus error,avg,0.17952167553206283,0.8454466559618221
+FedAvg,consensus error,max,0.468034066259861,3.2014447664056163
+FedAvg,loss,min,0.00017600063454213124,0.0007793667858125163
+FedAvg,loss,avg,0.03659314854263954,0.42027687551058307
+FedAvg,loss,max,0.21037943783859825,2.547735801358552
+FedAvg,nr x updates,avg,1000.0,0.0
+FedAvg,nr x updates,sum,6000.0,0.0
+FedAvg,nr function calls,avg,0.0,0.0
+FedAvg,nr function calls,sum,0.0,0.0
+FedAvg,nr gradient calls,avg,256000.0,0.0
+FedAvg,nr gradient calls,sum,1536000.0,0.0
+FedAvg,nr Hessian calls,avg,0.0,0.0
+FedAvg,nr Hessian calls,sum,0.0,0.0
+FedAvg,nr proximal calls,avg,0.0,0.0
+FedAvg,nr proximal calls,sum,0.0,0.0
+FedAvg,nr sent messages,avg,1714.2857142857142,0.0
+FedAvg,nr sent messages,sum,12000.0,0.0
+FedAvg,nr received messages,avg,1714.2857142857142,0.0
+FedAvg,nr received messages,sum,12000.0,0.0
+FedAvg,nr sent messages dropped,avg,0.0,0.0
+FedAvg,nr sent messages dropped,sum,0.0,0.0
+FedAvg,mse,min,2.7815468113975577,0.7068580653774235
+FedAvg,mse,avg,3.2088421528720037,0.6048521250485659
+FedAvg,mse,max,3.812754409769335,1.0516668777566567
+FedAvg,accuracy,min,0.5848032564450475,0.051721321856884495
+FedAvg,accuracy,avg,0.6116010854816825,0.004310110154740032
+FedAvg,accuracy,max,0.6458616010854816,0.0862022030948083
+FedAvg,balanced accuracy,min,0.37053940679381947,0.2679256168243092
+FedAvg,balanced accuracy,avg,0.44545300274425154,0.14463292034249858
+FedAvg,balanced accuracy,max,0.5048164997243343,0.16527642000516668
+FedAvg,precision,min,0.5848032564450475,0.051721321856884495
+FedAvg,precision,avg,0.6116010854816825,0.004310110154740032
+FedAvg,precision,max,0.6458616010854816,0.0862022030948083
+FedAvg,recall,min,0.5848032564450475,0.051721321856884495
+FedAvg,recall,avg,0.6116010854816825,0.004310110154740032
+FedAvg,recall,max,0.6458616010854816,0.0862022030948083
+FedAvg,client drift from server,min,0.10121148079633713,0.5648259216656621
+FedAvg,client drift from server,avg,0.17952167553206283,0.8454466559618221
+FedAvg,client drift from server,max,0.468034066259861,3.2014447664056163
+FedAvg,fraction selected clients,,1.0,0.0
+FedAvg,server mse,,2.8154681139755766,0.7758198278532698
+FedAvg,server accuracy,,0.6424694708276798,0.060341542166366
+FedAvg,server balanced accuracy,,0.49348543747161766,0.03901503807667317
+FedLT,gradient norm,,0.7229160964488983,0.6759122371793349
+FedLT,consensus error,min,1.9852373003959656,0.021730609684888158
+FedLT,consensus error,avg,2.000117838382721,0.026140904311859225
+FedLT,consensus error,max,2.00579571723938,0.011172409788849924
+FedLT,loss,min,0.0015345055633224547,0.005110357631294802
+FedLT,loss,avg,0.03333826164315632,0.14556515459986144
+FedLT,loss,max,0.12449964381049108,0.28429139619307475
+FedLT,nr x updates,avg,1000.0,0.0
+FedLT,nr x updates,sum,6000.0,0.0
+FedLT,nr function calls,avg,0.0,0.0
+FedLT,nr function calls,sum,0.0,0.0
+FedLT,nr gradient calls,avg,192000.0,0.0
+FedLT,nr gradient calls,sum,1152000.0,0.0
+FedLT,nr Hessian calls,avg,0.0,0.0
+FedLT,nr Hessian calls,sum,0.0,0.0
+FedLT,nr proximal calls,avg,0.0,0.0
+FedLT,nr proximal calls,sum,0.0,0.0
+FedLT,nr sent messages,avg,1714.2857142857142,0.0
+FedLT,nr sent messages,sum,12000.0,0.0
+FedLT,nr received messages,avg,1714.2857142857142,0.0
+FedLT,nr received messages,sum,12000.0,0.0
+FedLT,nr sent messages dropped,avg,0.0,0.0
+FedLT,nr sent messages dropped,sum,0.0,0.0
+FedLT,mse,min,3.0033921302578017,0.6292760825920989
+FedLT,mse,avg,3.2926277702397106,0.3132013379111305
+FedLT,mse,max,3.7252374491180458,0.922363573114446
+FedLT,accuracy,min,0.5488466757123474,0.09482242340428904
+FedLT,accuracy,avg,0.591248303934871,0.06465165232110603
+FedLT,accuracy,max,0.6343283582089552,0.1982650671180588
+FedLT,balanced accuracy,min,0.3831003489294367,0.2147562305354457
+FedLT,balanced accuracy,avg,0.4558118613059342,0.03564102860068352
+FedLT,balanced accuracy,max,0.5023334555612515,0.1747000304147252
+FedLT,precision,min,0.5488466757123474,0.09482242340428904
+FedLT,precision,avg,0.591248303934871,0.06465165232110603
+FedLT,precision,max,0.6343283582089552,0.1982650671180588
+FedLT,recall,min,0.5488466757123474,0.09482242340428904
+FedLT,recall,avg,0.591248303934871,0.06465165232110603
+FedLT,recall,max,0.6343283582089552,0.1982650671180588
+FedLT,client drift from server,min,1.9670336246490479,0.16244829243961134
+FedLT,client drift from server,avg,2.0122306545575457,0.007371780961773489
+FedLT,client drift from server,max,2.028483271598816,0.005339309179188678
+FedLT,fraction selected clients,,1.0,0.0
+FedLT,server mse,,2.7388059701492535,1.4740576729212145
+FedLT,server accuracy,,0.6438263229308006,0.12930330464221207
+FedLT,server balanced accuracy,,0.5015874690136565,0.065484758299866
+FedAdam,gradient norm,,0.14259860664606094,0.6633801022532388
+FedAdam,consensus error,min,0.016538414638489485,0.05317488657998622
+FedAdam,consensus error,avg,0.029373764991760254,0.07776080584522102
+FedAdam,consensus error,max,0.07534904219210148,0.3373941420982675
+FedAdam,loss,min,6.610086888409966e-06,3.34102080214706e-05
+FedAdam,loss,avg,0.000574763460836283,0.005114281182980315
+FedAdam,loss,max,0.002615676783276296,0.027185547646729695
+FedAdam,nr x updates,avg,1000.0,0.0
+FedAdam,nr x updates,sum,6000.0,0.0
+FedAdam,nr function calls,avg,0.0,0.0
+FedAdam,nr function calls,sum,0.0,0.0
+FedAdam,nr gradient calls,avg,256000.0,0.0
+FedAdam,nr gradient calls,sum,1536000.0,0.0
+FedAdam,nr Hessian calls,avg,0.0,0.0
+FedAdam,nr Hessian calls,sum,0.0,0.0
+FedAdam,nr proximal calls,avg,0.0,0.0
+FedAdam,nr proximal calls,sum,0.0,0.0
+FedAdam,nr sent messages,avg,1714.2857142857142,0.0
+FedAdam,nr sent messages,sum,12000.0,0.0
+FedAdam,nr received messages,avg,1714.2857142857142,0.0
+FedAdam,nr received messages,sum,12000.0,0.0
+FedAdam,nr sent messages dropped,avg,0.0,0.0
+FedAdam,nr sent messages dropped,sum,0.0,0.0
+FedAdam,mse,min,2.508819538670285,0.7585793872343096
+FedAdam,mse,avg,2.9961555857078244,1.9941442982598918
+FedAdam,mse,max,3.573270013568521,2.198156178917604
+FedAdam,accuracy,min,0.5766621438263229,0.08620220309480825
+FedAdam,accuracy,avg,0.6131840796019901,0.0703984658607606
+FedAdam,accuracy,max,0.6472184531886025,0.01724044061896224
+FedAdam,balanced accuracy,min,0.37455066506735313,0.3953981687361493
+FedAdam,balanced accuracy,avg,0.45826056145150135,0.05133143380584565
+FedAdam,balanced accuracy,max,0.5190764138759365,0.008100998360213274
+FedAdam,precision,min,0.5766621438263229,0.08620220309480825
+FedAdam,precision,avg,0.6131840796019901,0.0703984658607606
+FedAdam,precision,max,0.6472184531886025,0.01724044061896224
+FedAdam,recall,min,0.5766621438263229,0.08620220309480825
+FedAdam,recall,avg,0.6131840796019901,0.0703984658607606
+FedAdam,recall,max,0.6472184531886025,0.01724044061896224
+FedAdam,client drift from server,min,0.025682159699499607,0.04841187843510842
+FedAdam,client drift from server,avg,0.037487588512400784,0.08239070007371617
+FedAdam,client drift from server,max,0.08281815052032471,0.36018837719903296
+FedAdam,fraction selected clients,,1.0,0.0
+FedAdam,server mse,,2.5284938941655364,0.7671996075437908
+FedAdam,server accuracy,,0.6472184531886025,0.0344808812379237
+FedAdam,server balanced accuracy,,0.5076267741894748,0.16484115059866838
+FedPD,gradient norm,,0.15498936921358109,0.2224680917356479
+FedPD,consensus error,min,0.088178601115942,0.25829745971457196
+FedPD,consensus error,avg,0.16043771058321,0.3314078124664619
+FedPD,consensus error,max,0.33701954036951065,1.1913531463443952
+FedPD,loss,min,0.00014855169017176161,0.000433059028275635
+FedPD,loss,avg,0.0011974083296525935,0.005132996186047499
+FedPD,loss,max,0.005426473571606588,0.0371706493897093
+FedPD,nr x updates,avg,1000.0,0.0
+FedPD,nr x updates,sum,6000.0,0.0
+FedPD,nr function calls,avg,0.0,0.0
+FedPD,nr function calls,sum,0.0,0.0
+FedPD,nr gradient calls,avg,320000.0,0.0
+FedPD,nr gradient calls,sum,1920000.0,0.0
+FedPD,nr Hessian calls,avg,0.0,0.0
+FedPD,nr Hessian calls,sum,0.0,0.0
+FedPD,nr proximal calls,avg,0.0,0.0
+FedPD,nr proximal calls,sum,0.0,0.0
+FedPD,nr sent messages,avg,1368.857142857143,54.45516315503369
+FedPD,nr sent messages,sum,9582.0,381.18614208524014
+FedPD,nr received messages,avg,1368.857142857143,54.45516315503369
+FedPD,nr received messages,sum,9582.0,381.18614208524014
+FedPD,nr sent messages dropped,avg,0.0,0.0
+FedPD,nr sent messages dropped,sum,0.0,0.0
+FedPD,mse,min,2.682496607869742,1.913688908704738
+FedPD,mse,avg,3.0152645861601086,1.1220653436174144
+FedPD,mse,max,3.5359565807327002,0.5689345404257313
+FedPD,accuracy,min,0.5739484396200814,0.10344264371376977
+FedPD,accuracy,avg,0.6053821800090458,0.005746813539653783
+FedPD,accuracy,max,0.6404341926729986,0.01724044061896146
+FedPD,balanced accuracy,min,0.3843009740068269,0.047657058228782134
+FedPD,balanced accuracy,avg,0.4380731114612193,0.024663358610244823
+FedPD,balanced accuracy,max,0.49717091316898765,0.19443018428581554
+FedPD,precision,min,0.5739484396200814,0.10344264371376977
+FedPD,precision,avg,0.6053821800090458,0.005746813539653783
+FedPD,precision,max,0.6404341926729986,0.01724044061896146
+FedPD,recall,min,0.5739484396200814,0.10344264371376977
+FedPD,recall,avg,0.6053821800090458,0.005746813539653783
+FedPD,recall,max,0.6404341926729986,0.01724044061896146
+FedPD,client drift from server,min,0.11896987631917,0.13922906631521698
+FedPD,client drift from server,avg,0.17364792401591939,0.2988818264801526
+FedPD,client drift from server,max,0.31251784414052963,1.3733726576466023
+FedPD,fraction selected clients,,1.0,0.0
+FedPD,server mse,,2.7632293080054273,1.2671723854936763
+FedPD,server accuracy,,0.6092265943012212,0.01724044061896146
+FedPD,server balanced accuracy,,0.4699928473546493,0.018130497871160167
+Scaffold,gradient norm,,0.2943166643381119,1.0472969753236423
+Scaffold,consensus error,min,0.07481515780091286,0.21452496997988127
+Scaffold,consensus error,avg,0.14116467783848444,0.39760819347751786
+Scaffold,consensus error,max,0.29127324372529984,1.1250480145247084
+Scaffold,loss,min,0.00014761854174139444,0.000563504534169122
+Scaffold,loss,avg,0.0015084675840495512,0.002427084447603567
+Scaffold,loss,max,0.004744989580820875,0.004397207820324927
+Scaffold,nr x updates,avg,1000.0,0.0
+Scaffold,nr x updates,sum,6000.0,0.0
+Scaffold,nr function calls,avg,0.0,0.0
+Scaffold,nr function calls,sum,0.0,0.0
+Scaffold,nr gradient calls,avg,320000.0,0.0
+Scaffold,nr gradient calls,sum,1920000.0,0.0
+Scaffold,nr Hessian calls,avg,0.0,0.0
+Scaffold,nr Hessian calls,sum,0.0,0.0
+Scaffold,nr proximal calls,avg,0.0,0.0
+Scaffold,nr proximal calls,sum,0.0,0.0
+Scaffold,nr sent messages,avg,3428.5714285714284,0.0
+Scaffold,nr sent messages,sum,24000.0,0.0
+Scaffold,nr received messages,avg,3428.5714285714284,0.0
+Scaffold,nr received messages,sum,24000.0,0.0
+Scaffold,nr sent messages dropped,avg,0.0,0.0
+Scaffold,nr sent messages dropped,sum,0.0,0.0
+Scaffold,mse,min,2.7191316146540028,1.620601418182391
+Scaffold,mse,avg,3.122568973315242,1.985524077950413
+Scaffold,mse,max,3.599050203527815,0.26722682959390553
+Scaffold,accuracy,min,0.5658073270013568,0.01724044061896146
+Scaffold,accuracy,avg,0.6091135232926277,0.09913253355902907
+Scaffold,accuracy,max,0.6512890094979646,0.12068308433273134
+Scaffold,balanced accuracy,min,0.4207498784756286,0.13511030630791154
+Scaffold,balanced accuracy,avg,0.46842475320115917,0.054432227223884966
+Scaffold,balanced accuracy,max,0.5205846448048992,0.11287516181461377
+Scaffold,precision,min,0.5658073270013568,0.01724044061896146
+Scaffold,precision,avg,0.6091135232926277,0.09913253355902907
+Scaffold,precision,max,0.6512890094979646,0.12068308433273134
+Scaffold,recall,min,0.5658073270013568,0.01724044061896146
+Scaffold,recall,avg,0.6091135232926277,0.09913253355902907
+Scaffold,recall,max,0.6512890094979646,0.12068308433273134
+Scaffold,client drift from server,min,0.06724141910672188,0.18064894660997827
+Scaffold,client drift from server,avg,0.13836923924585184,0.3777767385157883
+Scaffold,client drift from server,max,0.29716625809669495,1.1553117680302445
+Scaffold,fraction selected clients,,1.0,0.0
+Scaffold,server mse,,2.566485753052917,0.7327187263058677
+Scaffold,server accuracy,,0.641112618724559,0.043101101547403764
+Scaffold,server balanced accuracy,,0.5043274308107026,0.08612455737163982
