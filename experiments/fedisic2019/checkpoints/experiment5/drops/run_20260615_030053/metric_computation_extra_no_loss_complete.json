@@ -1,0 +1,8 @@
+{
+  "extra_metric_computation_complete": true,
+  "metrics": [
+    "client drift from server avg",
+    "balanced accuracy avg"
+  ],
+  "loss": "not computed because full-data Loss metric OOMs on Fed-ISIC2019 checkpoints"
+}

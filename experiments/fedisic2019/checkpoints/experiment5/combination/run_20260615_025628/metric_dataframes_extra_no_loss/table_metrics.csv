@@ -1,0 +1,17 @@
+algorithm,metric,statistic,mean,margin_of_error
+FedAvg,client drift from server,avg,2.6289923058615794,0.37168220735597224
+FedAvg,balanced accuracy,avg,0.4335232431623944,0.13297641409511352
+FedProx,client drift from server,avg,2.5354274643792043,0.3648363612601746
+FedProx,balanced accuracy,avg,0.43686325884594246,0.009444344439379193
+Scaffold,client drift from server,avg,,
+Scaffold,balanced accuracy,avg,0.125,0.0
+FedNova,client drift from server,avg,164.6690190633138,0.32578757121524404
+FedNova,balanced accuracy,avg,0.44340291425009726,0.04868851431230098
+FedAdam,client drift from server,avg,239.36472998725046,1.7127826635028498
+FedAdam,balanced accuracy,avg,0.3886670897751869,0.026374151647451438
+FedLT,client drift from server,avg,863.4157341851128,814.8577076211336
+FedLT,balanced accuracy,avg,0.12593730475322232,0.009859005612719435
+FedDyn,client drift from server,avg,71092.27863226995,228231.59915753856
+FedDyn,balanced accuracy,avg,0.12784222734362874,0.04069275017448126
+FedPD,client drift from server,avg,2.4731382528940835,0.3577845686016978
+FedPD,balanced accuracy,avg,0.41144755500033775,0.08602668563823346
