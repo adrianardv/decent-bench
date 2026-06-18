@@ -197,6 +197,97 @@ The accepted hyperparameters are:
 The machine-readable source of truth is
 [`experiment0/selected_hyperparameters.json`](experiment0/selected_hyperparameters.json).
 
+## Experiment: Communication Robustness
+
+Experiment 5 evaluates the selected algorithms under controlled communication impairments. Each impairment family is
+tested independently against the clean baseline, followed by a condition in which activation, compression, message
+drops, and noise are applied together. The completed conditions with saved server-accuracy results are:
+
+| Condition family | Tested conditions |
+| --- | --- |
+| Clean | Always-active clients, no compression, no message drops, and no message noise |
+| Activations | Uniform activation with `p=0.30` and `p=0.80`; Markov activation with high- and low-availability transition probabilities |
+| Drops | Uniform message-drop rates of `0.05` and `0.50` |
+| Noises | Zero-mean Gaussian message noise with standard deviations `0.001` and `0.01` |
+| Compressions | TopK compression retaining `1%` and `10%` of update elements |
+| Combined | Uniform activation `p=0.50`, TopK `10%`, message-drop rate `0.10`, and Gaussian noise with standard deviation `0.001` |
+
+### Clean
+
+The clean baseline uses always-active clients with no compression, message drops, or message noise. It provides the
+reference performance used to assess degradation under every impaired condition.
+
+![Server accuracy for the clean communication baseline](readme_assets/communication_robustness/clean_baseline_server_accuracy.png)
+
+### Activations
+
+- **Uniform activation:** clients are independently available with probability `p=0.30` in the low-availability
+  condition and `p=0.80` in the high-availability condition.
+- **Markov activation:** the high-availability condition uses inactive-to-active and active-to-inactive transition
+  probabilities of `0.20` and `0.10`; the low-availability condition uses `0.10` and `0.30`.
+
+<table>
+  <tr>
+    <td><img src="readme_assets/communication_robustness/activation_uniform_high_server_accuracy.png" alt="Server accuracy with uniform activation probability 0.80"><br><sub>Uniform activation, p=0.80</sub></td>
+    <td><img src="readme_assets/communication_robustness/activation_uniform_low_server_accuracy.png" alt="Server accuracy with uniform activation probability 0.30"><br><sub>Uniform activation, p=0.30</sub></td>
+  </tr>
+  <tr>
+    <td><img src="readme_assets/communication_robustness/activation_markov_high_availability_server_accuracy.png" alt="Server accuracy with high-availability Markov activation"><br><sub>Markov activation, high availability</sub></td>
+    <td><img src="readme_assets/communication_robustness/activation_markov_low_availability_server_accuracy.png" alt="Server accuracy with low-availability Markov activation"><br><sub>Markov activation, low availability</sub></td>
+  </tr>
+</table>
+
+### Drops
+
+- **Low drop rate:** each message is dropped independently with probability `0.05`.
+- **High drop rate:** each message is dropped independently with probability `0.50`.
+
+<table>
+  <tr>
+    <td><img src="readme_assets/communication_robustness/drops_uniform_low_server_accuracy.png" alt="Server accuracy with uniform message-drop rate 0.05"><br><sub>Uniform drops, p=0.05</sub></td>
+    <td><img src="readme_assets/communication_robustness/drops_uniform_high_server_accuracy.png" alt="Server accuracy with uniform message-drop rate 0.50"><br><sub>Uniform drops, p=0.50</sub></td>
+  </tr>
+</table>
+
+### Noises
+
+- **Low noise:** zero-mean Gaussian noise with standard deviation `0.001` is added to communicated messages.
+- **High noise:** zero-mean Gaussian noise with standard deviation `0.01` is added to communicated messages.
+
+<table>
+  <tr>
+    <td><img src="readme_assets/communication_robustness/noise_gaussian_low_server_accuracy.png" alt="Server accuracy with Gaussian message noise standard deviation 0.001"><br><sub>Gaussian noise, std=0.001</sub></td>
+    <td><img src="readme_assets/communication_robustness/noise_gaussian_high_server_accuracy.png" alt="Server accuracy with Gaussian message noise standard deviation 0.01"><br><sub>Gaussian noise, std=0.01</sub></td>
+  </tr>
+</table>
+
+### Compressions
+
+- **TopK 1%:** only the largest `1%` of update elements by magnitude are retained.
+- **TopK 10%:** the largest `10%` of update elements by magnitude are retained.
+
+<table>
+  <tr>
+    <td><img src="readme_assets/communication_robustness/compression_topk_low_server_accuracy.png" alt="Server accuracy with TopK compression retaining 1 percent"><br><sub>TopK, k=1%</sub></td>
+    <td><img src="readme_assets/communication_robustness/compression_topk_high_server_accuracy.png" alt="Server accuracy with TopK compression retaining 10 percent"><br><sub>TopK, k=10%</sub></td>
+  </tr>
+</table>
+
+### Combined
+
+The combined condition applies uniform client activation with `p=0.50`, TopK compression retaining `10%` of update
+elements, a uniform message-drop rate of `0.10`, and zero-mean Gaussian message noise with standard deviation `0.001`.
+
+![Server accuracy under combined communication impairments](readme_assets/communication_robustness/combined_uniform_topk_drops_server_accuracy.png)
+
+### Results Summary
+
+FedAvg and FedProx were the most robust overall and remained close to their clean baselines even under the combined
+condition. Reduced client availability primarily affected FedLT, while compression, message drops, and Gaussian noise
+produced stronger algorithm-specific failures, especially for SCAFFOLD and FedDyn. Retaining only `1%` with TopK caused
+all algorithms to collapse to near-random accuracy, making aggressive compression the most consistently destructive
+single impairment tested.
+
 ## References
 
 The BibTeX entries used for this dataset setup are stored in `references.bib`.
