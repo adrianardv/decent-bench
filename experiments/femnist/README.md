@@ -32,6 +32,20 @@ keeps the important fields needed for the benchmark:
 The Hugging Face copy has one split, so this experiment code creates a deterministic per-writer train/test split. That is
 similar in spirit to LEAF's sample-level train/test split.
 
+## Dataset Overview
+
+FEMNIST contains 28 x 28 grayscale images from 62 classes: 10 digits, 26 uppercase letters, and 26 lowercase letters.
+Each sample is associated with its writer, which provides the natural client partition used by the federated benchmark.
+
+![Representative FEMNIST digit, uppercase, and lowercase samples](results/inspection/femnist_example_grid.png)
+
+The dataset is imbalanced both across classes and across writers. Digits occur substantially more often than many letter
+classes, while the number of samples contributed by each writer also varies considerably.
+
+![Number of FEMNIST samples per class](results/inspection/samples_per_class.png)
+
+![Histogram of FEMNIST samples per writer](results/inspection/samples_per_writer_histogram.png)
+
 ## First Inspection Command
 
 The Hugging Face source requires the optional `datasets` package:
@@ -123,14 +137,19 @@ All FEMNIST experiments should use the same selected writer set. The selected se
 - `min_test_samples = 20`
 - `clients_per_round = 20` / `selection_fraction = 0.2`
 - `n_trials = 3`
-- `iterations = 1000?`
-- `state_snapshot_period = 100?`
+- `iterations = 1500`
+- `state_snapshot_period = 150`
 - `checkpoint_step = None`
 - `batch_size = 32`
 
 These settings deterministically select the 100 writers that will be used throughout the FEMNIST benchmark experiments.
 Do not change the seed or selection thresholds between experiments, otherwise the runs will no longer be directly
 comparable.
+
+The heatmap below shows the class counts for the selected writers. Rows correspond to writers and columns to the 62
+classes. It illustrates the label-distribution heterogeneity retained by the seeded 100-writer subset.
+
+![Class distributions of the 100 writers selected with seed 20260524](results/inspection/selected_client_class_distributions.png)
 
 The CNN model selected for all FEMNIST experiments is:
 
@@ -148,6 +167,35 @@ Loss: torch.nn.CrossEntropyLoss
 
 The model outputs logits, not softmax probabilities. `torch.nn.CrossEntropyLoss` applies the softmax/log-softmax
 operation internally.
+
+## Hyperparameter Tuning and Selection
+
+Experiment 0 used a fixed hold-out split of the handler's training data: 80% for candidate training and 20% for
+validation. The test split was reserved for the later benchmark experiments. Candidate selection primarily used
+validation/server accuracy, with validation loss as a tie-breaker.
+
+The tuning process used one trial per candidate to control runtime and memory, a client selection fraction of `0.2`, and
+separate processes for each algorithm family. A random or coarse search was followed by a focused grid around the best
+candidate. FedOpt variants, FedNova mechanisms, and FedLT local solvers were explicitly compared. FedPD was tuned with
+full participation because its implementation does not support partial client participation. Final candidates
+were also inspected with longer learning curves; SCAFFOLD was retuned over three trials after its initial one-trial
+selection showed poor stability.
+
+The accepted hyperparameters are:
+
+| Algorithm | Selected variant | Hyperparameters |
+| --- | --- | --- |
+| FedAvg | FedAvg | `step_size=0.1`, `num_local_epochs=4` |
+| FedProx | FedProx | `step_size=0.1`, `num_local_epochs=4`, `mu=0.025887619090591573` |
+| SCAFFOLD | Stable three-trial candidate | `step_size=0.02`, `num_local_epochs=5`, `server_step_size=1.0` |
+| FedNova | Local and server momentum, no proximal term | `step_size=0.015780201353739066`, `num_local_epochs=3`, `use_momentum=true`, `use_server_momentum=true`, `use_prox=false`, `beta=0.5`, `gamma=0.9` |
+| FedAdam | Selected from the FedOpt family | `step_size=0.016454811464286817`, `num_local_epochs=7`, `server_step_size=0.005781649782731609`, `beta_1=0.9`, `beta_2=0.9`, `tau=0.001` |
+| FedLT | Adam local solver | `step_size=0.0015`, `num_local_epochs=5`, `rho=1.0`, `beta1=0.5`, `beta2=0.999`, `epsilon=1e-8` |
+| FedDyn | FedDyn | `step_size=0.02760842017693185`, `num_local_epochs=2`, `alpha=1.0` |
+| FedPD | Full participation | `step_size=0.03`, `num_local_epochs=5`, `eta=0.3`, `skip_probability=0.2` |
+
+The machine-readable source of truth is
+[`experiment0/selected_hyperparameters.json`](experiment0/selected_hyperparameters.json).
 
 ## References
 

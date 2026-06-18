@@ -1,5 +1,8 @@
 data/
-results/
+results/*
+!results/inspection/
+results/inspection/*
+!results/inspection/femnist_example_grid.png
 checkpoints/
 __pycache__/
 *.pyc
