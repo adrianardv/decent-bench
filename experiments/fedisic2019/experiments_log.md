@@ -107,7 +107,7 @@ What is assumed about the source:
 
 Important limitation: I did not independently verify from image pixels or source generation metadata that color constancy has been applied in the Hugging Face artifacts. The handler does not implement color constancy itself. If exact FLamby pixel-level reproduction is required, this should be verified against the FLamby-created `ISIC_2019_Training_Input_preprocessed` files or by using FLamby's dataset creation scripts directly.
 
-Image-size check from `experiments/fedisic2019/inspect_fedisic2019.py` on 2026-06-13:
+Image-size check from `experiments/fedisic2019/inspect_fedisic2019.py`:
 
 - `n_rows`: 23,247
 - unique image sizes: 13
@@ -547,19 +547,112 @@ Reduced Experiment 2 writes results under:
 
 ## Results Obtained So Far
 
-Result labels used below:
+### Full Experiment 5: Clean, Drops, and Combined Impairments
 
-- Thesis relevant: suitable for the thesis only if clearly labelled with its scope and limitations.
-- Diagnostic only: useful for engineering decisions, sanity checks, or explaining limitations, but not suitable as a
-  headline thesis result.
-- Not thesis relevant: should not be included as an experimental result in the thesis.
+They use the full official train/test split, all eight algorithms, `2500` iterations, `3` trials, full participation
+among active clients, and the final selected hyperparameters.
+
+Available conditions:
+
+- clean baseline: always active, no compression, no drops, and no noise;
+- drops: `UniformDropRate(0.20)`;
+- combination: `UniformActivationRate(0.80)`, `TopK(0.10)`, `UniformDropRate(0.20)`, and
+  `GaussianNoise(mean=0.0, std=0.001)`.
+
+Result paths:
+
+- clean baseline: `experiments/fedisic2019/checkpoints/experiment5/clean_baseline/run_20260615_025546/`;
+- combined impairments: `experiments/fedisic2019/checkpoints/experiment5/combination/run_20260615_025628/`;
+- drops: `experiments/fedisic2019/checkpoints/experiment5/drops/run_20260615_030053/`.
+
+Reference metric: server balanced accuracy. Chance-level balanced accuracy for eight classes is `12.5%`.
+
+Final server balanced accuracy:
+
+| Algorithm | Clean | Drops | Change from clean | Combined | Change from clean |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| FedAvg | 75.84% +/- 1.27% | 75.00% +/- 3.16% | -0.84 pp | 55.77% +/- 18.52% | -20.07 pp |
+| FedProx | 75.59% +/- 0.52% | 74.56% +/- 0.23% | -1.03 pp | 59.79% +/- 7.78% | -15.80 pp |
+| SCAFFOLD | 73.58% +/- 10.26% | 12.50% +/- 0.00% | -61.08 pp | 12.50% +/- 0.00% | -61.08 pp |
+| FedNova | 74.84% +/- 1.87% | 72.96% +/- 0.34% | -1.88 pp | 12.55% +/- 0.37% | -62.29 pp |
+| FedAdam | 75.42% +/- 0.27% | 74.34% +/- 2.47% | -1.08 pp | 12.50% +/- 0.00% | -62.92 pp |
+| FedLT | 72.82% +/- 2.60% | 69.24% +/- 7.49% | -3.58 pp | 12.54% +/- 0.18% | -60.28 pp |
+| FedDyn | 59.83% +/- 1.50% | 12.50% +/- 0.18% | -47.33 pp | 11.81% +/- 1.36% | -48.02 pp |
+| FedPD | 75.81% +/- 1.61% | 75.64% +/- 2.92% | -0.16 pp | 49.41% +/- 1.03% | -26.39 pp |
+
+Final server accuracy: # Do not take this as a reference (data is very non-iid)
+
+| Algorithm | Clean | Drops | Combined |
+| --- | ---: | ---: | ---: |
+| FedAvg | 79.99% +/- 1.64% | 78.69% +/- 1.39% | 55.00% +/- 6.70% |
+| FedProx | 79.60% +/- 2.35% | 78.09% +/- 1.39% | 60.52% +/- 0.67% |
+| SCAFFOLD | 76.78% +/- 14.13% | 18.34% +/- 0.00% | 18.34% +/- 0.00% |
+| FedNova | 79.69% +/- 2.76% | 76.27% +/- 6.71% | 39.85% +/- 23.12% |
+| FedAdam | 79.97% +/- 2.03% | 78.52% +/- 4.04% | 48.22% +/- 0.00% |
+| FedLT | 74.75% +/- 3.15% | 71.47% +/- 1.35% | 15.76% +/- 11.13% |
+| FedDyn | 58.19% +/- 5.94% | 14.85% +/- 2.02% | 6.88% +/- 20.68% |
+| FedPD | 79.65% +/- 0.39% | 79.58% +/- 1.72% | 47.52% +/- 11.81% |
+
+Average balanced accuracy across clients:
+
+| Algorithm | Clean | Drops | Combined |
+| --- | ---: | ---: | ---: |
+| FedAvg | 61.34% +/- 3.29% | 60.92% +/- 2.15% | 43.35% +/- 13.30% |
+| FedProx | 60.87% +/- 3.82% | 61.42% +/- 1.20% | 43.69% +/- 0.94% |
+| SCAFFOLD | 56.38% +/- 25.55% | 12.50% +/- 0.00% | 12.50% +/- 0.00% |
+| FedNova | 64.17% +/- 1.63% | 61.21% +/- 5.64% | 44.34% +/- 4.87% |
+| FedAdam | 63.32% +/- 1.46% | 62.17% +/- 2.33% | 38.87% +/- 2.64% |
+| FedLT | 55.62% +/- 2.65% | 53.75% +/- 3.98% | 12.59% +/- 0.99% |
+| FedDyn | 44.26% +/- 3.51% | 12.59% +/- 1.40% | 12.78% +/- 4.07% |
+| FedPD | 64.26% +/- 0.86% | 63.74% +/- 3.15% | 41.14% +/- 8.60% |
+
+Average client drift from the server:
+
+| Algorithm | Clean | Drops | Combined |
+| --- | ---: | ---: | ---: |
+| FedAvg | 0.322 +/- 0.308 | 0.365 +/- 0.509 | 2.629 +/- 0.372 |
+| FedProx | 0.319 +/- 0.479 | 0.247 +/- 0.214 | 2.535 +/- 0.365 |
+| SCAFFOLD | 1.146 +/- 3.645 | unavailable/non-finite | unavailable/non-finite |
+| FedNova | 0.124 +/- 0.071 | 0.198 +/- 0.094 | 164.669 +/- 0.326 |
+| FedAdam | 0.111 +/- 0.089 | 0.204 +/- 0.113 | 239.365 +/- 1.713 |
+| FedLT | 1.952 +/- 0.008 | 1.819 +/- 0.097 | 863.416 +/- 814.858 |
+| FedDyn | 0.307 +/- 0.082 | 734.788 +/- 2262.199 | 71092.279 +/- 228231.599 |
+| FedPD | 0.377 +/- 0.187 | 0.507 +/- 0.412 | 2.473 +/- 0.358 |
+
+Interpretation:
+
+- Under clean communication, FedAvg, FedProx, FedNova, FedAdam, and FedPD form a leading group at approximately
+  `75%` to `76%` server balanced accuracy. Their confidence intervals overlap, so the clean condition does not establish
+  a clear single winner.
+- FedLT is slightly behind the leading group at `72.82%`, because it is slower. SCAFFOLD reaches `73.58%` but has much higher uncertainty.
+- FedDyn is substantially weaker under clean communication (`59.83%`), consistent with the earlier conclusion that its
+  selected configuration remains under-tuned or highly sensitive.
+- A `20%` uniform message-drop rate has little effect on FedAvg, FedProx, FedNova, FedAdam, or FedPD. Their reductions
+  relative to clean are no more than `1.88` percentage points. FedPD is the most stable by this final metric
+  (`-0.16` percentage points).
+- FedLT degrades moderately under drops (`-3.58` percentage points).
+- SCAFFOLD and FedDyn collapse to approximately chance level under drops. FedDyn's average client drift increases from
+  `0.307` to approximately `735`; SCAFFOLD drift is non-finite/unavailable. These results indicate strong instability
+  when client messages are dropped. FedDyn tends to degrade when the drop rate is higher + it is undertuned -> this might explain why it is collapsing here.
+- The combined impairment condition is substantially more difficult than drops alone. FedProx achieves the highest
+  final server balanced accuracy (`59.79%`), followed by FedAvg (`55.77%`) and FedPD (`49.41%`).
+- FedNova and FedAdam remain robust under drops alone but collapse at the server under the combined condition. Their
+  average client balanced accuracies remain around `44%` and `39%`, because of a final increase/peak from collapsed balanced accuracy (might point out to  inestability), while server balanced accuracy falls to chance.
+- FedLT, SCAFFOLD, and FedDyn are also approximately at chance under the combined condition.
+- FedAvg, FedProx, and FedPD have far lower combined-condition client drift than FedNova, FedAdam, FedLT, and FedDyn,
+  which is consistent with their stronger server results. They remain valid/useful even under the tested network stress. Considering also their performance was amongst the top during the clean baseline test. They seem to be the most adequate algorithms/ best profirmign algoirthms for this setting/ tested task.
+
+Note that they have not reached convergence in any of the cases for the 2500 tested iterations, so the indicated reached b.accuracies can still improve.
+
+
+-availability-only, compression-only, and noise-only full-data results are not available, so the individual
+  contribution of each component of the combined condition cannot yet be isolated.
 
 ### Reduced Experiment 5: Clean Baseline vs Combined Impairments
 
-Thesis relevance: thesis relevant as a reduced-budget pilot result. These results can support the presentation/thesis
-claim that the Fed-ISIC2019 setup trains under clean communication and that combined communication impairments degrade
-or destabilize several methods. They must not be presented as the final full-data Fed-ISIC2019 benchmark, because they
-use the reduced stratified subset, `1000` iterations, and `2` trials.
+These runs were useful for validating the
+experimental direction before the full-data runs completed. The reduced results use the stratified subset, `1000` iterations, and `2` trials and should not be
+mixed numerically with the full-data results.
 
 Result paths:
 
@@ -605,11 +698,6 @@ Interpretation:
   or degenerate-looking loss curves under impairment, while balanced accuracy remains the main reference metric for
   Fed-ISIC2019.
 
-Recommended use:
-- Include the clean-vs-combined reduced pilot only as a reduced-budget robustness pilot.
-- State explicitly that it is preliminary and uses a smaller stratified subset for computational feasibility.
-- Use server balanced accuracy plots as the main visual evidence.
-
 ### Reduced Experiment 2: Aggregation Weighting Pilot
 
 Relevance: diagnostic only. This run is useful as a sanity check for uniform versus data-size weighted
@@ -636,10 +724,8 @@ Interpretation:
 
 ### Full Experiment 2: FedAvg Aggregation Weighting
 
-This result should not be included in the thesis as an experimental conclusion.
-It is a useful internal sanity check that the full-data FedAvg Experiment 2 run completed and that metrics can be
-recovered from checkpoints, but it evaluates only FedAvg and does not show a meaningful difference between aggregation
-variants.
+It evaluates only FedAvg and does not show a meaningful difference between aggregation
+variants. * Do not include
 
 Result path:
 
@@ -656,13 +742,10 @@ Interpretation:
 
 - Uniform and data-size weighted aggregation are essentially tied for FedAvg in this full-data run.
 - The data-size weighted variant has a much larger margin of error for server balanced accuracy.
-- Since this is only FedAvg and not the complete Experiment 2 algorithm set, it should not be used for the thesis
-  comparison of aggregation weighting.
 
 ### Experiment 0 Diagnostic Curves
 
-Thesis relevance: diagnostic only, except for the selected hyperparameters and the FedDyn limitation note. The
-diagnostic curves explain why the final selected hyperparameters were chosen and why FedDyn should be interpreted
+The diagnostic curves explain why the final selected hyperparameters were chosen and why FedDyn should be interpreted
 cautiously.
 
 FedLT diagnostics:
@@ -687,11 +770,7 @@ FedDyn diagnostics:
 
 Interpretation: FedDyn remains under-tuned. The green candidate was kept as the most plausible selected option because
 its curve improved earlier and its loss decreased more consistently, but its final behavior is still not competitive or
-fully satisfactory. FedDyn should be described as an under-tuned or sensitive baseline in any thesis discussion.
-
-### Results Not Yet Documented
-
-Full Experiment 5 condition results.
+fully satisfactory. Describe FedDyn as an under-tuned or sensitive baseline in the discussion.
 
 ## Inspection Figures
 
