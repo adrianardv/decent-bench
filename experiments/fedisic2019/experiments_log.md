@@ -276,6 +276,135 @@ Selection criterion:
 - tuning split: `80%` of the official train split for tuning train and `20%` for validation;
 - clean baseline: full participation, always active clients, no drops, no noise, no compression.
 
+### Tuning Procedure
+
+Experiment 0 was run independently for each algorithm group using `--algorithm`. The official test split was not used
+to select hyperparameters. Each run followed this process:
+
+1. Evaluate hand-selected reference candidates based on FLamby settings where available and FEMNIST selections
+   otherwise.
+2. Evaluate `8` random candidates from compact algorithm-specific ranges.
+3. Select the best reference/random candidate by validation server balanced accuracy, using validation loss as the
+   tie-breaker.
+4. Build a focused grid around that coarse winner. Continuous parameters normally use nearby values at approximately
+   half, equal, and double the coarse value; local epochs use nearby integer values.
+5. Evaluate each candidate for `1000` iterations with `1` trial.
+6. Run the selected candidate for `1500` iterations to inspect its complete validation curve before accepting it.
+
+The single tuning trial was a deliberate computational-budget decision. It makes the search feasible with
+EfficientNet-B0 and the full Fed-ISIC2019 training partitions, but it also means that close candidate differences should
+not be treated as statistically conclusive. The later experiments use `3` trials.
+
+Main random-search ranges:
+
+| Algorithm | Randomly varied parameters |
+| --- | --- |
+| FedAvg | `step_size` log-uniform in `[1e-4, 5e-2]`; local epochs in `{1,2,3,4,5}` |
+| FedProx | FedAvg parameters plus `mu` log-uniform in `[1e-4, 1e-1]` |
+| SCAFFOLD | FedAvg parameters plus server step size in `{0.5,1.0}` |
+| FedNova | FedAvg parameters; client momentum, server momentum, proximal, both momenta, and both momenta plus proximal variants |
+| FedOpt | FedAdam/FedYogi/FedAdagrad; client/server step sizes in `[1e-4,5e-2]`; `beta_1`, `beta_2`, and `tau` choices |
+| FedLT | `step_size` in `[1e-4,1e-2]`; local epochs; `rho` in `[1e-2,10]`; GD, Nesterov, and Adam local solvers |
+| FedDyn | FedAvg parameters plus `alpha` log-uniform in `[1e-2,1]` |
+| FedPD | FedAvg parameters plus `eta` in `[1e-2,1]` and skip probability in `{0,0.1,0.2}` |
+
+Candidate counts in the completed broad searches:
+
+| Algorithm group | Reference | Random | Focused grid | Total |
+| --- | ---: | ---: | ---: | ---: |
+| FedAvg | 3 | 8 | 9 | 20 |
+| FedProx | 3 | 8 | 18 | 29 |
+| SCAFFOLD | 3 | 8 | 12 | 23 |
+| FedNova | 5 | 8 | 9 | 22 |
+| FedOpt family | 3 | 8 | 18 | 29 |
+| FedLT | 3 | 8 | 9 | 20 |
+| FedDyn | 1 | 8 | 9 | 18 |
+| FedPD | 1 | 8 | 6 | 15 |
+
+### Initial Search Results
+
+The following table reports the automatic winner of each completed broad candidate search. Metrics are computed on the
+20% validation partition, not on the official test split.
+
+| Algorithm group | Automatic winner | Candidate validation server balanced accuracy | Validation loss | 1500-iteration final-curve server balanced accuracy |
+| --- | --- | ---: | ---: | ---: |
+| FedAvg | `step_size=0.02`, `num_local_epochs=4` | 71.75% | 0.2512 | 71.64% |
+| FedProx | `step_size=0.0320261`, `num_local_epochs=4`, `mu=0.0380442` | 72.49% | 0.2815 | 72.17% |
+| SCAFFOLD | `step_size=0.02`, `num_local_epochs=5`, `server_step_size=0.875` | 71.26% | 0.5756 | 72.45% |
+| FedNova | server momentum only, `step_size=0.00731339`, `num_local_epochs=3`, `gamma=0.5` | 72.46% | 0.3226 | 71.49% |
+| FedOpt family | FedAdam, `step_size=0.00855447`, `num_local_epochs=4`, `server_step_size=0.00717902` | 72.95% | 0.0447 | 71.54% |
+| FedLT | Adam, `step_size=0.000389777`, `num_local_epochs=2`, `rho=0.0158376` | 66.41% | 1.0181 | 63.77% |
+| FedDyn | `step_size=0.000452614`, `num_local_epochs=4`, `alpha=0.0118062` | 57.59% | 1.7049 | 55.83% |
+| FedPD | `step_size=0.03`, `num_local_epochs=5`, `eta=0.3`, `skip_probability=0.2` | 72.36% | 0.1514 | 70.69% |
+
+Per-algorithm conclusions from the initial search:
+
+- **FedAvg:** the focused-grid `0.02` learning rate with four local epochs narrowly outperformed the FLamby-style
+  `0.01`/four-epoch reference (`71.75%` versus `71.23%` validation server balanced accuracy). The selected curve was
+  smooth and retained.
+- **FedProx:** the automatic high-learning-rate/high-`mu` winner had the best final validation score, but its balanced
+  accuracy curve stayed nearly flat before a late increase. It was therefore retuned before use in later experiments.
+- **SCAFFOLD:** several candidates were close. The selected `0.02`, five-epoch, `0.875` server-step candidate had the
+  highest candidate balanced accuracy and a final curve of `72.45%`.
+- **FedNova:** all structural variants were evaluated: server momentum, local momentum, local proximal, and combinations of them. Their best candidate balanced accuracies were:
+  client momentum only `69.71%`, proximal only `70.04%`, both momenta `37.22%`, both momenta plus proximal `69.04%`,
+  and server momentum only `72.46%`. Server momentum only was therefore selected.
+- **FedOpt family:** the search evaluated `9` FedAdam, `11` FedYogi, and `9` FedAdagrad candidates. The best candidate
+  from each family reached `72.95%`, `71.36%`, and `64.49%` validation server balanced accuracy respectively, selecting
+  FedAdam as the FedOpt representative.
+- **FedLT:** all three local solvers were evaluated: gd, nesterov, adam. Their best candidate scores were GD `47.06%`, Nesterov
+  `61.17%`, and Adam `66.41%`, selecting Adam. The low learning rate and low `rho` produced a slow curve, so FedLT was
+  retuned.
+- **FedDyn:** the automatic winner used a very small learning rate and `alpha`. Although it obtained the highest final
+  candidate score, its learning curve remained almost flat until a late increase. It was therefore retuned and
+  diagnosed further.
+- **FedPD:** the focused-grid candidate retained the reference `eta=0.3` and `skip_probability=0.2`; `step_size=0.03`
+  with five local epochs was the best result and was retained without further tuning.
+
+### Retuning and Curve-Diagnostic Results
+
+FedProx, FedLT, and FedDyn received a compact six-candidate retuning pass because their initial curves were suspicious
+or slow. The same validation split, model, loss, clean communication setting, `1000` candidate iterations, and
+single-trial selection rule were retained.
+
+| Algorithm | Best retuning candidate by final score | Retuning server balanced accuracy | Retuning loss | Final decision |
+| --- | --- | ---: | ---: | --- |
+| FedProx | `step_size=0.0160131`, `num_local_epochs=4`, `mu=0.00951105` | 71.69% | 0.1778 | Retained; smoother and slightly better than the previous candidate within the retune |
+| FedLT | Adam, `step_size=0.0015`, `num_local_epochs=4`, `rho=0.1` | 68.96% | 1.0996 | Used as a diagnostic reference; an intermediate candidate was subsequently selected |
+| FedDyn | original low-rate candidate | 57.86% | 1.6187 | Rejected despite the best endpoint because the pathological late-jump curve remained |
+
+FedProx retuning:
+
+- The final selection was `step_size=0.016013056680630116`, `num_local_epochs=4`,
+  `mu=0.00951105281010339`.
+- It reached `71.69%` validation server balanced accuracy in candidate evaluation and `70.59%` in its
+  1500-iteration validation curve.
+- The initial automatic winner reached a higher `72.17%` final-curve endpoint, but the lower-rate/lower-`mu` candidate
+  was retained because its behavior was less dependent on a late accuracy jump.
+
+FedLT retuning and diagnostics:
+
+- The retuning winner (`step_size=0.0015`, four local epochs, `rho=0.1`, Adam) reached `68.96%` candidate balanced
+  accuracy and `69.10%` on its 1500-iteration curve.
+- A later intermediate diagnostic with `step_size=0.0008`, three local epochs, and `rho=0.05` reached `69.03%` server
+  balanced accuracy, `71.23%` server accuracy, and average loss `0.3548`.
+- The otherwise identical `step_size=0.001` diagnostic reached `67.87%` server balanced accuracy and average loss
+  `0.4403`.
+- The `0.0008` intermediate candidate was selected because it preserved smooth convergence while matching the stronger
+  retuned endpoint and producing lower loss than the `0.001` diagnostic.
+
+FedDyn retuning and diagnostics:
+
+- Retuning again selected the original low-rate candidate by endpoint score (`57.86%`), confirming that endpoint-only
+  selection favored the same late-jump behavior.
+- A 500-iteration comparison evaluated the three more plausible alternatives. The `0.001`/four-epoch/`alpha=0.01`
+  candidate reached `52.13%`, the `0.002` candidate reached `50.48%`, and the
+  `0.0160131`/three-epoch/`alpha=0.330754` candidate reached `42.71%` server balanced accuracy.
+- The higher-rate green candidate was extended to `1000` iterations. It reached `48.23%` server balanced accuracy,
+  `42.35%` server accuracy, and average loss `2.2643`.
+- The green candidate was retained because it began improving earlier and reduced loss more consistently, not because
+  it had the best endpoint. Even this curve remained unsatisfactory, so FedDyn is explicitly marked as under-tuned.
+
 Final selected values:
 
 | Algorithm | Selected variant | Hyperparameters |
@@ -305,27 +434,6 @@ Additional tuning decisions:
   therefore be interpreted cautiously as a likely under-tuned/sensitive baseline rather than as a fully optimized
   FedDyn configuration.
 
-## Experiment 0 Retuning
-
-Added `experiments/fedisic2019/experiment0/experiment0_retune.py`.
-
-This is a compact follow-up to `experiment0` for algorithms whose final validation curves were suspicious or likely
-under-tuned after the first full run:
-
-- FedDyn: first run selected a very low learning rate/alpha and the final curve stayed nearly flat until a late jump.
-- FedProx: first run selected a high learning rate/proximal coefficient and the final balanced accuracy curve jumped
-  late rather than improving smoothly.
-- FedLT: first run selected a low `rho` and low learning rate; retuning compares that current best against more
-  standard `rho` values around `0.01`, `0.1`, and `1.0`.
-
-The retuning script uses the same dataset split, model, weighted focal loss, metrics, clean communication assumptions,
-and final-curve evaluation as `experiment0`, but replaces broad random/grid search with fixed candidate lists of at
-most six candidates per algorithm. FedProx and FedLT include their current best `experiment0` candidate so the retune
-can directly compare new candidates against the previous selection.
-
-Retuning writes run-specific best files under:
-
-- `experiments/fedisic2019/checkpoints/experiment0/<algorithm>/<run>/exp0_retune_best_hyperparameters.json`
 
 ## Experiment 2
 
@@ -545,7 +653,7 @@ Reduced Experiment 2 writes results under:
 
 - `experiments/fedisic2019/checkpoints/experiment2_reduced_pilot/fedavg/<run>/`
 
-## Results Obtained So Far
+## Results Obtained
 
 ### Full Experiment 5: Clean, Drops, and Combined Impairments
 
@@ -743,34 +851,7 @@ Interpretation:
 - Uniform and data-size weighted aggregation are essentially tied for FedAvg in this full-data run.
 - The data-size weighted variant has a much larger margin of error for server balanced accuracy.
 
-### Experiment 0 Diagnostic Curves
 
-The diagnostic curves explain why the final selected hyperparameters were chosen and why FedDyn should be interpreted
-cautiously.
-
-FedLT diagnostics:
-
-| Candidate | Server balanced accuracy | Server accuracy | Average loss |
-| --- | ---: | ---: | ---: |
-| `step_size=0.0008`, `num_local_epochs=3`, `rho=0.05` | 69.03% | 71.23% | 0.3548 |
-| `step_size=0.001`, `num_local_epochs=3`, `rho=0.05` | 67.87% | 71.31% | 0.4403 |
-
-Interpretation: the `0.0008` FedLT candidate was kept because it gave slightly higher server balanced accuracy and a
-lower loss than the otherwise similar `0.001` candidate. The result remains a tuning diagnostic rather than a thesis
-benchmark result.
-
-FedDyn diagnostics:
-
-| Candidate | Server balanced accuracy | Server accuracy | Average loss |
-| --- | ---: | ---: | ---: |
-| `step_size=0.001`, `num_local_epochs=4`, `alpha=0.01` | 52.13% | 47.73% | 2.4062 |
-| `step_size=0.002`, `num_local_epochs=4`, `alpha=0.01` | 50.48% | 48.86% | 2.6348 |
-| `step_size=0.016013056680630116`, `num_local_epochs=3`, `alpha=0.33075447277711245` | 42.71% | 35.04% | 3.5584 |
-| green 1000-iteration diagnostic with the final selected parameters | 48.23% | 42.35% | 2.2643 |
-
-Interpretation: FedDyn remains under-tuned. The green candidate was kept as the most plausible selected option because
-its curve improved earlier and its loss decreased more consistently, but its final behavior is still not competitive or
-fully satisfactory. Describe FedDyn as an under-tuned or sensitive baseline in the discussion.
 
 ## Inspection Figures
 
