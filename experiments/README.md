@@ -17,6 +17,11 @@ Together, the two tasks cover the main federated learning settings supported by 
 
 This allows `decent-bench` to benchmark the same federated algorithms in both cross-device and cross-silo scenarios.
 
+> **Reproducibility note:** `decent-bench` may have changed or been updated since the version used to run these
+> experiments. Consequently, results obtained with a newer revision may differ, and some commands or interfaces may
+> require adaptation. The dataset-specific documentation, saved configurations, and experiment metadata describe the
+> setup used for the reported results.
+
 ## Experimental Tasks
 
 ### FEMNIST
